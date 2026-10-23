@@ -1,10 +1,14 @@
-
+```python
 import os
 import logging
 import json
 
 import telebot
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton
+from telebot.types import (
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    WebAppInfo,
+)
 from supabase import create_client
 
 logging.basicConfig(level=logging.INFO)
@@ -22,9 +26,20 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 bot = telebot.TeleBot(BOT_TOKEN)
 db = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+APP_URL = "https://en96.onrender.com"
+
 
 def main_menu():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+
+    # فتح تطبيق EN96 داخل تيليغرام
+    keyboard.row(
+        KeyboardButton(
+            "🚀 فتح تطبيق EN96",
+            web_app=WebAppInfo(url=APP_URL)
+        )
+    )
+
     keyboard.row(
         KeyboardButton("⛏️ بدء التعدين"),
         KeyboardButton("💰 محفظتي")
@@ -41,6 +56,7 @@ def main_menu():
         KeyboardButton("🐉 أعضاء القبيلة"),
         KeyboardButton("ℹ️ معلومات EN96")
     )
+
     return keyboard
 
 
@@ -164,10 +180,15 @@ def process_gift_code(message):
     chat_id = message.chat.id
 
     menu_buttons = {
-        "⛏️ بدء التعدين", "💰 محفظتي",
-        "⚡ ترقية المنجم", "🏆 المكافآت",
-        "📺 مشاهدة الفيديوهات", "🎁 استلام الهدية",
-        "🐉 أعضاء القبيلة", "ℹ️ معلومات EN96"
+        "🚀 فتح تطبيق EN96",
+        "⛏️ بدء التعدين",
+        "💰 محفظتي",
+        "⚡ ترقية المنجم",
+        "🏆 المكافآت",
+        "📺 مشاهدة الفيديوهات",
+        "🎁 استلام الهدية",
+        "🐉 أعضاء القبيلة",
+        "ℹ️ معلومات EN96",
     }
 
     if not code or code in menu_buttons or code.startswith("/"):
@@ -182,7 +203,7 @@ def process_gift_code(message):
             "redeem_en96_video_gift",
             {
                 "p_telegram_id": message.from_user.id,
-                "p_code": code
+                "p_code": code,
             }
         ).execute()
 
@@ -216,12 +237,14 @@ def process_gift_code(message):
                 "🎉 تم استلام الهدية بنجاح!\n\n"
                 f"🎁 المكافأة: {reward} EN96\n"
             )
+
             if available is not None:
                 response += (
                     f"💰 الرصيد المتاح الآن: {available} EN96\n"
                 )
 
             response += "\n✅ تم حفظ المكافأة في قاعدة البيانات."
+
         else:
             reason = data.get(
                 "reason",
@@ -234,7 +257,7 @@ def process_gift_code(message):
                 "invalid_or_inactive_code": "❌ الكود غير صحيح أو غير نشط.",
                 "already_claimed": "⚠️ سبق لك استلام هذه الهدية.",
                 "cooldown_2_hours": "⏳ انتظر ساعتين قبل طلب هدية أخرى.",
-                "balance_not_found": "⚠️ سجل رصيدك غير موجود في balances."
+                "balance_not_found": "⚠️ سجل رصيدك غير موجود في balances.",
             }
 
             response = messages.get(
@@ -259,7 +282,8 @@ def start(message):
     send_menu(
         message.chat.id,
         "🐉 مرحبًا بك في EN96 Mining!\n"
-        "أهلًا بك في مملكة التنين الجليدي."
+        "أهلًا بك في مملكة التنين الجليدي.\n\n"
+        "🚀 اضغط على زر فتح تطبيق EN96 للدخول إلى التطبيق."
     )
 
 
@@ -362,6 +386,14 @@ def upgrade_button(message):
     )
 
 
+@bot.message_handler(func=lambda m: m.text == "🚀 فتح تطبيق EN96")
+def open_app_button(message):
+    send_menu(
+        message.chat.id,
+        "🚀 اضغط على زر فتح تطبيق EN96 في القائمة لفتحه."
+    )
+
+
 @bot.message_handler(func=lambda m: True)
 def other_messages(message):
     send_menu(
@@ -373,3 +405,5 @@ def other_messages(message):
 if __name__ == "__main__":
     logger.info("Starting EN96 bot")
     bot.infinity_polling(skip_pending=True, timeout=30)
+```
+
