@@ -1,6 +1,7 @@
 
 import os
 import logging
+import json
 
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
@@ -43,6 +44,10 @@ def main_menu():
     return keyboard
 
 
+def send_menu(chat_id, text):
+    bot.send_message(chat_id, text, reply_markup=main_menu())
+
+
 def get_profile(telegram_id):
     result = (
         db.table("profiles")
@@ -59,10 +64,9 @@ def wallet(chat_id, telegram_id):
         profile = get_profile(telegram_id)
 
         if not profile:
-            bot.send_message(
+            send_menu(
                 chat_id,
-                "⚠️ حسابك غير مربوط بقاعدة البيانات بعد.",
-                reply_markup=main_menu()
+                "⚠️ حسابك غير مربوط بقاعدة البيانات بعد."
             )
             return
 
@@ -75,29 +79,23 @@ def wallet(chat_id, telegram_id):
         )
 
         if not result.data:
-            bot.send_message(
-                chat_id,
-                "⚠️ سجل رصيدك غير موجود.",
-                reply_markup=main_menu()
-            )
+            send_menu(chat_id, "⚠️ سجل رصيدك غير موجود.")
             return
 
         row = result.data[0]
-        bot.send_message(
+        send_menu(
             chat_id,
             "💰 محفظة EN96\n\n"
             f"🟢 الرصيد المتاح: {row.get('available', 0)} EN96\n"
             f"🟠 الرصيد المحجوز: {row.get('reserved', 0)} EN96\n\n"
-            "ℹ️ هذا رصيد افتراضي داخل البوت.",
-            reply_markup=main_menu()
+            "ℹ️ هذا رصيد افتراضي داخل البوت."
         )
 
     except Exception:
         logger.exception("Wallet error")
-        bot.send_message(
+        send_menu(
             chat_id,
-            "❌ تعذرت قراءة المحفظة. راجع سجلات Render.",
-            reply_markup=main_menu()
+            "❌ تعذرت قراءة المحفظة. يرجى مراجعة سجلات Render."
         )
 
 
@@ -113,10 +111,9 @@ def mining(chat_id, telegram_id):
             data = data[0]
 
         if not isinstance(data, dict):
-            bot.send_message(
+            send_menu(
                 chat_id,
-                "❌ استجابة غير متوقعة من قاعدة البيانات.",
-                reply_markup=main_menu()
+                "❌ استجابة غير متوقعة من قاعدة البيانات."
             )
             return
 
@@ -134,7 +131,9 @@ def mining(chat_id, telegram_id):
                 "🏆 مكافأة الجلسة الكاملة: 86.4 EN96"
             )
         elif status == "active":
-            seconds = max(0, int(data.get("remaining_seconds", 0)))
+            seconds = max(
+                0, int(data.get("remaining_seconds", 0))
+            )
             hours, remainder = divmod(seconds, 3600)
             minutes = remainder // 60
             message = (
@@ -150,14 +149,13 @@ def mining(chat_id, telegram_id):
         else:
             message = f"⚠️ حالة التعدين: {status}"
 
-        bot.send_message(chat_id, message, reply_markup=main_menu())
+        send_menu(chat_id, message)
 
     except Exception:
         logger.exception("Mining error")
-        bot.send_message(
+        send_menu(
             chat_id,
-            "❌ تعذر تنفيذ التعدين. راجع سجلات Render.",
-            reply_markup=main_menu()
+            "❌ تعذر تنفيذ التعدين. يرجى مراجعة سجلات Render."
         )
 
 
@@ -173,10 +171,9 @@ def process_gift_code(message):
     }
 
     if not code or code in menu_buttons or code.startswith("/"):
-        bot.send_message(
+        send_menu(
             chat_id,
-            "تم إلغاء إدخال الكود. اضغط 🎁 استلام الهدية للمحاولة مجددًا.",
-            reply_markup=main_menu()
+            "تم إلغاء إدخال الكود. اضغط 🎁 استلام الهدية للمحاولة مجددًا."
         )
         return
 
@@ -195,18 +192,19 @@ def process_gift_code(message):
             data = data[0]
 
         if isinstance(data, str):
-            import json
             try:
                 data = json.loads(data)
             except (ValueError, TypeError):
                 data = None
 
         if not isinstance(data, dict):
-            logger.error("Unexpected gift response type: %s", type(data).__name__)
-            bot.send_message(
+            logger.error(
+                "Unexpected gift response type: %s",
+                type(data).__name__
+            )
+            send_menu(
                 chat_id,
-                "❌ وصل رد غير متوقع من قاعدة البيانات. راجع سجلات Render.",
-                reply_markup=main_menu()
+                "❌ وصل رد غير متوقع من قاعدة البيانات."
             )
             return
 
@@ -219,7 +217,9 @@ def process_gift_code(message):
                 f"🎁 المكافأة: {reward} EN96\n"
             )
             if available is not None:
-                response += f"💰 الرصيد المتاح الآن: {available} EN96\n"
+                response += (
+                    f"💰 الرصيد المتاح الآن: {available} EN96\n"
+                )
 
             response += "\n✅ تم حفظ المكافأة في قاعدة البيانات."
         else:
@@ -242,27 +242,76 @@ def process_gift_code(message):
                 f"⚠️ تعذر استلام الهدية. السبب: {reason}"
             )
 
-        bot.send_message(chat_id, response, reply_markup=main_menu())
+        send_menu(chat_id, response)
 
     except Exception:
         logger.exception("Gift redemption error")
-        bot.send_message(
+        send_menu(
             chat_id,
-            "❌ حدث خطأ أثناء التحقق من الكود. راجع سجلات Render.",
-            reply_markup=main_menu()
+            "❌ حدث خطأ أثناء التحقق من الكود. "
+            "يرجى مراجعة سجلات Render."
         )
 
 
+# بدء البوت
 @bot.message_handler(commands=["start"])
 def start(message):
-    bot.send_message(
+    send_menu(
         message.chat.id,
         "🐉 مرحبًا بك في EN96 Mining!\n"
-        "أهلًا بك في مملكة التنين الجليدي.",
-        reply_markup=main_menu()
+        "أهلًا بك في مملكة التنين الجليدي."
     )
 
 
+# أوامر تيليغرام المباشرة
+@bot.message_handler(commands=["wallet"])
+def wallet_command(message):
+    wallet(message.chat.id, message.from_user.id)
+
+
+@bot.message_handler(commands=["mining"])
+def mining_command(message):
+    mining(message.chat.id, message.from_user.id)
+
+
+@bot.message_handler(commands=["rewards"])
+def rewards_command(message):
+    send_menu(
+        message.chat.id,
+        "🏆 مكافآت EN96\n\n"
+        "⚡ معدل التعدين الافتراضي: 0.001 EN96 في الثانية.\n"
+        "⏳ مدة الجلسة: 24 ساعة.\n"
+        "ℹ️ المكافآت افتراضية داخل البوت."
+    )
+
+
+@bot.message_handler(commands=["videos"])
+def videos_command(message):
+    send_menu(
+        message.chat.id,
+        "📺 قائمة الفيديوهات قيد الإعداد."
+    )
+
+
+@bot.message_handler(commands=["tribe"])
+def tribe_command(message):
+    send_menu(
+        message.chat.id,
+        "🐉 معلومات أعضاء القبيلة قيد الإعداد."
+    )
+
+
+@bot.message_handler(commands=["info"])
+def info_command(message):
+    send_menu(
+        message.chat.id,
+        "ℹ️ معلومات EN96\n\n"
+        "EN96 مشروع مرتبط بشبكة Stellar.\n"
+        "الرصيد الافتراضي داخل البوت ليس تحويلًا على الشبكة."
+    )
+
+
+# أزرار القائمة
 @bot.message_handler(func=lambda m: m.text == "💰 محفظتي")
 def wallet_button(message):
     wallet(message.chat.id, message.from_user.id)
@@ -284,28 +333,40 @@ def gift_button(message):
 
 @bot.message_handler(func=lambda m: m.text == "📺 مشاهدة الفيديوهات")
 def videos_button(message):
-    bot.send_message(
+    send_menu(
         message.chat.id,
-        "📺 قائمة الفيديوهات قيد الإعداد.",
-        reply_markup=main_menu()
+        "📺 قائمة الفيديوهات قيد الإعداد."
+    )
+
+
+@bot.message_handler(func=lambda m: m.text == "🏆 المكافآت")
+def rewards_button(message):
+    rewards_command(message)
+
+
+@bot.message_handler(func=lambda m: m.text == "🐉 أعضاء القبيلة")
+def tribe_button(message):
+    tribe_command(message)
+
+
+@bot.message_handler(func=lambda m: m.text == "ℹ️ معلومات EN96")
+def info_button(message):
+    info_command(message)
+
+
+@bot.message_handler(func=lambda m: m.text == "⚡ ترقية المنجم")
+def upgrade_button(message):
+    send_menu(
+        message.chat.id,
+        "⚡ ميزة ترقية المنجم قيد الإعداد."
     )
 
 
 @bot.message_handler(func=lambda m: True)
-def other_buttons(message):
-    responses = {
-        "⚡ ترقية المنجم": "⚡ ميزة الترقية قيد الإعداد.",
-        "🏆 المكافآت": "🏆 ستظهر المكافآت هنا.",
-        "🐉 أعضاء القبيلة": "🐉 معلومات القبيلة قيد الإعداد.",
-        "ℹ️ معلومات EN96": (
-            "EN96 مشروع مرتبط بشبكة Stellar. "
-            "الرصيد الافتراضي في البوت ليس تحويلًا على الشبكة."
-        )
-    }
-    bot.reply_to(
-        message,
-        responses.get(message.text, "اختر زرًا من القائمة."),
-        reply_markup=main_menu()
+def other_messages(message):
+    send_menu(
+        message.chat.id,
+        "اختر أمرًا أو زرًا من قائمة EN96."
     )
 
 
