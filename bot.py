@@ -1,7 +1,6 @@
 
 import os
 import logging
-from datetime import datetime, timezone
 
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
@@ -62,8 +61,7 @@ def wallet(chat_id, telegram_id):
         if not profile:
             bot.send_message(
                 chat_id,
-                "⚠️ لم نجد حسابك في قاعدة البيانات.\n"
-                "يجب ربط حساب تيليغرام بملف profiles أولًا.",
+                "⚠️ حسابك غير مربوط بقاعدة البيانات بعد.",
                 reply_markup=main_menu()
             )
             return
@@ -79,7 +77,7 @@ def wallet(chat_id, telegram_id):
         if not result.data:
             bot.send_message(
                 chat_id,
-                "⚠️ حسابك موجود، لكن سجل الرصيد غير موجود.",
+                "⚠️ سجل رصيدك غير موجود بعد.",
                 reply_markup=main_menu()
             )
             return
@@ -90,7 +88,7 @@ def wallet(chat_id, telegram_id):
             "💰 محفظة EN96\n\n"
             f"🟢 الرصيد المتاح: {row.get('available', 0)} EN96\n"
             f"🟠 الرصيد المحجوز: {row.get('reserved', 0)} EN96\n\n"
-            "ℹ️ هذا رصيد افتراضي داخل البوت.",
+            "ℹ️ الرصيد افتراضي داخل البوت، وليس تحويلًا على شبكة Stellar.",
             reply_markup=main_menu()
         )
 
@@ -98,7 +96,8 @@ def wallet(chat_id, telegram_id):
         logger.exception("Wallet error")
         bot.send_message(
             chat_id,
-            "❌ تعذر قراءة المحفظة. تحقق من سجلات Render."
+            "❌ تعذرت قراءة المحفظة. تحقق من سجلات Render.",
+            reply_markup=main_menu()
         )
 
 
@@ -114,29 +113,30 @@ def mining(chat_id, telegram_id):
             data = data[0]
 
         if not isinstance(data, dict):
-            bot.send_message(chat_id, "❌ استجابة غير متوقعة من قاعدة البيانات.")
+            bot.send_message(
+                chat_id,
+                "❌ استجابة غير متوقعة من قاعدة البيانات.",
+                reply_markup=main_menu()
+            )
             return
 
         status = data.get("status")
 
         if status == "profile_missing":
-            message = (
-                "⚠️ حسابك غير مربوط في profiles.\n"
-                "يجب إنشاء ملفك باستخدام Telegram ID أولًا."
-            )
+            message = "⚠️ حسابك غير مربوط في profiles."
         elif status == "balance_missing":
-            message = "⚠️ لم يُنشأ سجل رصيد لك في balances بعد."
+            message = "⚠️ سجل رصيدك غير موجود في balances."
         elif status == "started":
             message = (
                 "⛏️ بدأ التعدين الافتراضي!\n\n"
                 "⏳ المدة: 24 ساعة\n"
-                "⚡ المعدل النظري: 0.001 EN96/ثانية\n"
+                "⚡ المعدل: 0.001 EN96 في الثانية\n"
                 "🏆 مكافأة الجلسة الكاملة: 86.4 EN96"
             )
         elif status == "active":
             seconds = max(0, int(data.get("remaining_seconds", 0)))
-            hours, rem = divmod(seconds, 3600)
-            minutes, _ = divmod(rem, 60)
+            hours, remainder = divmod(seconds, 3600)
+            minutes = remainder // 60
             message = (
                 "⛏️ التعدين ما زال جاريًا.\n"
                 f"⏳ الوقت المتبقي: {hours} ساعة و{minutes} دقيقة."
@@ -144,11 +144,11 @@ def mining(chat_id, telegram_id):
         elif status == "rewarded_and_started":
             message = (
                 "🎉 اكتملت جلسة التعدين!\n"
-                f"💰 أُضيفت {data.get('reward', 0)} EN96 إلى رصيدك.\n"
+                f"💰 المكافأة المضافة: {data.get('reward', 0)} EN96\n"
                 "⛏️ بدأت جلسة جديدة مدتها 24 ساعة."
             )
         else:
-            message = f"⚠️ حالة غير معروفة: {status}"
+            message = f"⚠️ حالة التعدين: {status}"
 
         bot.send_message(chat_id, message, reply_markup=main_menu())
 
@@ -156,7 +156,92 @@ def mining(chat_id, telegram_id):
         logger.exception("Mining error")
         bot.send_message(
             chat_id,
-            "❌ تعذر تنفيذ التعدين. راجع سجلات Render."
+            "❌ تعذر تنفيذ التعدين. تحقق من سجلات Render.",
+            reply_markup=main_menu()
+        )
+
+
+def process_gift_code(message):
+    code = (message.text or "").strip()
+
+    menu_buttons = {
+        "⛏️ بدء التعدين", "💰 محفظتي",
+        "⚡ ترقية المنجم", "🏆 المكافآت",
+        "📺 مشاهدة الفيديوهات", "🎁 استلام الهدية",
+        "🐉 أعضاء القبيلة", "ℹ️ معلومات EN96"
+    }
+
+    if not code or code in menu_buttons:
+        bot.send_message(
+            message.chat.id,
+            "تم إلغاء إدخال الكود. اضغط 🎁 استلام الهدية للمحاولة مجددًا.",
+            reply_markup=main_menu()
+        )
+        return
+
+    try:
+        result = db.rpc(
+            "redeem_en96_video_gift",
+            {
+                "p_telegram_id": message.from_user.id,
+                "p_code": code
+            }
+        ).execute()
+
+        data = result.data
+        if isinstance(data, list) and data:
+            data = data[0]
+
+        if not isinstance(data, dict):
+            bot.send_message(
+                message.chat.id,
+                "❌ استجابة غير مفهومة من قاعدة البيانات.",
+                reply_markup=main_menu()
+            )
+            return
+
+        if data.get("ok") is True:
+            reward = data.get("reward", 0)
+            available = data.get("available")
+
+            response = (
+                "🎉 تم استلام الهدية بنجاح!\n\n"
+                f"🎁 المكافأة: {reward} EN96\n"
+            )
+            if available is not None:
+                response += f"💰 الرصيد المتاح: {available} EN96\n"
+            response += "\n✅ تم حفظ النتيجة في قاعدة البيانات."
+        else:
+            status = data.get("status", data.get("error", "unknown"))
+            messages = {
+                "profile_not_found":
+                    "⚠️ حساب تيليغرام غير مربوط في profiles.",
+                "invalid_or_inactive_code":
+                    "❌ الكود غير صحيح أو غير نشط.",
+                "already_claimed":
+                    "⚠️ سبق لك استلام هذه الهدية.",
+                "cooldown_2_hours":
+                    "⏳ انتظر ساعتين قبل المطالبة بهدية أخرى.",
+                "balance_not_found":
+                    "⚠️ سجل رصيدك غير موجود."
+            }
+            response = messages.get(
+                status,
+                f"⚠️ تعذر استلام الهدية. الحالة: {status}"
+            )
+
+        bot.send_message(
+            message.chat.id,
+            response,
+            reply_markup=main_menu()
+        )
+
+    except Exception:
+        logger.exception("Gift redemption error")
+        bot.send_message(
+            message.chat.id,
+            "❌ تعذر التحقق من الكود. راجع سجلات Render.",
+            reply_markup=main_menu()
         )
 
 
@@ -182,11 +267,11 @@ def mining_button(message):
 
 @bot.message_handler(func=lambda m: m.text == "🎁 استلام الهدية")
 def gift_button(message):
-    bot.send_message(
+    msg = bot.send_message(
         message.chat.id,
-        "🎁 التحقق من أكواد الهدايا لم يُربط بهذا الإصدار بعد.",
-        reply_markup=main_menu()
+        "🎁 أرسل كود الهدية الذي حصلت عليه من الفيديو:"
     )
+    bot.register_next_step_handler(msg, process_gift_code)
 
 
 @bot.message_handler(func=lambda m: m.text == "📺 مشاهدة الفيديوهات")
