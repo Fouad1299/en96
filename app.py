@@ -1,9 +1,10 @@
-
 import os
 import hmac
 import json
 import time
 import hashlib
+from datetime import datetime, timezone
+
 import threading
 import logging
 from urllib.parse import parse_qsl
@@ -154,6 +155,14 @@ def home():
       color: #f5d681; margin: 12px 0;
       overflow-wrap: anywhere;
     }
+    .timer-card {
+      margin-top: 16px; padding: 16px;
+      border: 1px solid #a78337; border-radius: 16px;
+      background: linear-gradient(145deg, #151b22, #090d12);
+    }
+    .timer { font-size: 30px; font-weight: 800; color: #f5d681; direction: ltr; margin: 8px 0; }
+    .progress { height: 9px; background: #273342; border-radius: 99px; overflow: hidden; margin-top: 12px; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #c18b22, #ffe7a0); transition: width .4s; }
     button, input {
       width: 100%; padding: 15px; margin-top: 12px;
       border-radius: 13px; font-size: 16px;
@@ -186,7 +195,14 @@ def home():
     <div class="balance" id="balance">جارٍ تحميل الرصيد...</div>
     <div class="muted" id="reserved">الرصيد المحجوز: —</div>
 
-    <button id="miningButton" onclick="doMining()">⛏️ بدء التعدين / استلام المكافأة</button>
+    <div class="timer-card">
+      <div class="muted" id="miningState">حالة التعدين: متوقف</div>
+      <div class="timer" id="miningTimer">24:00:00</div>
+      <div id="miningReward" class="muted">المكافأة التقديرية: 0.000000 EN96</div>
+      <div class="progress"><div id="miningProgress" class="progress-fill"></div></div>
+    </div>
+    <button id="startMiningButton" onclick="startMining()">⛏️ بدء التعدين</button>
+    <button id="claimMiningButton" class="secondary" onclick="claimMining()" hidden>🎁 استلام المكافأة</button>
 
     <input id="giftCode" maxlength="100"
       placeholder="أدخل كود هدية EN96">
@@ -206,6 +222,14 @@ const tg = window.Telegram && window.Telegram.WebApp;
 const statusBox = document.getElementById("status");
 const balanceBox = document.getElementById("balance");
 const reservedBox = document.getElementById("reserved");
+const miningStateBox = document.getElementById("miningState");
+const miningTimerBox = document.getElementById("miningTimer");
+const miningRewardBox = document.getElementById("miningReward");
+const miningProgressBox = document.getElementById("miningProgress");
+const startMiningButton = document.getElementById("startMiningButton");
+const claimMiningButton = document.getElementById("claimMiningButton");
+let miningState = {status: "idle", remaining_seconds: 86400, elapsed_seconds: 0};
+let timerInterval = null;
 
 if (tg) {
   tg.ready();
@@ -261,24 +285,105 @@ async function loadBalance() {
         "مرحبًا " + data.first_name + " في تطبيق EN96";
     }
     showMessage("تم تحميل رصيد حسابك المحفوظ بنجاح.");
+    await refreshMiningStatus();
   } catch (error) {
     balanceBox.textContent = "غير متاح";
     showMessage(error.message);
   }
 }
 
-async function doMining() {
-  const button = document.getElementById("miningButton");
-  button.disabled = true;
+function formatTime(totalSeconds) {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function renderMiningStatus() {
+  const remaining = Math.max(0, miningState.remaining_seconds || 0);
+  const elapsed = Math.max(0, miningState.elapsed_seconds || 0);
+  const rate = 0.001;
+  const reward = Math.min(86.4, elapsed * rate);
+  miningTimerBox.textContent = formatTime(remaining);
+  miningRewardBox.textContent = "المكافأة التقديرية: " + reward.toFixed(6) + " EN96";
+  miningProgressBox.style.width = Math.min(100, (elapsed / 86400) * 100) + "%";
+  startMiningButton.hidden = miningState.status === "active" || miningState.status === "ready_to_claim";
+  claimMiningButton.hidden = miningState.status !== "ready_to_claim";
+
+  if (miningState.status === "active") {
+    miningStateBox.textContent = "⛏️ التعدين نشط — لا تغلق الجلسة، وقتك محفوظ";
+  } else if (miningState.status === "ready_to_claim") {
+    miningStateBox.textContent = "🎉 انتهت الجلسة! يمكنك استلام مكافأة 86.4 EN96";
+    miningTimerBox.textContent = "00:00:00";
+    miningRewardBox.textContent = "المكافأة المستحقة: 86.400000 EN96";
+    miningProgressBox.style.width = "100%";
+  } else {
+    miningStateBox.textContent = "حالة التعدين: متوقف";
+    miningTimerBox.textContent = "24:00:00";
+    miningRewardBox.textContent = "المكافأة عند إكمال 24 ساعة: 86.400000 EN96";
+    miningProgressBox.style.width = "0%";
+  }
+}
+
+async function refreshMiningStatus() {
   try {
-    showMessage("جارٍ تنفيذ طلب التعدين...");
-    const data = await api("/api/mining", {});
-    showMessage(data.message || "تم إرسال طلب التعدين إلى النظام.");
-    await loadBalance();
+    miningState = await api("/api/mining/status");
+    renderMiningStatus();
+    if (timerInterval) clearInterval(timerInterval);
+    if (miningState.status === "active") {
+      timerInterval = setInterval(() => {
+        miningState.remaining_seconds = Math.max(0, (miningState.remaining_seconds || 0) - 1);
+        miningState.elapsed_seconds = Math.min(86400, (miningState.elapsed_seconds || 0) + 1);
+        if (miningState.remaining_seconds <= 0) {
+          miningState.status = "ready_to_claim";
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        renderMiningStatus();
+      }, 1000);
+    }
+  } catch (error) {
+    showMessage(error.message);
+  }
+}
+
+async function startMining() {
+  startMiningButton.disabled = true;
+  try {
+    showMessage("جارٍ بدء جلسة التعدين...");
+    const data = await api("/api/mining/start", {});
+    if (data.status === "started" || data.status === "active" || data.status === "ready_to_claim") {
+      showMessage(data.message || "تم تحديث حالة التعدين.");
+    } else {
+      showMessage(data.message || "تعذر بدء التعدين: " + (data.status || "خطأ غير معروف"));
+    }
+    await refreshMiningStatus();
   } catch (error) {
     showMessage(error.message);
   } finally {
-    button.disabled = false;
+    startMiningButton.disabled = false;
+  }
+}
+
+async function claimMining() {
+  claimMiningButton.disabled = true;
+  try {
+    showMessage("جارٍ التحقق من انتهاء جلسة التعدين...");
+    const data = await api("/api/mining/claim", {});
+    if (data.status === "claimed") {
+      showMessage("🎉 تمت إضافة " + Number(data.reward).toFixed(6) + " EN96 إلى رصيدك.");
+      await loadBalance();
+    } else if (data.status === "not_ready") {
+      showMessage("لم تنتهِ الجلسة بعد. الوقت المتبقي: " + formatTime(data.remaining_seconds));
+    } else {
+      showMessage(data.message || "تعذر استلام المكافأة: " + (data.status || "خطأ غير معروف"));
+    }
+    await refreshMiningStatus();
+  } catch (error) {
+    showMessage(error.message);
+  } finally {
+    claimMiningButton.disabled = false;
   }
 }
 
@@ -334,27 +439,103 @@ def api_me():
         return jsonify({"error": "تعذر تحميل الرصيد. حاول لاحقًا."}), 500
 
 
-@app.post("/api/mining")
-def api_mining():
+@app.get("/api/mining/status")
+def api_mining_status():
     user, error = telegram_user()
     if error:
         return jsonify({"error": error}), 401
-
     try:
-        result = en96_bot.db.rpc(
-            "en96_mining_action",
-            {"p_telegram_id": user["id"]}
-        ).execute()
-
-        logger.info("Mining RPC completed for Telegram user %s", user["id"])
-        return jsonify({
-            "success": True,
-            "message": "تم إرسال طلب التعدين. حدّث الرصيد للتحقق من النتيجة.",
-            "result": result.data
-        }), 200
+        profile_result = (
+            en96_bot.db.table("profiles")
+            .select("id")
+            .eq("telegram_id", str(user["id"]))
+            .limit(1).execute()
+        )
+        profiles = profile_result.data or []
+        if not profiles:
+            return jsonify({"error": "لم يتم العثور على حسابك في profiles."}), 404
+        user_id = profiles[0]["id"]
+        session_result = (
+            en96_bot.db.table("mining_sessions")
+            .select("id,started_at,ended_at,status")
+            .eq("user_id", user_id)
+            .order("started_at", desc=True)
+            .limit(1).execute()
+        )
+        sessions = session_result.data or []
+        if not sessions:
+            return jsonify({"status": "idle", "remaining_seconds": 86400, "elapsed_seconds": 0})
+        session = sessions[0]
+        started_raw = session.get("started_at")
+        if session.get("status") == "active" and started_raw:
+            started = datetime.fromisoformat(started_raw.replace("Z", "+00:00"))
+            now = datetime.now(timezone.utc)
+            elapsed = max(0, int((now - started).total_seconds()))
+            remaining = max(0, 86400 - elapsed)
+            if remaining == 0:
+                return jsonify({"status": "ready_to_claim", "remaining_seconds": 0, "elapsed_seconds": 86400})
+            return jsonify({"status": "active", "remaining_seconds": remaining, "elapsed_seconds": elapsed})
+        return jsonify({"status": "idle", "remaining_seconds": 86400, "elapsed_seconds": 0})
     except Exception:
-        logger.exception("Mining RPC failed")
-        return jsonify({"error": "تعذر تنفيذ التعدين. حاول لاحقًا."}), 500
+        logger.exception("Could not load mining status")
+        return jsonify({"error": "تعذر تحميل حالة التعدين."}), 500
+
+
+@app.post("/api/mining/start")
+def api_mining_start():
+    user, error = telegram_user()
+    if error:
+        return jsonify({"error": error}), 401
+    try:
+        result = en96_bot.db.rpc("en96_start_mining", {"p_telegram_id": user["id"]}).execute()
+        data = result.data
+        if isinstance(data, list) and data:
+            data = data[0]
+        if isinstance(data, str):
+            try: data = json.loads(data)
+            except (ValueError, TypeError): data = {}
+        if not isinstance(data, dict): data = {}
+        status = data.get("status", "unknown")
+        messages = {
+            "started": "⛏️ بدأ التعدين الافتراضي لمدة 24 ساعة.",
+            "active": "⛏️ التعدين جارٍ بالفعل؛ تم تحميل الوقت المتبقي.",
+            "ready_to_claim": "🎉 انتهت الجلسة. اضغط استلام المكافأة.",
+            "profile_missing": "حسابك غير موجود في profiles.",
+            "balance_missing": "سجل رصيدك غير موجود في balances."
+        }
+        logger.info("Mining start checked for Telegram user %s: %s", user["id"], status)
+        return jsonify({**data, "message": messages.get(status, "حالة التعدين: " + status)}), 200
+    except Exception:
+        logger.exception("Mining start RPC failed")
+        return jsonify({"error": "تعذر بدء التعدين. حاول لاحقًا."}), 500
+
+
+@app.post("/api/mining/claim")
+def api_mining_claim():
+    user, error = telegram_user()
+    if error:
+        return jsonify({"error": error}), 401
+    try:
+        result = en96_bot.db.rpc("en96_claim_mining", {"p_telegram_id": user["id"]}).execute()
+        data = result.data
+        if isinstance(data, list) and data:
+            data = data[0]
+        if isinstance(data, str):
+            try: data = json.loads(data)
+            except (ValueError, TypeError): data = {}
+        if not isinstance(data, dict): data = {}
+        status = data.get("status", "unknown")
+        if status == "claimed":
+            data["message"] = "تم استلام المكافأة وحفظها في رصيدك. ابدأ جلسة جديدة عندما تكون مستعدًا."
+        elif status == "not_ready":
+            data["message"] = "لم تنتهِ جلسة التعدين بعد."
+        elif status == "no_active_session":
+            data["message"] = "لا توجد جلسة نشطة لاستلام مكافأتها."
+        logger.info("Mining claim checked for Telegram user %s: %s", user["id"], status)
+        return jsonify(data), 200
+    except Exception:
+        logger.exception("Mining claim RPC failed")
+        return jsonify({"error": "تعذر استلام المكافأة. حاول لاحقًا."}), 500
 
 
 @app.post("/api/redeem-gift")
