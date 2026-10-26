@@ -110,8 +110,10 @@ def get_balance(telegram_id):
         "telegram_id": str(telegram_id),
         "available": balance.get("available", 0),
         "reserved": balance.get("reserved", 0)
-    }, None
-    @app.get("/")
+        },None
+
+
+@app.get("/")
 def home():
     return """
 <!DOCTYPE html>
