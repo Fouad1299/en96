@@ -17,7 +17,6 @@ logging.basicConfig(
 logger = logging.getLogger("EN96")
 
 app = Flask(__name__)
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
@@ -59,15 +58,8 @@ def telegram_user():
         auth_date = int(fields.get("auth_date", "0"))
         now = int(time.time())
 
-        if (
-            auth_date <= 0
-            or auth_date > now + 60
-            or now - auth_date > 86400
-        ):
-            return None, (
-                "انتهت صلاحية جلسة تيليغرام. "
-                "أغلق التطبيق وافتحه مجددًا."
-            )
+        if auth_date <= 0 or auth_date > now + 60 or now - auth_date > 86400:
+            return None, "انتهت صلاحية جلسة تيليغرام. أغلق التطبيق وافتحه مجددًا."
 
         user = json.loads(fields.get("user", "{}"))
         telegram_id = user.get("id")
@@ -96,7 +88,6 @@ def get_balance(telegram_id):
     )
 
     profiles = profile_result.data or []
-
     if not profiles:
         return None, "لم يتم العثور على حسابك. افتح البوت واضغط /start."
 
@@ -111,20 +102,16 @@ def get_balance(telegram_id):
     )
 
     balances = balance_result.data or []
-
     if not balances:
         return None, "لم يُعثر على سجل الرصيد لهذا الحساب."
 
     balance = balances[0]
-
     return {
         "telegram_id": str(telegram_id),
         "available": balance.get("available", 0),
         "reserved": balance.get("reserved", 0)
     }, None
-
-
-@app.get("/")
+    @app.get("/")
 def home():
     return """
 <!DOCTYPE html>
@@ -137,28 +124,19 @@ def home():
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       padding: 22px 16px;
       min-height: 100vh;
       color: #f5f8ff;
-      background: radial-gradient(
-        circle at top,
-        #153a68,
-        #071326 65%
-      );
+      background: radial-gradient(circle at top, #153a68, #071326 65%);
       font-family: Arial, sans-serif;
       text-align: center;
     }
 
-    .wrap {
-      max-width: 480px;
-      margin: auto;
-    }
+    .wrap { max-width: 480px; margin: auto; }
 
     .logo {
       width: 100px;
@@ -174,15 +152,9 @@ def home():
       color: #f5d681;
     }
 
-    h1 {
-      color: #f5d681;
-      margin-bottom: 6px;
-    }
+    h1 { color: #f5d681; margin-bottom: 6px; }
 
-    .muted {
-      color: #afc4e5;
-      line-height: 1.8;
-    }
+    .muted { color: #afc4e5; line-height: 1.8; }
 
     .card {
       margin-top: 20px;
@@ -223,15 +195,8 @@ def home():
     }
 
     @keyframes livePulse {
-      0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: .45;
-        transform: scale(.8);
-      }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .45; transform: scale(.8); }
     }
 
     button, input {
@@ -250,10 +215,7 @@ def home():
       color: #10203a;
     }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
+    button:disabled { opacity: 0.6; cursor: wait; }
 
     .secondary {
       color: #f5f8ff;
@@ -267,11 +229,7 @@ def home():
       color: white;
     }
 
-    #status {
-      margin-top: 16px;
-      color: #c7d8f2;
-      line-height: 1.8;
-    }
+    #status { margin-top: 16px; color: #c7d8f2; line-height: 1.8; }
 
     footer {
       margin: 24px 0;
@@ -283,9 +241,7 @@ def home():
 
 <body>
 <main class="wrap">
-
   <div class="logo">EN96</div>
-
   <h1>🐉 EN96 ICE DRAGON</h1>
 
   <div class="muted" id="welcome">
@@ -293,7 +249,6 @@ def home():
   </div>
 
   <section class="card">
-
     <div class="muted">سرعة التعدين</div>
 
     <div class="mining-rate">
@@ -305,52 +260,51 @@ def home():
       معدل المكافأة الافتراضي
     </div>
 
-    <div class="muted" style="margin-top:18px">
-      الرصيد المتاح
+    <div style="margin-top:18px;padding:16px;border:1px solid #29476e;border-radius:14px;background:#071326">
+      <div class="muted">⛏️ عدّاد التعدين المباشر</div>
+      <div id="miningCounter" style="color:#54df8b;font-size:26px;font-weight:bold;margin:12px 0;direction:ltr">
+        0.000000 EN96
+      </div>
+      <div id="miningClock" class="muted">
+        اضغط بدء التعدين لبدء العدّاد التقديري
+      </div>
     </div>
 
-    <div class="balance" id="balance">
-      جارٍ تحميل الرصيد...
-    </div>
-
-    <div class="muted" id="reserved">
-      الرصيد المحجوز: —
-    </div>
+    <div class="muted" style="margin-top:18px">الرصيد المتاح</div>
+    <div class="balance" id="balance">جارٍ تحميل الرصيد...</div>
+    <div class="muted" id="reserved">الرصيد المحجوز: —</div>
 
     <button id="miningButton" onclick="doMining()">
       ⛏️ بدء التعدين / استلام المكافأة
     </button>
 
-    <input
-      id="giftCode"
-      maxlength="100"
-      placeholder="أدخل كود هدية EN96"
-    >
+    <input id="giftCode" maxlength="100" placeholder="أدخل كود هدية EN96">
 
-    <button class="secondary" onclick="redeemGift()">
-      🎁 استلام الهدية
-    </button>
-
-    <button class="secondary" onclick="loadBalance()">
-      🔄 تحديث الرصيد
-    </button>
+    <button class="secondary" onclick="redeemGift()">🎁 استلام الهدية</button>
+    <button class="secondary" onclick="loadBalance()">🔄 تحديث الرصيد</button>
 
     <div id="status">جارٍ الاتصال بالتطبيق...</div>
-
   </section>
 
   <footer>
     التعدين هنا افتراضي، وليس تعدينًا حقيقيًا على الشبكة.
+    العداد تقديري ولا يضيف رصيدًا بنفسه.
   </footer>
-
 </main>
 
 <script>
 const tg = window.Telegram && window.Telegram.WebApp;
-
 const statusBox = document.getElementById("status");
 const balanceBox = document.getElementById("balance");
 const reservedBox = document.getElementById("reserved");
+const miningCounter = document.getElementById("miningCounter");
+const miningClock = document.getElementById("miningClock");
+
+const EN96_RATE_PER_SECOND = 0.001;
+const MINING_SESSION_SECONDS = 24 * 60 * 60;
+
+let miningStartedAt = null;
+let miningTimer = null;
 
 if (tg) {
   tg.ready();
@@ -359,6 +313,79 @@ if (tg) {
 
 function showMessage(message) {
   statusBox.textContent = message;
+}
+
+function stopMiningCounter() {
+  if (miningTimer !== null) {
+    clearInterval(miningTimer);
+    miningTimer = null;
+  }
+}
+
+function renderMiningCounter() {
+  if (miningStartedAt === null) return;
+
+  const elapsed = Math.max(
+    0,
+    Math.floor(Date.now() / 1000 - miningStartedAt)
+  );
+
+  const boundedElapsed = Math.min(elapsed, MINING_SESSION_SECONDS);
+  const estimate = boundedElapsed * EN96_RATE_PER_SECOND;
+
+  miningCounter.textContent = estimate.toFixed(6) + " EN96";
+
+  const remaining = Math.max(0, MINING_SESSION_SECONDS - elapsed);
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
+  const seconds = remaining % 60;
+
+  if (remaining <= 0) {
+    miningClock.textContent =
+      "انتهى وقت الجلسة المقدّر؛ افحص الحالة من الخادم.";
+    stopMiningCounter();
+  } else {
+    miningClock.textContent =
+      "الوقت المتبقي التقديري: " +
+      String(hours).padStart(2, "0") + ":" +
+      String(minutes).padStart(2, "0") + ":" +
+      String(seconds).padStart(2, "0") +
+      " — تقدير مرئي فقط، وليس رصيدًا مضافًا.";
+  }
+}
+
+function startMiningCounter(elapsedSeconds) {
+  stopMiningCounter();
+
+  const elapsed = Math.max(
+    0,
+    Math.min(MINING_SESSION_SECONDS, Number(elapsedSeconds) || 0)
+  );
+
+  miningStartedAt = Math.floor(Date.now() / 1000) - elapsed;
+  renderMiningCounter();
+
+  if (elapsed < MINING_SESSION_SECONDS) {
+    miningTimer = setInterval(renderMiningCounter, 1000);
+  }
+}
+
+function normalizeMiningResult(value) {
+  let result = value;
+
+  if (Array.isArray(result)) {
+    result = result.length ? result[0] : null;
+  }
+
+  if (typeof result === "string") {
+    try {
+      result = JSON.parse(result);
+    } catch (_) {
+      result = {status: result};
+    }
+  }
+
+  return result && typeof result === "object" ? result : null;
 }
 
 async function api(path, body) {
@@ -393,20 +420,19 @@ async function api(path, body) {
 async function loadBalance() {
   try {
     showMessage("جارٍ تحميل رصيد حسابك...");
-
     const data = await api("/api/me");
 
     balanceBox.textContent =
       Number(data.available).toLocaleString(
         "en-US",
-        { maximumFractionDigits: 8 }
+        {maximumFractionDigits: 8}
       ) + " EN96";
 
     reservedBox.textContent =
       "الرصيد المحجوز: " +
       Number(data.reserved).toLocaleString(
         "en-US",
-        { maximumFractionDigits: 8 }
+        {maximumFractionDigits: 8}
       ) + " EN96";
 
     if (data.first_name) {
@@ -415,7 +441,6 @@ async function loadBalance() {
     }
 
     showMessage("تم تحميل رصيد حسابك المحفوظ بنجاح.");
-
   } catch (error) {
     balanceBox.textContent = "غير متاح";
     showMessage(error.message);
@@ -427,19 +452,45 @@ async function doMining() {
   button.disabled = true;
 
   try {
-    showMessage("جارٍ تنفيذ طلب التعدين...");
+    showMessage("جارٍ فحص جلسة التعدين من الخادم...");
 
     const data = await api("/api/mining", {});
+    const result = normalizeMiningResult(data.result);
+    const status = result && String(result.status || "").toLowerCase();
+
+    if (status === "started" || status === "rewarded_and_started") {
+      startMiningCounter(0);
+      miningClock.textContent =
+        "الجلسة مؤكدة من الخادم — العداد تقديري.";
+    } else if (status === "active") {
+      const remaining = Number(result.remaining_seconds);
+
+      if (Number.isFinite(remaining) && remaining >= 0) {
+        startMiningCounter(
+          MINING_SESSION_SECONDS -
+          Math.min(MINING_SESSION_SECONDS, remaining)
+        );
+      }
+
+      miningClock.textContent =
+        "جلسة نشطة حسب الخادم — العداد تقديري.";
+    } else {
+      stopMiningCounter();
+      miningStartedAt = null;
+      miningCounter.textContent = "0.000000 EN96";
+      miningClock.textContent =
+        "لم يؤكد الخادم وجود جلسة نشطة. راجع رسالة الحالة.";
+    }
 
     showMessage(
-      data.message || "تم إرسال طلب التعدين إلى النظام."
+      (data.message || "تم فحص طلب التعدين.") +
+      (status ? " حالة الخادم: " + status :
+      " لم تُرجع قاعدة البيانات حالة جلسة واضحة.")
     );
 
     await loadBalance();
-
   } catch (error) {
     showMessage(error.message);
-
   } finally {
     button.disabled = false;
   }
@@ -456,7 +507,6 @@ async function redeemGift() {
 
   try {
     showMessage("جارٍ التحقق من كود الهدية...");
-
     const data = await api("/api/redeem-gift", {code});
 
     showMessage(data.message || "تم إرسال طلب استلام الهدية.");
@@ -465,7 +515,6 @@ async function redeemGift() {
       input.value = "";
       await loadBalance();
     }
-
   } catch (error) {
     showMessage(error.message);
   }
@@ -475,18 +524,12 @@ if (tg && tg.initData) {
   loadBalance();
 } else {
   balanceBox.textContent = "افتح تيليغرام";
-
-  showMessage(
-    "افتح البوت واضغط زر فتح تطبيق EN96 لعرض رصيدك."
-  );
+  showMessage("افتح البوت واضغط زر فتح تطبيق EN96 لعرض رصيدك.");
 }
 </script>
-
 </body>
 </html>
 """
-
-
 @app.get("/api/me")
 def api_me():
     user, error = telegram_user()
@@ -501,12 +544,10 @@ def api_me():
             return jsonify({"error": error}), 404
 
         data["first_name"] = user["first_name"]
-
         return jsonify(data), 200
 
     except Exception:
         logger.exception("Could not load user balance")
-
         return jsonify({
             "error": "تعذر تحميل الرصيد. حاول لاحقًا."
         }), 500
@@ -541,7 +582,6 @@ def api_mining():
 
     except Exception:
         logger.exception("Mining RPC failed")
-
         return jsonify({
             "error": "تعذر تنفيذ التعدين. حاول لاحقًا."
         }), 500
@@ -617,7 +657,6 @@ def api_redeem_gift():
 
     except Exception:
         logger.exception("Gift redemption RPC failed")
-
         return jsonify({
             "success": False,
             "error": "تعذر التحقق من الكود. حاول لاحقًا."
@@ -661,4 +700,4 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=port
-    )
+    )    
