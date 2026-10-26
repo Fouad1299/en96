@@ -1,48 +1,59 @@
+
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EN96 — لوحة التعدين</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071326">
+<title>EN96 — Mining Bot</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1020;--panel:#151d33;--line:#2a3654;--text:#f4f7ff;--muted:#aab6d0;--accent:#57e3b0}
+:root{color-scheme:dark;--bg:#071326;--panel:#101e36;--line:#263e63;--text:#f4f8ff;--muted:#a8bad7;--blue:#36a9ff;--cyan:#75e4ff}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(circle at top,#182746,var(--bg) 55%);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--text);min-height:100vh;padding:20px}
+body{margin:0;padding:12px 12px 90px;background:radial-gradient(ellipse at top,#12345b,#071326 55%,#040914);font-family:system-ui,Arial,sans-serif;color:var(--text);min-height:100vh}
 .wrap{max-width:760px;margin:auto}
-.brand{text-align:center;padding:20px 0}
-.logo{display:inline-grid;place-items:center;width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#57e3b0,#4e8dff);color:#071321;font-weight:900;font-size:25px}
-.brand h1{margin:10px 0 4px;font-size:30px}
+.brand{text-align:center;padding:16px 0 10px}
+.logo{display:inline-grid;place-items:center;width:68px;height:68px;border-radius:22px;background:linear-gradient(145deg,#8de8ff,#1874d2 55%,#071326);border:1px solid #7cdcff;box-shadow:0 0 28px #178bff55;font-weight:950;font-size:24px}
+.brand h1{margin:10px 0 4px;font-size:27px}
 .muted{color:var(--muted)}
-.card{background:rgba(21,29,51,.96);border:1px solid var(--line);border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 12px 35px #0002}
-.tabs{display:flex;gap:8px;margin-bottom:14px}
-.tabs button{flex:1}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.stat{background:#0d1529;border:1px solid var(--line);border-radius:14px;padding:15px}
-.stat strong{display:block;font-size:25px;margin-top:6px;overflow-wrap:anywhere}
-label{display:block;margin:12px 0 6px;color:#d8e1f4}
-input{width:100%;padding:13px;border-radius:10px;border:1px solid #344260;background:#0b1326;color:white;font-size:16px}
-button{border:0;border-radius:11px;padding:13px 16px;font-weight:750;font-size:15px;cursor:pointer;background:var(--accent);color:#071b18}
-button.secondary{background:#293754;color:#f4f7ff}
-button:disabled{opacity:.55;cursor:wait}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.actions button{flex:1;min-width:135px}
-.status{padding:12px;border-radius:10px;background:#0d1529;border:1px solid var(--line);margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.card{background:linear-gradient(145deg,#112039,#081325);border:1px solid var(--line);border-radius:18px;padding:17px;margin:13px 0;box-shadow:0 12px 35px #0003}
+.tabs,.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.tabs{margin:0 0 14px}
+.tabs button,.actions button{flex:1;min-width:120px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:#09162b;border:1px solid #29466e;border-radius:14px;padding:13px}
+.stat strong{display:block;font-size:23px;margin:6px 0;color:var(--cyan);overflow-wrap:anywhere}
+label{display:block;margin:12px 0 6px;color:#d8e8ff}
+input{width:100%;padding:13px;border-radius:10px;border:1px solid #344f75;background:#071326;color:white;font-size:16px}
+button{border:1px solid transparent;border-radius:11px;padding:13px 14px;font-weight:750;font-size:14px;cursor:pointer;background:linear-gradient(120deg,#4bc8ff,#2686ed);color:#031326}
+button.secondary{background:#1b2d49;color:#f4f8ff;border-color:#355071}
+button:disabled{opacity:.55}
+.status{padding:12px;border-radius:10px;background:#09162b;border:1px solid var(--line);margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .hide{display:none!important}
 .warning{color:#ffd69b;font-size:13px;line-height:1.7}
-.footer{text-align:center;font-size:12px;color:var(--muted);padding:18px}
-.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;color:var(--muted)}
-@media(max-width:520px){body{padding:12px}.card{padding:16px}.grid{grid-template-columns:1fr 1fr}.brand h1{font-size:25px}}
+.footer{text-align:center;font-size:12px;color:var(--muted);padding:18px 0}
+.tag{display:inline-block;border:1px solid #355071;border-radius:999px;padding:5px 10px;font-size:12px;color:var(--muted)}
+.hero{text-align:center;padding:20px 12px;background:radial-gradient(circle at 50% 30%,#15549b,#0b2444 50%,#09162b);border:1px solid #2e6da4;border-radius:20px}
+.bear{font-size:72px;filter:drop-shadow(0 0 14px #168fff)}
+.coin{display:inline-block;margin-top:8px;padding:8px 18px;border:2px solid #64d9ff;border-radius:999px;color:#c9f4ff;font-weight:900;letter-spacing:3px}
+.page{display:none}
+.page.active{display:block}
+.section-title{font-size:20px;margin:0 0 12px}
+.bottom-nav{position:fixed;z-index:10;bottom:0;left:0;right:0;padding:8px 5px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;background:#040c19f5;border-top:1px solid #29466e;backdrop-filter:blur(14px)}
+.bottom-nav button{background:transparent;border:0;color:#a8bad7;padding:7px 2px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.bottom-nav .ico{font-size:20px}
+.bottom-nav button.active{color:#7be0ff;background:#12345a;border-radius:12px}
+@media(min-width:700px){.bottom-nav{left:calc(50% - 360px);right:calc(50% - 360px);border-radius:18px 18px 0 0}}
+@media(max-width:520px){.card{padding:14px}.brand h1{font-size:24px}.stat{padding:10px}.stat strong{font-size:20px}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <header class="brand">
 <div class="logo">EN96</div>
-<h1>EN96 Mining</h1>
-<div class="muted">لوحة حسابك ومكافآت التعدين التجريبية</div>
-<p><span class="tag">نسخة أولية</span></p>
+<h1>EN96 MINING BOT</h1>
+<div class="muted">مملكة التعدين الأزرق</div>
+<p><span class="tag">التعدين الافتراضي</span></p>
 </header>
-
 <section id="authCard" class="card">
 <div class="tabs">
 <button id="showLogin" class="secondary" type="button">تسجيل الدخول</button>
@@ -64,52 +75,91 @@ button:disabled{opacity:.55;cursor:wait}
 </div>
 </form>
 <div id="authMsg" class="status" role="status">اختر تسجيل الدخول أو إنشاء حساب.</div>
-<p class="warning">لا تكتب أبدًا كلمة مرور محفظتك أو Stellar secret seed هنا. استخدم بريدك وكلمة مرور خاصة بهذا الموقع.</p>
-</section>
-
+<p class="warning">لا تكتب كلمة مرور محفظتك أو Stellar secret seed هنا.</p>
+  </section>
+  
 <section id="appCard" class="hide">
-<div class="card">
-<div class="muted">الحساب</div>
-<div id="userEmail" style="font-weight:700;overflow-wrap:anywhere"></div>
-<div class="actions">
-<button id="refreshBtn" class="secondary" type="button">تحديث الرصيد</button>
-<button id="logoutBtn" class="secondary" type="button">تسجيل الخروج</button>
-</div>
-</div>
+  <section id="page-mines" class="page active">
+    <div class="hero">
+      <div class="bear">🐻‍❄️</div>
+      <h2>منجم التنين الجليدي</h2>
+      <div class="muted">مرحبًا بك في عالم EN96</div>
+      <div class="coin">EN96</div>
+    </div>
+    <div class="card">
+      <h3 class="section-title">رصيدك</h3>
+      <div class="grid">
+        <div class="stat"><span class="muted">الرصيد المتاح</span><strong id="available">—</strong><span class="muted">EN96</span></div>
+        <div class="stat"><span class="muted">الرصيد المحجوز</span><strong id="reserved">—</strong><span class="muted">EN96</span></div>
+      </div>
+      <div class="actions">
+        <button id="startBtn" type="button">⛏️ بدء التعدين</button>
+        <button id="claimBtn" class="secondary" type="button">🎁 استلام المكافأة</button>
+        <button id="refreshBtn" class="secondary" type="button">🔄 تحديث الرصيد</button>
+      </div>
+      <div id="mineMsg" class="status" role="status">سجّل الدخول لعرض الرصيد.</div>
+      <p class="warning">التعدين هنا افتراضي، والمكافآت المعروضة ليست أرباحًا مضمونة أو تعدينًا حقيقيًا على شبكة Stellar.</p>
+    </div>
+  </section>
 
-<div class="card">
-<h2>رصيد EN96</h2>
-<div class="grid">
-<div class="stat"><span class="muted">المتاح</span><strong id="available">—</strong><span class="muted">EN96</span></div>
-<div class="stat"><span class="muted">المحجوز</span><strong id="reserved">—</strong><span class="muted">EN96</span></div>
-</div>
-<div class="actions">
-<button id="startBtn" type="button">بدء التعدين التجريبي</button>
-<button id="claimBtn" type="button">استلام المكافأة</button>
-</div>
-<div id="mineMsg" class="status" role="status">سجّل الدخول لعرض الرصيد.</div>
-</div>
+  <section id="page-tasks" class="page">
+    <div class="card">
+      <h2 class="section-title">📋 المهام</h2>
+      <p class="muted">ستظهر هنا مهام EN96 ومكافآتها عند تجهيز النظام.</p>
+      <div class="status">المهام قيد الإعداد.</div>
+    </div>
+  </section>
 
-<div class="card">
-<h2>بيانات الملف الشخصي</h2>
-<label for="profileTelegram">معرّف Telegram</label>
-<input id="profileTelegram" inputmode="numeric" placeholder="اختياري">
-<label for="profileStellar">عنوان Stellar العام</label>
-<input id="profileStellar" placeholder="G... — العنوان العام فقط">
-<div class="actions">
-<button id="saveProfileBtn" type="button">حفظ البيانات</button>
-</div>
-<div id="profileMsg" class="status" role="status"></div>
-</div>
+  <section id="page-miners" class="page">
+    <div class="card">
+      <h2 class="section-title">⛏️ المعدّنون</h2>
+      <p class="muted">ستظهر هنا معلومات التعدين وحالة المنجم.</p>
+      <div class="status">قائمة المعدّنين قيد الإعداد.</div>
+    </div>
+  </section>
 
-<div class="card">
-<h2>السحب</h2>
-<p class="muted">ميزة السحب غير مفعّلة في هذه النسخة. لا يوجد تحويل حقيقي للأموال من هذه الواجهة.</p>
-</div>
+  <section id="page-friends" class="page">
+    <div class="card">
+      <h2 class="section-title">👥 الأصدقاء</h2>
+      <p class="muted">ستتم إضافة نظام الدعوات ومكافآت الأصدقاء لاحقًا.</p>
+      <div class="status">نظام الأصدقاء قيد الإعداد.</div>
+    </div>
+  </section>
+
+  <section id="page-profile" class="page">
+    <div class="card">
+      <h2 class="section-title">👤 الملف الشخصي</h2>
+      <div class="muted">البريد الإلكتروني</div>
+      <div id="userEmail" style="font-weight:700;overflow-wrap:anywhere;margin-top:6px"></div>
+
+      <label for="profileTelegram">معرّف Telegram</label>
+      <input id="profileTelegram" inputmode="numeric" placeholder="معرّف Telegram">
+
+      <label for="profileStellar">عنوان Stellar العام</label>
+      <input id="profileStellar" placeholder="G... — العنوان العام فقط">
+
+      <div class="actions">
+        <button id="saveProfileBtn" type="button">💾 حفظ البيانات</button>
+        <button id="logoutBtn" class="secondary" type="button">تسجيل الخروج</button>
+      </div>
+      <div id="profileMsg" class="status" role="status"></div>
+    </div>
+    <div class="card">
+      <h3>معلومات EN96</h3>
+      <p class="muted">نسخة تجريبية من واجهة EN96.</p>
+    </div>
+  </section>
 </section>
 
-<div class="footer">EN96 — الرصيد المعروض تجريبي، وليس بيتكوينًا أو أموالًا حقيقية.</div>
-</main>
+<nav class="bottom-nav hide" id="bottomNav" aria-label="القائمة الرئيسية">
+  <button type="button" class="active" data-page="mines"><span class="ico">⛏️</span><span>المناجم</span></button>
+  <button type="button" data-page="tasks"><span class="ico">📋</span><span>المهام</span></button>
+  <button type="button" data-page="miners"><span class="ico">🏆</span><span>المعدّنون</span></button>
+  <button type="button" data-page="friends"><span class="ico">👥</span><span>الأصدقاء</span></button>
+  <button type="button" data-page="profile"><span class="ico">👤</span><span>حسابي</span></button>
+</nav>
+
+<div class="footer">EN96 — التعدين الافتراضي، وليس تعدينًا حقيقيًا.</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -119,18 +169,20 @@ button:disabled{opacity:.55;cursor:wait}
 
   const $ = id => document.getElementById(id);
   let isSignup = false, client = null, currentUser = null;
-  const setMsg = (id, msg) => { $(id).textContent = msg; };
-  const busy = (btn, state, label) => {
-    btn.disabled = state;
-    if (label) btn.textContent = label;
+
+  const setMsg = (id, msg) => {
+    $(id).textContent = msg;
   };
 
   function initClient() {
     if (!window.supabase) {
-      setMsg('authMsg','تعذّر تحميل مكتبة الاتصال. تأكد من اتصال الإنترنت ثم أعد تحميل الصفحة.');
+      setMsg('authMsg', 'تعذّر تحميل مكتبة Supabase. تحقق من الإنترنت.');
       return false;
     }
-    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
     return true;
   }
 
@@ -141,73 +193,106 @@ button:disabled{opacity:.55;cursor:wait}
     $('showSignup').className = signup ? '' : 'secondary';
     $('showLogin').className = signup ? 'secondary' : '';
     $('password').autocomplete = signup ? 'new-password' : 'current-password';
-    setMsg('authMsg', signup ? 'أدخل بريدك وكلمة مرور جديدة لإنشاء الحساب.' : 'أدخل بيانات حسابك لتسجيل الدخول.');
+    setMsg('authMsg', signup
+      ? 'أدخل بريدك وكلمة مرور جديدة لإنشاء الحساب.'
+      : 'أدخل بيانات حسابك لتسجيل الدخول.');
   }
+
+  document.querySelectorAll('[data-page]').forEach(button => {
+    button.addEventListener('click', () => {
+      const page = button.dataset.page;
+      document.querySelectorAll('.page').forEach(section => {
+        section.classList.remove('active');
+      });
+      $('page-' + page).classList.add('active');
+
+      document.querySelectorAll('[data-page]').forEach(item => {
+        item.classList.toggle('active', item === button);
+      });
+    });
+  });
 
   $('showLogin').addEventListener('click', () => setMode(false));
   $('showSignup').addEventListener('click', () => setMode(true));
-
+          </script>
+          
   $('authForm').addEventListener('submit', async e => {
     e.preventDefault();
     if (!client && !initClient()) return;
+
     const btn = $('authSubmit');
-    busy(btn, true, 'جارٍ الاتصال…');
-    const email = $('email').value.trim();
-    const password = $('password').value;
+    btn.disabled = true;
+    btn.textContent = 'جارٍ الاتصال…';
 
     try {
+      const email = $('email').value.trim();
+      const password = $('password').value;
+
       if (isSignup) {
-        const {data,error} = await client.auth.signUp({email,password});
+        const {data, error} = await client.auth.signUp({email, password});
         if (error) throw error;
+
         if (data.user && data.session) {
           currentUser = data.user;
-          await saveProfile($('telegram').value.trim(), $('stellar').value.trim(), false);
+          await saveProfile(
+            $('telegram').value.trim(),
+            $('stellar').value.trim(),
+            false
+          );
           await showApp();
-          setMsg('authMsg','تم إنشاء الحساب بنجاح.');
+          setMsg('authMsg', 'تم إنشاء الحساب بنجاح.');
         } else {
-          setMsg('authMsg','تم إرسال طلب إنشاء الحساب. افحص بريدك لتأكيده، ثم ارجع وسجّل الدخول.');
+          setMsg('authMsg', 'تحقق من بريدك الإلكتروني لتأكيد الحساب، ثم سجّل الدخول.');
         }
       } else {
-        const {data,error} = await client.auth.signInWithPassword({email,password});
+        const {data, error} = await client.auth.signInWithPassword({email, password});
         if (error) throw error;
         currentUser = data.user;
         await showApp();
       }
     } catch(err) {
-      setMsg('authMsg','تعذّر إكمال العملية: '+(err.message || 'خطأ غير معروف')+'\nإذا كان الخطأ متعلقًا بالصلاحيات أو الجدول، سنصلحه في Supabase.');
+      setMsg('authMsg', 'تعذّر إكمال العملية: ' + err.message);
     } finally {
-      busy(btn, false, isSignup ? 'إنشاء حساب' : 'تسجيل الدخول');
+      btn.disabled = false;
+      btn.textContent = isSignup ? 'إنشاء حساب' : 'تسجيل الدخول';
     }
   });
 
-  async function saveProfile(telegram, stellar, showMessage=true) {
+  async function saveProfile(telegram, stellar, showMessage = true) {
     if (!currentUser) throw new Error('سجّل الدخول أولًا.');
-    const payload = {
+
+    const {error} = await client.from('profiles').upsert({
       id: currentUser.id,
       telegram_id: telegram || null,
       stellar_public_address: stellar || null
-    };
-    const {error} = await client.from('profiles').upsert(payload,{onConflict:'id'});
+    }, {onConflict: 'id'});
+
     if (error) throw error;
-    if (showMessage) setMsg('profileMsg','تم حفظ البيانات.');
+    if (showMessage) setMsg('profileMsg', 'تم حفظ البيانات.');
   }
 
   async function loadBalance() {
-    const {data,error} = await client.from('balances')
+    const {data, error} = await client.from('balances')
       .select('available,reserved')
-      .eq('user_id',currentUser.id)
+      .eq('user_id', currentUser.id)
       .maybeSingle();
+
     if (error) throw error;
-    $('available').textContent = data ? Number(data.available || 0).toFixed(6) : '0.000000';
-    $('reserved').textContent = data ? Number(data.reserved || 0).toFixed(6) : '0.000000';
+
+    $('available').textContent =
+      data ? Number(data.available || 0).toFixed(6) : '0.000000';
+    $('reserved').textContent =
+      data ? Number(data.reserved || 0).toFixed(6) : '0.000000';
   }
 
   async function loadProfile() {
-    const {data,error} = await client.from('profiles')
+    const {data, error} = await client.from('profiles')
       .select('telegram_id,stellar_public_address')
-      .eq('id',currentUser.id)
+      .eq('id', currentUser.id)
       .maybeSingle();
+
     if (error) throw error;
+
     $('profileTelegram').value = data?.telegram_id || '';
     $('profileStellar').value = data?.stellar_public_address || '';
   }
@@ -215,74 +300,75 @@ button:disabled{opacity:.55;cursor:wait}
   async function showApp() {
     $('authCard').classList.add('hide');
     $('appCard').classList.remove('hide');
+    $('bottomNav').classList.remove('hide');
     $('userEmail').textContent = currentUser?.email || '';
+
     try {
       await loadProfile();
       await loadBalance();
-      setMsg('mineMsg','تم الاتصال بقاعدة البيانات. اختر عملية التعدين التجريبية.');
+      setMsg('mineMsg', 'تم الاتصال بقاعدة البيانات. التعدين لم يُفعّل بعد.');
     } catch(err) {
-      setMsg('mineMsg','تم تسجيل الدخول، لكن تعذّر تحميل البيانات: '+err.message+'\nتحقق من صلاحيات RLS وأسماء الجداول والأعمدة.');
+      setMsg('mineMsg', 'تعذّر تحميل البيانات: ' + err.message);
     }
   }
 
   $('saveProfileBtn').addEventListener('click', async () => {
     try {
-      await saveProfile($('profileTelegram').value.trim(), $('profileStellar').value.trim());
+      await saveProfile(
+        $('profileTelegram').value.trim(),
+        $('profileStellar').value.trim()
+      );
     } catch(err) {
-      setMsg('profileMsg','تعذّر الحفظ: '+err.message);
+      setMsg('profileMsg', 'تعذّر الحفظ: ' + err.message);
     }
   });
 
   $('refreshBtn').addEventListener('click', async () => {
     try {
       await loadBalance();
-      setMsg('mineMsg','تم تحديث الرصيد.');
+      setMsg('mineMsg', 'تم تحديث الرصيد.');
     } catch(err) {
-      setMsg('mineMsg','تعذّر تحديث الرصيد: '+err.message);
+      setMsg('mineMsg', 'تعذّر تحديث الرصيد: ' + err.message);
     }
   });
 
-  async function callMiningRpc(name, btn) {
-    if (!currentUser) {
-      setMsg('mineMsg','سجّل الدخول أولًا.');
-      return;
-    }
-    busy(btn, true, 'يرجى الانتظار…');
-    try {
-      const {data,error} = await client.rpc(name);
-      if (error) throw error;
-      await loadBalance();
-      setMsg('mineMsg',(name === 'start_en96_mining' ? 'تم إرسال طلب بدء التعدين. ' : 'تم إرسال طلب استلام المكافأة. ') + (data ? JSON.stringify(data) : 'تمت العملية.'));
-    } catch(err) {
-      setMsg('mineMsg','لم تكتمل العملية: '+err.message+'\nتأكد من وجود دالة RPC باسم '+name+' ومن منح صلاحية EXECUTE للمستخدم authenticated.');
-    } finally {
-      busy(btn, false, name === 'start_en96_mining' ? 'بدء التعدين التجريبي' : 'استلام المكافأة');
-    }
-  }
+  // تعطيل التعدين مؤقتًا حتى نربطه بدالة قاعدة البيانات الصحيحة.
+  $('startBtn').addEventListener('click', () => {
+    setMsg('mineMsg', 'التعدين متوقف مؤقتًا حتى نتحقق من دالة en96_mining_action.');
+  });
 
-  $('startBtn').addEventListener('click', () => callMiningRpc('start_en96_mining',$('startBtn')));
-  $('claimBtn').addEventListener('click', () => callMiningRpc('claim_en96_mining',$('claimBtn')));
+  $('claimBtn').addEventListener('click', () => {
+    setMsg('mineMsg', 'استلام المكافآت متوقف مؤقتًا حتى نتحقق من الدالة والصلاحيات.');
+  });
 
   $('logoutBtn').addEventListener('click', async () => {
-    try { await client.auth.signOut(); } catch(_) {}
+    try {
+      await client.auth.signOut();
+    } catch(err) {
+      console.error(err);
+    }
+
     currentUser = null;
     $('appCard').classList.add('hide');
+    $('bottomNav').classList.add('hide');
     $('authCard').classList.remove('hide');
     setMode(false);
-    setMsg('authMsg','تم تسجيل الخروج.');
+    setMsg('authMsg', 'تم تسجيل الخروج.');
   });
 
   async function boot() {
     if (!initClient()) return;
+
     try {
-      const {data,error} = await client.auth.getSession();
+      const {data, error} = await client.auth.getSession();
       if (error) throw error;
+
       if (data.session) {
         currentUser = data.session.user;
         await showApp();
       }
     } catch(err) {
-      setMsg('authMsg','تعذّر التحقق من الجلسة: '+err.message);
+      setMsg('authMsg', 'تعذّر التحقق من الجلسة: ' + err.message);
     }
   }
 
@@ -290,4 +376,4 @@ button:disabled{opacity:.55;cursor:wait}
 })();
 </script>
 </body>
-  </html>
+</html>
