@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -9,11 +8,11 @@
 <style>
 :root{color-scheme:dark;--bg:#071326;--panel:#101e36;--line:#263e63;--text:#f4f8ff;--muted:#a8bad7;--blue:#36a9ff;--cyan:#75e4ff}
 *{box-sizing:border-box}
-body{margin:0;padding:12px 12px 90px;background:radial-gradient(ellipse at top,#12345b,#071326 55%,#040914);font-family:system-ui,Arial,sans-serif;color:var(--text);min-height:100vh}
+body{margin:0;padding:12px 12px 100px;background:radial-gradient(ellipse at top,#12345b,#071326 55%,#040914);font-family:system-ui,Arial,sans-serif;color:var(--text);min-height:100vh}
 .wrap{max-width:760px;margin:auto}
 .brand{text-align:center;padding:16px 0 10px}
-.logo{display:inline-grid;place-items:center;width:68px;height:68px;border-radius:22px;background:linear-gradient(145deg,#8de8ff,#1874d2 55%,#071326);border:1px solid #7cdcff;box-shadow:0 0 28px #178bff55;font-weight:950;font-size:24px}
-.brand h1{margin:10px 0 4px;font-size:27px}
+.logo{display:inline-grid;place-items:center;width:64px;height:64px;border-radius:20px;background:linear-gradient(145deg,#8de8ff,#1874d2 55%,#071326);border:1px solid #7cdcff;box-shadow:0 0 28px #178bff55;font-weight:950;font-size:24px}
+.brand h1{margin:10px 0 4px;font-size:26px}
 .muted{color:var(--muted)}
 .card{background:linear-gradient(145deg,#112039,#081325);border:1px solid var(--line);border-radius:18px;padding:17px;margin:13px 0;box-shadow:0 12px 35px #0003}
 .tabs,.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
@@ -21,99 +20,122 @@ body{margin:0;padding:12px 12px 90px;background:radial-gradient(ellipse at top,#
 .tabs button,.actions button{flex:1;min-width:120px}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .stat{background:#09162b;border:1px solid #29466e;border-radius:14px;padding:13px}
-.stat strong{display:block;font-size:23px;margin:6px 0;color:var(--cyan);overflow-wrap:anywhere}
+.stat strong{display:block;font-size:22px;margin:6px 0;color:var(--cyan);overflow-wrap:anywhere}
 label{display:block;margin:12px 0 6px;color:#d8e8ff}
 input{width:100%;padding:13px;border-radius:10px;border:1px solid #344f75;background:#071326;color:white;font-size:16px}
 button{border:1px solid transparent;border-radius:11px;padding:13px 14px;font-weight:750;font-size:14px;cursor:pointer;background:linear-gradient(120deg,#4bc8ff,#2686ed);color:#031326}
 button.secondary{background:#1b2d49;color:#f4f8ff;border-color:#355071}
-button:disabled{opacity:.55}
+button:disabled{opacity:.55;cursor:not-allowed}
+.actions{margin-top:14px}
 .status{padding:12px;border-radius:10px;background:#09162b;border:1px solid var(--line);margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .hide{display:none!important}
 .warning{color:#ffd69b;font-size:13px;line-height:1.7}
 .footer{text-align:center;font-size:12px;color:var(--muted);padding:18px 0}
 .tag{display:inline-block;border:1px solid #355071;border-radius:999px;padding:5px 10px;font-size:12px;color:var(--muted)}
 .hero{text-align:center;padding:20px 12px;background:radial-gradient(circle at 50% 30%,#15549b,#0b2444 50%,#09162b);border:1px solid #2e6da4;border-radius:20px}
-.bear{font-size:72px;filter:drop-shadow(0 0 14px #168fff)}
+.bear{font-size:66px;filter:drop-shadow(0 0 14px #168fff)}
 .coin{display:inline-block;margin-top:8px;padding:8px 18px;border:2px solid #64d9ff;border-radius:999px;color:#c9f4ff;font-weight:900;letter-spacing:3px}
 .page{display:none}
 .page.active{display:block}
 .section-title{font-size:20px;margin:0 0 12px}
 .bottom-nav{position:fixed;z-index:10;bottom:0;left:0;right:0;padding:8px 5px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;background:#040c19f5;border-top:1px solid #29466e;backdrop-filter:blur(14px)}
 .bottom-nav button{background:transparent;border:0;color:#a8bad7;padding:7px 2px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
-.bottom-nav .ico{font-size:20px}
+.bottom-nav button .ico{font-size:20px}
 .bottom-nav button.active{color:#7be0ff;background:#12345a;border-radius:12px}
-@media(min-width:700px){.bottom-nav{left:calc(50% - 360px);right:calc(50% - 360px);border-radius:18px 18px 0 0}}
-@media(max-width:520px){.card{padding:14px}.brand h1{font-size:24px}.stat{padding:10px}.stat strong{font-size:20px}}
+min-width:700px{.bottom-nav{left:calc(50% - 360px);right:calc(50% - 360px);border-radius:18px 18px 0 0}}
+max-width:520px{body{padding:10px 10px 100px}.card{padding:14px}.brand h1{font-size:23px}.stat{padding:10px}.stat strong{font-size:19px}}
 </style>
 </head>
 <body>
 <main class="wrap">
+
 <header class="brand">
-<div class="logo">EN96</div>
-<h1>EN96 MINING BOT</h1>
-<div class="muted">مملكة التعدين الأزرق</div>
-<p><span class="tag">التعدين الافتراضي</span></p>
+  <div class="logo">EN96</div>
+  <h1>EN96 MINING BOT</h1>
+  <div class="muted">مملكة التعدين الأزرق</div>
+  <p><span class="tag">التعدين الافتراضي</span></p>
 </header>
+
 <section id="authCard" class="card">
-<div class="tabs">
-<button id="showLogin" class="secondary" type="button">تسجيل الدخول</button>
-<button id="showSignup" type="button">إنشاء حساب</button>
-</div>
-<form id="authForm">
-<label for="email">البريد الإلكتروني</label>
-<input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
-<label for="password">كلمة المرور</label>
-<input id="password" type="password" autocomplete="current-password" minlength="6" required placeholder="6 أحرف على الأقل">
-<div id="signupFields" class="hide">
-<label for="telegram">معرّف Telegram (اختياري)</label>
-<input id="telegram" inputmode="numeric" placeholder="مثال: 123456789">
-<label for="stellar">عنوان Stellar العام (اختياري)</label>
-<input id="stellar" placeholder="G... — العنوان العام فقط">
-</div>
-<div class="actions">
-<button id="authSubmit" type="submit">تسجيل الدخول</button>
-</div>
-</form>
-<div id="authMsg" class="status" role="status">اختر تسجيل الدخول أو إنشاء حساب.</div>
-<p class="warning">لا تكتب كلمة مرور محفظتك أو Stellar secret seed هنا.</p>
-  </section>
-  
+  <div class="tabs">
+    <button id="showLogin" class="secondary"
+
+
+type="button">تسجيل الدخول</button>
+    <button id="showSignup" type="button">إنشاء حساب</button>
+  </div>
+
+  <form id="authForm">
+    <label for="email">البريد الإلكتروني</label>
+    <input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
+
+    <label for="password">كلمة المرور</label>
+    <input id="password" type="password" autocomplete="current-password" minlength="6" required placeholder="6 أحرف على الأقل">
+
+    <div id="signupFields" class="hide">
+      <label for="telegram">معرّف Telegram (اختياري)</label>
+      <input id="telegram" inputmode="numeric" placeholder="مثال: 123456789">
+
+      <label for="stellar">عنوان Stellar العام (اختياري)</label>
+      <input id="stellar" placeholder="G... — العنوان العام فقط">
+    </div>
+
+    <div class="actions">
+      <button id="authSubmit" type="submit">تسجيل الدخول</button>
+    </div>
+  </form>
+
+  <div id="authMsg" class="status" role="status">اختر تسجيل الدخول أو إنشاء حساب.</div>
+  <p class="warning">لا تكتب أبدًا كلمة مرور محفظتك أو Stellar secret seed هنا.</p>
+</section>
+
 <section id="appCard" class="hide">
+
   <section id="page-mines" class="page active">
     <div class="hero">
       <div class="bear">🐻‍❄️</div>
-      <h2>منجم التنين الجليدي</h2>
-      <div class="muted">مرحبًا بك في عالم EN96</div>
+      <h2>مملكة التنين الجليدي</h2>
+      <p class="muted">مرحبًا بك في عالم EN96</p>
       <div class="coin">EN96</div>
     </div>
+
     <div class="card">
-      <h3 class="section-title">رصيدك</h3>
+      <h2 class="section-title">رصيدك</h2>
       <div class="grid">
-        <div class="stat"><span class="muted">الرصيد المتاح</span><strong id="available">—</strong><span class="muted">EN96</span></div>
-        <div class="stat"><span class="muted">الرصيد المحجوز</span><strong id="reserved">—</strong><span class="muted">EN96</span></div>
+        <div class="stat">
+          <span class="muted">الرصيد المتاح</span>
+          <strong id="available">—</strong>
+          <span class="muted">EN96</span>
+        </div>
+        <div class="stat">
+          <span class="muted">الرصيد المحجوز</span>
+          <strong id="reserved">—</strong>
+          <span class="muted">EN96</span>
+        </div>
       </div>
+
       <div class="actions">
         <button id="startBtn" type="button">⛏️ بدء التعدين</button>
         <button id="claimBtn" class="secondary" type="button">🎁 استلام المكافأة</button>
-        <button id="refreshBtn" class="secondary" type="button">🔄 تحديث الرصيد</button>
       </div>
-      <div id="mineMsg" class="status" role="status">سجّل الدخول لعرض الرصيد.</div>
-      <p class="warning">التعدين هنا افتراضي، والمكافآت المعروضة ليست أرباحًا مضمونة أو تعدينًا حقيقيًا على شبكة Stellar.</p>
+
+      <div id="mineMsg" class="status" role="status">سجّل الدخول لعرض رصيدك.</div>
+      <p class="warning">التعدين هنا افتراضي، وليس تعدينًا حقيقيًا على شبكة Stellar.</p>
     </div>
   </section>
 
   <section id="page-tasks" class="page">
     <div class="card">
       <h2 class="section-title">📋 المهام</h2>
-      <p class="muted">ستظهر هنا مهام EN96 ومكافآتها عند تجهيز النظام.</p>
-      <div class="status">المهام قيد الإعداد.</div>
+      <p>ستظهر هنا مهام EN96 ومكافآتها.</p>
+      <div class="status">نظام المهام قيد الإعداد.</div>
     </div>
   </section>
 
   <section id="page-miners" class="page">
     <div class="card">
       <h2 class="section-title">⛏️ المعدّنون</h2>
-      <p class="muted">ستظهر هنا معلومات التعدين وحالة المنجم.</p>
+      <p>تابع حالة التعدين الافتراضي من هنا.</p>
       <div class="status">قائمة المعدّنين قيد الإعداد.</div>
     </div>
   </section>
@@ -121,16 +143,16 @@ button:disabled{opacity:.55}
   <section id="page-friends" class="page">
     <div class="card">
       <h2 class="section-title">👥 الأصدقاء</h2>
-      <p class="muted">ستتم إضافة نظام الدعوات ومكافآت الأصدقاء لاحقًا.</p>
-      <div class="status">نظام الأصدقاء قيد الإعداد.</div>
+      <p>ستُضاف دعوة الأصدقاء ومتابعة الإحالات لاحقًا.</p>
+      <div class="status">نظام الإحالات قيد الإعداد.</div>
     </div>
   </section>
 
   <section id="page-profile" class="page">
     <div class="card">
       <h2 class="section-title">👤 الملف الشخصي</h2>
-      <div class="muted">البريد الإلكتروني</div>
-      <div id="userEmail" style="font-weight:700;overflow-wrap:anywhere;margin-top:6px"></div>
+      <p class="muted">الحساب الحالي</p>
+      <div id="userEmail" style="font-weight:700;overflow-wrap:anywhere"></div>
 
       <label for="profileTelegram">معرّف Telegram</label>
       <input id="profileTelegram" inputmode="numeric" placeholder="معرّف Telegram">
@@ -139,50 +161,57 @@ button:disabled{opacity:.55}
       <input id="profileStellar" placeholder="G... — العنوان العام فقط">
 
       <div class="actions">
-        <button id="saveProfileBtn" type="button">💾 حفظ البيانات</button>
-        <button id="logoutBtn" class="secondary" type="button">تسجيل الخروج</button>
-      </div>
-      <div id="profileMsg" class="status" role="status"></div>
-    </div>
-    <div class="card">
-      <h3>معلومات EN96</h3>
-      <p class="muted">نسخة تجريبية من واجهة EN96.</p>
-    </div>
-  </section>
-</section>
+        <button id="saveProfileBtn" type="button">حفظ البيانات</button>
+        <button id="refreshBtn" class="secondary" type="button">تحديث الرصيد</button>
+        <button id="logoutBtn" class="secondary" type="button&qu
 
-<nav class="bottom-nav hide" id="bottomNav" aria-label="القائمة الرئيسية">
-  <button type="button" class="active" data-page="mines"><span class="ico">⛏️</span><span>المناجم</span></button>
-  <button type="button" data-page="tasks"><span class="ico">📋</span><span>المهام</span></button>
-  <button type="button" data-page="miners"><span class="ico">🏆</span><span>المعدّنون</span></button>
-  <button type="button" data-page="friends"><span class="ico">👥</span><span>الأصدقاء</span></button>
-  <button type="button" data-page="profile"><span class="ico">👤</span><span>حسابي</span></button>
+
+aria-label="التنقل الرئيسي">
+  <button type="button" class="active" data-page="mines">
+    <span class="ico">⛏️</span><span>المناجم</span>
+  </button>
+  <button type="button" data-page="tasks">
+    <span class="ico">📋</span><span>المهام</span>
+  </button>
+  <button type="button" data-page="miners">
+    <span class="ico">⚒️</span><span>المعدّنون</span>
+  </button>
+  <button type="button" data-page="friends">
+    <span class="ico">👥</span><span>الأصدقاء</span>
+  </button>
+  <button type="button" data-page="profile">
+    <span class="ico">👤</span><span>حسابي</span>
+  </button>
 </nav>
 
-<div class="footer">EN96 — التعدين الافتراضي، وليس تعدينًا حقيقيًا.</div>
+<div class="footer">
+  EN96 — التعدين الافتراضي لا يضمن أرباحًا أو تحويلات مالية حقيقية.
+</div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
+  'use strict';
+
   const SUPABASE_URL = 'https://zfoanswefwufsifncrhl.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_KBsGw5WdzJnBIOfW_c_-_A_9cNg2BwY';
 
   const $ = id => document.getElementById(id);
-  let isSignup = false, client = null, currentUser = null;
+  let isSignup = false;
+  let client = null;
+  let currentUser = null;
 
-  const setMsg = (id, msg) => {
-    $(id).textContent = msg;
-  };
+  function setMsg(id, message) {
+    $(id).textContent = message;
+  }
 
   function initClient() {
     if (!window.supabase) {
-      setMsg('authMsg', 'تعذّر تحميل مكتبة Supabase. تحقق من الإنترنت.');
+      setMsg('authMsg', 'تعذّر تحميل مكتبة الاتصال. تحقق من الإنترنت ثم أعد تحميل الصفحة.');
       return false;
     }
-    client = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
+    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     return true;
   }
 
@@ -200,36 +229,33 @@ button:disabled{opacity:.55}
 
   document.querySelectorAll('[data-page]').forEach(button => {
     button.addEventListener('click', () => {
-      const page = button.dataset.page;
+      const pageName = button.dataset.page;
       document.querySelectorAll('.page').forEach(section => {
-        section.classList.remove('active');
+        section.classList.toggle('active', section.id === 'page-' + pageName);
       });
-      $('page-' + page).classList.add('active');
-
-      document.querySelectorAll('[data-page]').forEach(item => {
-        item.classList.toggle('active', item === button);
+      document.querySelectorAll('[data-page]').forEach(navButton => {
+        navButton.classList.toggle('active', navButton === button);
       });
     });
   });
 
   $('showLogin').addEventListener('click', () => setMode(false));
   $('showSignup').addEventListener('click', () => setMode(true));
-          </script>
-          
-  $('authForm').addEventListener('submit', async e => {
-    e.preventDefault();
+
+  $('authForm').addEventListener('submit', async event => {
+    event.preventDefault();
     if (!client && !initClient()) return;
 
-    const btn = $('authSubmit');
-    btn.disabled = true;
-    btn.textContent = 'جارٍ الاتصال…';
+    const button = $('authSubmit');
+    button.disabled = true;
+    button.textContent = 'جارٍ الاتصال…';
 
     try {
       const email = $('email').value.trim();
       const password = $('password').value;
 
       if (isSignup) {
-        const {data, error} = await client.auth.signUp({email, password});
+        const { data, error } = await client.auth.signUp({ email, password });
         if (error) throw error;
 
         if (data.user && data.session) {
@@ -242,59 +268,64 @@ button:disabled{opacity:.55}
           await showApp();
           setMsg('authMsg', 'تم إنشاء الحساب بنجاح.');
         } else {
-          setMsg('authMsg', 'تحقق من بريدك الإلكتروني لتأكيد الحساب، ثم سجّل الدخول.');
+          setMsg('authMsg', 'تم إرسال طلب إنشاء الحساب. افحص بريدك لتأكيده، ثم ارجع وسجّل الدخول.');
         }
       } else {
-        const {data, error} = await client.auth.signInWithPassword({email, password});
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
         if (error) throw error;
         currentUser = data.user;
         await showApp();
       }
-    } catch(err) {
-      setMsg('authMsg', 'تعذّر إكمال العملية: ' + err.message);
+    } catch (error) {
+      setMsg('authMsg', 'تعذّر إكمال العملية: ' + (error.message || 'خطأ غير معروف'));
     } finally {
-      btn.disabled = false;
-      btn.textContent = isSignup ? 'إنشاء حساب' : 'تسجيل الدخول';
+      button.disabled = false;
+      button.textContent = isSignup ? 'إنشاء حساب' : 'تسجيل الدخول';
     }
   });
 
   async function saveProfile(telegram, stellar, showMessage = true) {
     if (!currentUser) throw new Error('سجّل الدخول أولًا.');
 
-    const {error} = await client.from('profiles').upsert({
+    const payload = {
       id: currentUser.id,
-      telegram_id: telegram || null,
+      telegram_id: telegram ||
+Currentuser
+Currentuser
+currentUser.id
+
+
+null,
       stellar_public_address: stellar || null
-    }, {onConflict: 'id'});
+    };
+
+    const { error } = await client.from('profiles')
+      .upsert(payload, { onConflict: 'id' });
 
     if (error) throw error;
-    if (showMessage) setMsg('profileMsg', 'تم حفظ البيانات.');
-  }
-
-  async function loadBalance() {
-    const {data, error} = await client.from('balances')
-      .select('available,reserved')
-      .eq('user_id', currentUser.id)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    $('available').textContent =
-      data ? Number(data.available || 0).toFixed(6) : '0.000000';
-    $('reserved').textContent =
-      data ? Number(data.reserved || 0).toFixed(6) : '0.000000';
+    if (showMessage) setMsg('profileMsg', 'تم حفظ البيانات بنجاح.');
   }
 
   async function loadProfile() {
-    const {data, error} = await client.from('profiles')
+    const { data, error } = await client.from('profiles')
       .select('telegram_id,stellar_public_address')
       .eq('id', currentUser.id)
       .maybeSingle();
 
     if (error) throw error;
-
     $('profileTelegram').value = data?.telegram_id || '';
     $('profileStellar').value = data?.stellar_public_address || '';
+  }
+
+  async function loadBalance() {
+    const { data, error } = await client.from('balances')
+      .select('available,reserved')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    $('available').textContent = data ? Number(data.available || 0).toFixed(6) : '0.000000';
+    $('reserved').textContent = data ? Number(data.reserved || 0).toFixed(6) : '0.000000';
   }
 
   async function showApp() {
@@ -306,9 +337,9 @@ button:disabled{opacity:.55}
     try {
       await loadProfile();
       await loadBalance();
-      setMsg('mineMsg', 'تم الاتصال بقاعدة البيانات. التعدين لم يُفعّل بعد.');
-    } catch(err) {
-      setMsg('mineMsg', 'تعذّر تحميل البيانات: ' + err.message);
+      setMsg('mineMsg', 'تم الاتصال بقاعدة البيانات.');
+    } catch (error) {
+      setMsg('mineMsg', 'تم تسجيل الدخول، لكن تعذّر تحميل البيانات: ' + error.message);
     }
   }
 
@@ -318,8 +349,8 @@ button:disabled{opacity:.55}
         $('profileTelegram').value.trim(),
         $('profileStellar').value.trim()
       );
-    } catch(err) {
-      setMsg('profileMsg', 'تعذّر الحفظ: ' + err.message);
+    } catch (error) {
+      setMsg('profileMsg', 'تعذّر الحفظ: ' + error.message);
     }
   });
 
@@ -327,48 +358,49 @@ button:disabled{opacity:.55}
     try {
       await loadBalance();
       setMsg('mineMsg', 'تم تحديث الرصيد.');
-    } catch(err) {
-      setMsg('mineMsg', 'تعذّر تحديث الرصيد: ' + err.message);
+    } catch (error) {
+      setMsg('mineMsg', 'تعذّر تحديث الرصيد: ' + error.message);
     }
   });
 
-  // تعطيل التعدين مؤقتًا حتى نربطه بدالة قاعدة البيانات الصحيحة.
+  // متوقف مؤقتًا: لا تستدعِ دوال تعدين غير مؤكدة.
   $('startBtn').addEventListener('click', () => {
-    setMsg('mineMsg', 'التعدين متوقف مؤقتًا حتى نتحقق من دالة en96_mining_action.');
+    setMsg('mineMsg', 'التعدين متوقف مؤقتًا حتى نربط دالة en96_mining_action بشكل صحيح وآمن.');
   });
 
   $('claimBtn').addEventListener('click', () => {
-    setMsg('mineMsg', 'استلام المكافآت متوقف مؤقتًا حتى نتحقق من الدالة والصلاحيات.');
+    setMsg('mineMsg', 'استلام المكافأة متوقف مؤقتًا حتى نتحقق من دالة Supabase الصحيحة.');
   });
 
   $('logoutBtn').addEventListener('click', async () => {
     try {
-      await client.auth.signOut();
-    } catch(err) {
-      console.error(err);
-    }
+      const { error } = await client.auth.signOut();
+      if (error) throw error;
 
-    currentUser = null;
-    $('appCard').classList.add('hide');
-    $('bottomNav').classList.add('hide');
-    $('authCard').classList.remove('hide');
-    setMode(false);
-    setMsg('authMsg', 'تم تسجيل الخروج.');
+      currentUser = null;
+      $('appCard').classList.add('hide');
+      $('bottomNav').classList.add('hide');
+      $('authCard').classList.remove('hide');
+      setMode(false);
+      setMsg('authMsg', 'تم تسجيل الخروج.');
+    } catch (error) {
+      setMsg('profileMsg', 'تعذّر تسجيل الخروج: ' + error.message);
+    }
   });
 
   async function boot() {
     if (!initClient()) return;
 
     try {
-      const {data, error} = await client.auth.getSession();
+      const { data, error } = await client.auth.getSession();
       if (error) throw error;
 
       if (data.session) {
         currentUser = data.session.user;
         await showApp();
       }
-    } catch(err) {
-      setMsg('authMsg', 'تعذّر التحقق من الجلسة: ' + err.message);
+    } catch (error) {
+      setMsg('authMsg', 'تعذّر التحقق من الجلسة: ' + error.message);
     }
   }
 
