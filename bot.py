@@ -1,9 +1,9 @@
 
 import os
 import json
+import time
 import logging
 import threading
-import time
 
 import telebot
 from telebot.types import (
@@ -14,7 +14,7 @@ from telebot.types import (
     InlineKeyboardButton
 )
 from supabase import create_client
-from en96_accounts import RegistrationError, ensure_profile
+from en96_accounts import ensure_profile
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("EN96")
@@ -25,18 +25,15 @@ SUPABASE_KEY = (
     os.getenv("SUPABASE_SECRET_KEY")
     or os.getenv("SUPABASE_KEY")
 )
-
 ADMIN_ID = str(
     os.getenv("ADMIN_TELEGRAM_ID", "8721009110")
 )
-
 APP_URL = os.getenv(
-    "APP_URL",
-    "https://en96.onrender.com"
+    "APP_URL", "https://en96.onrender.com"
 )
 
 if not BOT_TOKEN:
-    raise RuntimeError("BOT_TOKEN is missing")
+    raise RuntimeError("BOT_TOKEN missing")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError("Supabase configuration missing")
@@ -44,27 +41,66 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 bot = telebot.TeleBot(BOT_TOKEN)
 db = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-WAITING_GIFT = set()
-WAITING_ADMIN_CODE = set()
-WAITING_ADMIN_VIDEO = set()
-WAITING_ADMIN_REWARD = set()
-ADMIN_ACTION = {}
-PENDING = {}
-
 MINING_RATE = 0.001
 MINING_DURATION = 86400
 
 MINING_COUNTERS = {}
 MINING_LOCK = threading.Lock()
 
+WAITING_GIFT = set()
+WAITING_ADMIN_CODE = set()
+WAITING_ADMIN_VIDEO = set()
+WAITING_ADMIN_REWARD = set()
+
+ADMIN_ACTION = {}
+PENDING = {}
+
 
 def is_admin(user_id):
     return str(user_id) == ADMIN_ID
 
 
-# =========================
-# EN96 MAIN MENU
-# =========================
+def rpc_data(result):
+    data = result.data
+
+    if isinstance(data, list):
+        data = data[0] if data else {}
+
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except Exception:
+            data = {"message": data}
+
+    return data or {}
+
+
+def register_member(user_id):
+    try:
+        ensure_profile(db, user_id)
+        return True
+    except Exception:
+        log.exception(
+            "EN96 registration failed: %s",
+            user_id
+        )
+        return False
+
+
+def profile_for(user_id):
+    result = (
+        db.table("profiles")
+        .select("id,telegram_id,stellar_public_address")
+        .eq("telegram_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+# ==================================
+# MAIN MENU
+# ==================================
 
 def menu(user_id=None):
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -73,22 +109,18 @@ def menu(user_id=None):
         KeyboardButton("⛏️ بدء التعدين"),
         KeyboardButton("💰 محفظتي")
     )
-
     kb.row(
         KeyboardButton("⚡ ترقية المنجم"),
         KeyboardButton("🏆 المكافآت")
     )
-
     kb.row(
         KeyboardButton("📺 مشاهدة الفيديوهات"),
         KeyboardButton("🎁 استلام الهدية")
     )
-
     kb.row(
         KeyboardButton("🐻 أعضاء القبيلة"),
         KeyboardButton("ℹ️ معلومات EN96")
     )
-
     kb.row(
         KeyboardButton("🌐 فتح تطبيق EN96")
     )
@@ -108,39 +140,30 @@ def admin_menu():
         KeyboardButton("➕ إنشاء كود هدية"),
         KeyboardButton("📋 أكواد الهدايا")
     )
-
     kb.row(
         KeyboardButton("⛔ تعطيل كود"),
         KeyboardButton("✅ تفعيل كود")
     )
-
     kb.row(
         KeyboardButton("🔙 القائمة الرئيسية")
     )
-
     return kb
 
 
-# =========================
-# TELEGRAM LOGIN
-# =========================
+# ==================================
+# TELEGRAM MINI APP LOGIN
+# ==================================
 
 def app_button(chat_id):
-    """
-    زر تسجيل دخول موثق عبر Telegram Mini App.
-    يعمل في المحادثات الخاصة.
-    """
-
     if not APP_URL.startswith("https://"):
         bot.send_message(
             chat_id,
-            "رابط تطبيق EN96 غير مضبوط على Render."
+            "رابط التطبيق غير مضبوط."
         )
         return
 
-    buttons = InlineKeyboardMarkup()
-
-    buttons.add(
+    kb = InlineKeyboardMarkup()
+    kb.add(
         InlineKeyboardButton(
             "🔐 دخول EN96 عبر تيليغرام 🐻",
             web_app=WebAppInfo(url=APP_URL)
@@ -149,39 +172,16 @@ def app_button(chat_id):
 
     bot.send_message(
         chat_id,
-        "🐻❄️ مرحبًا بك في مملكة EN96!\n\n"
-        "اضغط الزر الموجود أسفل هذه الرسالة "
-        "لدخول تطبيق التعدين.\n\n"
-        "✅ تسجيل الدخول باستخدام حساب تيليغرام.\n"
-        "✅ لا تحتاج إلى بريد إلكتروني.\n"
-        "✅ لا تحتاج إلى كلمة مرور.\n"
-        "✅ لا تكتب Telegram ID يدويًا.",
-        reply_markup=buttons
+        "🐻❄️ مرحبًا بك في EN96!\n\n"
+        "اضغط الزر أدناه للدخول "
+        "باستخدام حساب تيليغرام.",
+        reply_markup=kb
     )
-
-
-def register_member(telegram_id):
-    """
-    إنشاء حساب جديد عند الحاجة فقط.
-    لا يتم تصفير الرصيد القديم.
-    """
-
-    try:
-        ensure_profile(db, telegram_id)
-        return True
-
-    except RegistrationError:
-        log.exception(
-            "EN96 registration failed for %s",
-            telegram_id
-        )
-        return False
 
 
 def send_menu(
     chat_id,
-    text="🐻 مرحبًا بك في EN96 Mining!\n"
-         "أهلًا بك في مملكة الدب الجليدي.",
+    text="🐻 مرحبًا بك في EN96 Mining!",
     user_id=None
 ):
     bot.send_message(
@@ -192,55 +192,23 @@ def send_menu(
 
     if (
         user_id is not None
-        and int(chat_id) == int(user_id)
+        and str(chat_id) == str(user_id)
     ):
         app_button(chat_id)
 
 
-# =========================
-# DATABASE FUNCTIONS
-# =========================
+# ==================================
+# WALLET
+# ==================================
 
-def rpc_data(result):
-    data = result.data
-
-    if isinstance(data, list):
-        data = data[0] if data else {}
-
-    if isinstance(data, str):
-        try:
-            data = json.loads(data)
-        except Exception:
-            data = {"message": data}
-
-    return data or {}
-
-
-def profile_for(telegram_id):
-    result = (
-        db.table("profiles")
-        .select("id,telegram_id,stellar_public_address")
-        .eq("telegram_id", str(telegram_id))
-        .limit(1)
-        .execute()
-    )
-
-    return result.data[0] if result.data else None
-
-
-# =========================
-# EN96 WALLET
-# =========================
-
-def wallet(chat_id, telegram_id):
+def wallet(chat_id, user_id):
     try:
-        profile = profile_for(telegram_id)
+        profile = profile_for(user_id)
 
         if not profile:
             bot.send_message(
                 chat_id,
-                "لم أجد حسابك.\n"
-                "أرسل /start لتسجيل حساب EN96 أولًا."
+                "لم أجد حسابك. أرسل /start أولًا."
             )
             return
 
@@ -255,216 +223,199 @@ def wallet(chat_id, telegram_id):
         if not result.data:
             bot.send_message(
                 chat_id,
-                "لم يُعثر على سجل رصيدك."
+                "لم أجد سجل رصيدك."
             )
             return
 
-        row = result.data[0]
+        balance = result.data[0]
+
+        available = float(
+            balance.get("available") or 0
+        )
+        reserved = float(
+            balance.get("reserved") or 0
+        )
 
         bot.send_message(
             chat_id,
             "💎 محفظة EN96\n\n"
-            f"🟢 الرصيد المتاح: "
-            f"{float(row.get('available') or 0):.7f} EN96\n"
-            f"🟡 الرصيد المحجوز: "
-            f"{float(row.get('reserved') or 0):.7f} EN96\n\n"
+            f"🟢 المتاح: {available:.7f} EN96\n"
+            f"🟡 المحجوز: {reserved:.7f} EN96\n\n"
             "💸 الحد الأدنى للسحب: 500 EN96\n"
-            "السحب يُراجع يدويًا.\n\n"
-            "⚠️ هذا رصيد التطبيق، وليس إثباتًا "
-            "لتحويل عملات على شبكة Stellar."
+            "السحب يتم بمراجعة يدوية.\n\n"
+            "هذا رصيد داخل التطبيق وليس "
+            "تحويلًا مؤكدًا على Stellar."
         )
 
     except Exception:
-        log.exception("EN96 wallet error")
-
+        log.exception("Wallet error")
         bot.send_message(
             chat_id,
-            "تعذّر جلب المحفظة الآن."
+            "تعذّر عرض المحفظة الآن."
         )
 
 
-# =========================
+# ==================================
 # MINING COUNTER
-# =========================
+# ==================================
 
 def mining_keyboard():
     kb = InlineKeyboardMarkup()
-
     kb.add(
         InlineKeyboardButton(
-            "🔄 تحديث حالة التعدين",
-            callback_data="en96_mining_refresh"
+            "🔄 تحديث التعدين",
+            callback_data="mining_refresh"
         )
     )
-
     return kb
 
 
 def mining_counter(
     chat_id,
-    telegram_id,
+    user_id,
     elapsed_before=0
 ):
-    """
-    عداد مرئي تقديري فقط.
-    Supabase هي المسؤولة عن المكافأة الفعلية.
-    """
-
-    key = (chat_id, str(telegram_id))
+    key = (chat_id, str(user_id))
 
     with MINING_LOCK:
-        old_event = MINING_COUNTERS.get(key)
+        previous = MINING_COUNTERS.get(key)
 
-        if old_event:
-            old_event.set()
+        if previous:
+            previous.set()
 
         stop_event = threading.Event()
         MINING_COUNTERS[key] = stop_event
 
     elapsed_before = max(
         0,
-        min(int(elapsed_before), MINING_DURATION)
+        min(
+            int(elapsed_before),
+            MINING_DURATION
+        )
     )
 
-    start_time = time.time() - elapsed_before
+    started = time.time() - elapsed_before
 
     try:
         msg = bot.send_message(
             chat_id,
-            "🐻❄️ منجم EN96 الجليدي\n\n"
+            "🐻❄️ منجم EN96\n\n"
             "⛏️ التعدين الافتراضي نشط\n"
-            "💎 المكافأة التقديرية: 0.0000000 EN96\n"
-            "⏱️ الوقت: 00:00:00 / 24:00:00\n\n"
-            "⚡ المعدل: 0.001 EN96/ثانية\n"
-            "⚠️ العداد للعرض فقط، "
-            "والرصيد الفعلي تحدده Supabase.",
+            "💎 جاري حساب المكافأة...\n"
+            "⚡ المعدل: 0.001 EN96/ثانية\n\n"
+            "العداد تقديري، والرصيد الفعلي "
+            "تحدده Supabase.",
             reply_markup=mining_keyboard()
         )
-
     except Exception:
-        log.exception("Could not send mining counter")
-
+        log.exception("Counter send error")
         with MINING_LOCK:
             if MINING_COUNTERS.get(key) is stop_event:
                 MINING_COUNTERS.pop(key, None)
         return
 
-    def update_counter():
-        nonlocal start_time
+    def update():
+        nonlocal started
 
         try:
             while not stop_event.is_set():
-
                 elapsed = min(
-                    max(0, int(time.time() - start_time)),
+                    max(
+                        0,
+                        int(time.time() - started)
+                    ),
                     MINING_DURATION
                 )
 
-                reward_estimate = elapsed * MINING_RATE
+                estimate = elapsed * MINING_RATE
 
-                hours, remainder = divmod(elapsed, 3600)
-                minutes, seconds = divmod(remainder, 60)
+                hours, rest = divmod(elapsed, 3600)
+                minutes, seconds = divmod(rest, 60)
 
-                counter_text = (
-                    "🐻❄️ منجم EN96 الجليدي\n\n"
+                text = (
+                    "🐻❄️ منجم EN96\n\n"
                     "⛏️ التعدين الافتراضي نشط\n"
-                    f"💎 المكافأة التقديرية: "
-                    f"{reward_estimate:.7f} EN96\n"
-                    f"⏱️ الوقت: "
-                    f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-                    " / 24:00:00\n\n"
-                    "⚡ المعدل: 0.001 EN96/ثانية\n"
-                    "⚠️ المكافأة المعروضة تقديرية؛ "
-                    "الرصيد الفعلي تحدده قاعدة البيانات."
+                    f"💎 التقديري: {estimate:.7f} EN96\n"
+                    f"⏱️ {hours:02d}:{minutes:02d}:"
+                    f"{seconds:02d} / 24:00:00\n"
+                    "⚡ 0.001 EN96/ثانية\n\n"
+                    "⚠️ هذا عداد مرئي فقط؛ "
+                    "الرصيد الفعلي محفوظ في Supabase."
                 )
 
                 try:
                     bot.edit_message_text(
-                        counter_text,
+                        text,
                         chat_id=chat_id,
                         message_id=msg.message_id,
                         reply_markup=mining_keyboard()
                     )
-
                 except Exception as exc:
                     if (
                         "message is not modified"
                         not in str(exc).lower()
                     ):
                         log.warning(
-                            "Mining counter update: %s",
+                            "Counter edit error: %s",
                             exc
                         )
 
                 if elapsed >= MINING_DURATION:
-
                     try:
-                        result = rpc_data(
+                        data = rpc_data(
                             db.rpc(
                                 "en96_mining_action",
                                 {
                                     "p_telegram_id":
-                                        str(telegram_id)
+                                        str(user_id)
                                 }
                             ).execute()
                         )
 
-                        status = result.get("status")
+                        status = data.get("status")
 
                         if status == "rewarded_and_started":
-
-                            reward = result.get(
-                                "reward",
-                                86.4
-                            )
-
                             bot.send_message(
                                 chat_id,
-                                "✅ أكدت Supabase انتهاء الجلسة "
-                                f"وإضافة {reward} EN96.\n"
+                                "✅ أكد النظام إضافة "
+                                f"{data.get('reward', 86.4)} "
+                                "EN96.\n"
                                 "بدأت جلسة جديدة."
                             )
-
-                            start_time = time.time()
+                            started = time.time()
                             continue
 
                         if status == "active":
                             remaining = max(
                                 1,
                                 int(
-                                    result.get(
+                                    data.get(
                                         "remaining_seconds",
                                         1
                                     )
                                 )
                             )
-
-                            start_time = (
+                            started = (
                                 time.time()
-                                - (
-                                    MINING_DURATION
-                                    - remaining
-                                )
+                                - MINING_DURATION
+                                + remaining
                             )
                             continue
 
                         bot.send_message(
                             chat_id,
-                            "⚠️ انتهى العداد، لكن Supabase "
-                            "لم تؤكد إضافة المكافأة.\n"
+                            "تعذّر تأكيد المكافأة. "
                             "اضغط بدء التعدين للتحقق."
                         )
                         break
 
                     except Exception:
                         log.exception(
-                            "Mining settlement failed"
+                            "Mining settlement error"
                         )
-
                         bot.send_message(
                             chat_id,
-                            "⚠️ تعذّر التحقق من المكافأة "
-                            "بعد انتهاء الجلسة."
+                            "تعذّر التحقق من المكافأة."
                         )
                         break
 
@@ -477,18 +428,17 @@ def mining_counter(
                     MINING_COUNTERS.pop(key, None)
 
     threading.Thread(
-        target=update_counter,
+        target=update,
         daemon=True
     ).start()
 
 
-def mining(chat_id, telegram_id):
+def mining(chat_id, user_id):
     try:
-        if not profile_for(telegram_id):
+        if not profile_for(user_id):
             bot.send_message(
                 chat_id,
-                "لم أجد حسابك.\n"
-                "أرسل /start أولًا."
+                "لم أجد حسابك. أرسل /start أولًا."
             )
             return
 
@@ -496,37 +446,24 @@ def mining(chat_id, telegram_id):
             db.rpc(
                 "en96_mining_action",
                 {
-                    "p_telegram_id": str(telegram_id)
+                    "p_telegram_id": str(user_id)
                 }
             ).execute()
         )
 
-        status = (
-            data.get("status")
-            or data.get("reason")
-            or data.get("message")
-        )
+        status = data.get("status")
 
         if status == "started":
-            mining_counter(
-                chat_id,
-                telegram_id,
-                0
-            )
+            mining_counter(chat_id, user_id)
 
         elif status == "rewarded_and_started":
             bot.send_message(
                 chat_id,
-                "✅ مكافأة مؤكدة من Supabase: "
-                f"{data.get('reward', 86.4)} EN96\n"
-                "بدأت جلسة جديدة."
+                "✅ تمت إضافة "
+                f"{data.get('reward', 86.4)} "
+                "EN96 وبدأت جلسة جديدة."
             )
-
-            mining_counter(
-                chat_id,
-                telegram_id,
-                0
-            )
+            mining_counter(chat_id, user_id)
 
         elif status == "active":
             remaining = max(
@@ -541,31 +478,17 @@ def mining(chat_id, telegram_id):
                     MINING_DURATION
                 )
             )
-
             mining_counter(
                 chat_id,
-                telegram_id,
+                user_id,
                 MINING_DURATION - remaining
-            )
-
-        elif status == "profile_missing":
-            bot.send_message(
-                chat_id,
-                "لم أجد حسابك في قاعدة البيانات."
-            )
-
-        elif status == "balance_missing":
-            bot.send_message(
-                chat_id,
-                "لم أجد سجل رصيدك."
             )
 
         else:
             log.warning(
-                "Unexpected mining response: %r",
+                "Unexpected mining response: %s",
                 data
             )
-
             bot.send_message(
                 chat_id,
                 "تعذّر تأكيد حالة التعدين."
@@ -573,59 +496,145 @@ def mining(chat_id, telegram_id):
 
     except Exception:
         log.exception("Mining error")
-
         bot.send_message(
             chat_id,
-            "حدث خطأ في التعدين. حاول لاحقًا."
+            "حدث خطأ في التعدين."
         )
 
 
 @bot.callback_query_handler(
     func=lambda call:
-        call.data == "en96_mining_refresh"
+        call.data == "mining_refresh"
 )
-def mining_refresh_callback(call):
+def mining_refresh(call):
     try:
-        bot.answer_callback_query(
-            call.id,
-            "جارٍ تحديث التعدين…"
-        )
-
+        bot.answer_callback_query(call.id)
         mining(
             call.message.chat.id,
             call.from_user.id
         )
-
     except Exception:
         log.exception("Mining refresh error")
 
-        try:
-            bot.answer_callback_query(
-                call.id,
-                "تعذّر التحديث."
+
+# ==================================
+# REFERRALS
+# ==================================
+
+BOT_USERNAME = "EN96_IceDragon_2026_Bot"
+
+
+def referral_link(user_id):
+    return (
+        f"https://t.me/{BOT_USERNAME}"
+        f"?start=ref_{user_id}"
+    )
+
+
+def record_referral(message):
+    """
+    تسجيل الدعوة فقط، دون صرف العملات.
+    صرف 50 EN96 و5% سيضاف لاحقًا
+    إلى معاملة ذرية في Supabase.
+    """
+
+    parts = (
+        (message.text or "")
+        .strip()
+        .split(maxsplit=1)
+    )
+
+    if len(parts) != 2:
+        return
+
+    if parts[0].split("@")[0] != "/start":
+        return
+
+    payload = parts[1].strip()
+
+    if not payload.startswith("ref_"):
+        return
+
+    referrer = payload[4:]
+    new_user = str(message.from_user.id)
+
+    if not referrer.isascii() or not referrer.isdigit():
+        return
+
+    if referrer == new_user:
+        bot.send_message(
+            message.chat.id,
+            "لا يمكنك دعوة نفسك."
+        )
+        return
+
+    try:
+        result = db.rpc(
+            "en96_record_referral",
+            {
+                "p_telegram_id": new_user,
+                "p_referrer_telegram_id": referrer
+            }
+        ).execute()
+
+        data = rpc_data(result)
+        status = data.get("status")
+
+        if status == "registered":
+            bot.send_message(
+                message.chat.id,
+                "🎉 تم تسجيل دعوتك في قبيلة EN96!"
             )
-        except Exception:
-            pass
+
+        elif status:
+            log.info(
+                "Referral status: %s",
+                status
+            )
+
+        else:
+            log.warning(
+                "Unexpected referral response: %s",
+                data
+            )
+
+    except Exception:
+        log.exception("Referral registration error")
 
 
-# =========================
-# VIDEO GIFT REDEMPTION
-# =========================
+def tribe(chat_id, user_id):
+    link = referral_link(user_id)
+
+    bot.send_message(
+        chat_id,
+        "🐻👑 قبيلة EN96\n\n"
+        "🔗 رابط الدعوة الخاص بك:\n"
+        f"{link}\n\n"
+        "🎁 50 EN96 لكل صديق جديد مؤهل.\n"
+        "⛏️ 5% من مكافآت التعدين "
+        "المؤكدة للأصدقاء المباشرين.\n\n"
+        "⚠️ يتم حاليًا تسجيل الدعوات فقط؛ "
+        "صرف المكافآت لم يُفعّل بعد.",
+        disable_web_page_preview=True
+    )
+
+
+# ==================================
+# VIDEO GIFTS
+# ==================================
 
 def redeem_gift(message):
-    user_id = message.from_user.id
-    chat_id = message.chat.id
-
+    uid = message.from_user.id
     code = (message.text or "").strip()
 
-    WAITING_GIFT.discard(user_id)
+    WAITING_GIFT.discard(uid)
 
     try:
         data = rpc_data(
             db.rpc(
                 "redeem_en96_video_gift",
                 {
-                    "p_telegram_id": int(user_id),
+                    "p_telegram_id": int(uid),
                     "p_code": code
                 }
             ).execute()
@@ -633,16 +642,16 @@ def redeem_gift(message):
 
         if data.get("ok") is True:
             bot.send_message(
-                chat_id,
-                "🎁 تم استلام "
-                f"{data.get('reward', 1)} EN96 بنجاح!"
+                message.chat.id,
+                "🎁 استلمت "
+                f"{data.get('reward', 1)} "
+                "EN96 بنجاح!"
             )
             return
 
         reason = (
             data.get("reason")
             or data.get("status")
-            or data.get("message")
             or "unknown"
         )
 
@@ -650,19 +659,19 @@ def redeem_gift(message):
             "invalid_input":
                 "الكود غير صالح.",
             "profile_not_found":
-                "لم أجد حسابك؛ أرسل /start أولًا.",
+                "أرسل /start أولًا.",
             "invalid_or_inactive_code":
-                "الكود غير موجود أو غير مفعّل.",
+                "الكود غير موجود أو غير مفعل.",
             "already_claimed":
-                "لقد استعملت هذا الكود من قبل.",
+                "استخدمت هذا الكود سابقًا.",
             "cooldown_2_hours":
-                "انتظر ساعتين قبل استلام هدية أخرى.",
+                "انتظر ساعتين قبل الهدية التالية.",
             "balance_not_found":
                 "لم أجد سجل رصيدك."
         }
 
         bot.send_message(
-            chat_id,
+            message.chat.id,
             errors.get(
                 reason,
                 f"تعذّر استلام الهدية: {reason}"
@@ -670,17 +679,58 @@ def redeem_gift(message):
         )
 
     except Exception:
-        log.exception("Gift redemption error")
-
+        log.exception("Gift error")
         bot.send_message(
-            chat_id,
-            "تعذّر التحقق من كود الهدية."
+            message.chat.id,
+            "تعذّر التحقق من الهدية."
         )
 
 
-# =========================
-# ADMIN GIFT MANAGEMENT
-# =========================
+def show_videos(chat_id):
+    try:
+        rows = (
+            db.table("video_gift_codes")
+            .select("video_url,reward,description")
+            .eq("active", True)
+            .order("created_at", desc=True)
+            .limit(10)
+            .execute()
+            .data or []
+        )
+
+        if not rows:
+            bot.send_message(
+                chat_id,
+                "لا توجد فيديوهات حاليًا."
+            )
+            return
+
+        lines = []
+
+        for row in rows:
+            lines.append(
+                f"📺 {row.get('description') or 'EN96'}\n"
+                f"🎁 {row.get('reward')} EN96\n"
+                f"{row.get('video_url')}"
+            )
+
+        bot.send_message(
+            chat_id,
+            "\n\n".join(lines),
+            disable_web_page_preview=True
+        )
+
+    except Exception:
+        log.exception("Videos error")
+        bot.send_message(
+            chat_id,
+            "تعذّر تحميل الفيديوهات."
+        )
+
+
+# ==================================
+# ADMIN GIFTS
+# ==================================
 
 def admin_create_code(message):
     uid = message.from_user.id
@@ -700,7 +750,7 @@ def admin_create_code(message):
 
     bot.send_message(
         message.chat.id,
-        "أرسل رابط فيديو YouTube الآن."
+        "أرسل رابط الفيديو."
     )
 
 
@@ -708,21 +758,25 @@ def admin_video(message):
     uid = message.from_user.id
     url = (message.text or "").strip()
 
-    if not url.startswith(("https://", "http://")):
+    if not url.startswith(
+        ("https://", "http://")
+    ):
         bot.send_message(
             message.chat.id,
-            "أرسل رابطًا صالحًا يبدأ بـ https://."
+            "رابط الفيديو غير صالح."
         )
         return
 
-    PENDING.setdefault(uid, {})["video_url"] = url
+    PENDING.setdefault(
+        uid, {}
+    )["video_url"] = url
 
     WAITING_ADMIN_VIDEO.discard(uid)
     WAITING_ADMIN_REWARD.add(uid)
 
     bot.send_message(
         message.chat.id,
-        "أرسل مقدار المكافأة، مثل 1."
+        "أرسل المكافأة، مثل 1."
     )
 
 
@@ -742,7 +796,7 @@ def admin_reward(message):
     except ValueError:
         bot.send_message(
             message.chat.id,
-            "أرسل رقمًا موجبًا، مثل 1."
+            "أرسل رقمًا موجبًا."
         )
         return
 
@@ -753,10 +807,9 @@ def admin_reward(message):
         or not item.get("video_url")
     ):
         WAITING_ADMIN_REWARD.discard(uid)
-
         bot.send_message(
             message.chat.id,
-            "بيانات الهدية ناقصة؛ ابدأ من جديد."
+            "بيانات الهدية ناقصة."
         )
         return
 
@@ -766,18 +819,18 @@ def admin_reward(message):
             "video_url": item["video_url"],
             "reward": reward,
             "active": True,
-            "description": "Created by EN96 admin bot"
+            "description": "EN96 admin gift"
         }).execute()
 
         bot.send_message(
             message.chat.id,
-            f"✅ تم إنشاء الكود {item['code']} "
+            "✅ تم إنشاء الكود "
+            f"{item['code']} "
             f"بمكافأة {reward:g} EN96."
         )
 
     except Exception:
-        log.exception("Admin create gift error")
-
+        log.exception("Create gift error")
         bot.send_message(
             message.chat.id,
             "تعذّر إنشاء الكود."
@@ -792,20 +845,21 @@ def list_gifts(chat_id):
     try:
         rows = (
             db.table("video_gift_codes")
-            .select("id,code,reward,active,created_at")
+            .select("id,code,reward,active")
             .order("created_at", desc=True)
             .limit(20)
-            .execute().data or []
+            .execute()
+            .data or []
         )
 
         if not rows:
             bot.send_message(
                 chat_id,
-                "لا توجد أكواد هدايا."
+                "لا توجد أكواد."
             )
             return
 
-        lines = ["📋 أكواد هدايا EN96:"]
+        lines = ["📋 أكواد EN96:"]
 
         for row in rows:
             state = (
@@ -815,7 +869,6 @@ def list_gifts(chat_id):
             )
 
             lines.append(
-                f"ID {row.get('id')} | "
                 f"{row.get('code')} | "
                 f"{row.get('reward')} EN96 | "
                 f"{state}"
@@ -828,10 +881,9 @@ def list_gifts(chat_id):
 
     except Exception:
         log.exception("List gifts error")
-
         bot.send_message(
             chat_id,
-            "تعذّر عرض أكواد الهدايا."
+            "تعذّر عرض الأكواد."
         )
 
 
@@ -847,64 +899,54 @@ def set_gift_active(message, active):
         )
 
         if result.data:
-            state = (
-                "تفعيل"
-                if active
-                else "تعطيل"
-            )
-
             bot.send_message(
                 message.chat.id,
-                f"تم {state} الكود {code}."
+                "✅ تم تغيير حالة الكود."
             )
-
         else:
             bot.send_message(
                 message.chat.id,
-                "لم أعثر على الكود."
+                "لم أجد هذا الكود."
             )
 
     except Exception:
-        log.exception("Gift status error")
-
+        log.exception("Gift toggle error")
         bot.send_message(
             message.chat.id,
             "تعذّر تغيير حالة الكود."
         )
 
 
-# =========================
+# ==================================
 # TELEGRAM COMMANDS
-# =========================
+# ==================================
 
 @bot.message_handler(commands=["start", "menu"])
 def start(message):
     if message.chat.type != "private":
         bot.reply_to(
             message,
-            "افتح بوت EN96 في محادثة خاصة "
-            "لتسجيل حسابك."
+            "افتح EN96 في محادثة خاصة."
         )
         return
 
-    registered = register_member(
-        message.from_user.id
-    )
+    uid = message.from_user.id
+
+    registered = register_member(uid)
 
     if not registered:
         bot.send_message(
             message.chat.id,
-            "⚠️ لم أتمكن من تأكيد إنشاء حسابك "
-            "في Supabase حاليًا.\n"
-            "يمكنك تجربة زر الدخول، "
-            "ثم إعادة إرسال /start إذا لزم الأمر."
+            "⚠️ تعذّر تأكيد حساب EN96.\n"
+            "حاول لاحقًا."
         )
+        return
 
-    # روابط الدعوات لا تضيف مكافآت تلقائيًا
-    # حتى يُفعّل نظام التحقق في Supabase.
+    record_referral(message)
+
     send_menu(
         message.chat.id,
-        user_id=message.from_user.id
+        user_id=uid
     )
 
 
@@ -932,16 +974,11 @@ def admin_command(message):
             "🛠️ إدارة هدايا EN96",
             reply_markup=admin_menu()
         )
-    else:
-        bot.send_message(
-            message.chat.id,
-            "هذا الأمر مخصص للمسؤول."
-        )
 
 
-# =========================
+# ==================================
 # INPUT HANDLERS
-# =========================
+# ==================================
 
 @bot.message_handler(
     func=lambda m:
@@ -955,15 +992,14 @@ def gift_input(message):
 @bot.message_handler(
     func=lambda m:
         m.from_user.id in WAITING_ADMIN_CODE
-        and ADMIN_ACTION.get(
-            m.from_user.id
-        ) in ("enable", "disable"),
+        and ADMIN_ACTION.get(m.from_user.id)
+        in ("enable", "disable"),
     content_types=["text"]
 )
 def admin_toggle_input(message):
     uid = message.from_user.id
-    action = ADMIN_ACTION.pop(uid)
 
+    action = ADMIN_ACTION.pop(uid)
     WAITING_ADMIN_CODE.discard(uid)
 
     set_gift_active(
@@ -980,10 +1016,6 @@ def admin_toggle_input(message):
 def admin_code_input(message):
     if is_admin(message.from_user.id):
         admin_create_code(message)
-    else:
-        WAITING_ADMIN_CODE.discard(
-            message.from_user.id
-        )
 
 
 @bot.message_handler(
@@ -994,10 +1026,6 @@ def admin_code_input(message):
 def admin_video_input(message):
     if is_admin(message.from_user.id):
         admin_video(message)
-    else:
-        WAITING_ADMIN_VIDEO.discard(
-            message.from_user.id
-        )
 
 
 @bot.message_handler(
@@ -1008,15 +1036,11 @@ def admin_video_input(message):
 def admin_reward_input(message):
     if is_admin(message.from_user.id):
         admin_reward(message)
-    else:
-        WAITING_ADMIN_REWARD.discard(
-            message.from_user.id
-        )
 
 
-# =========================
-# ALL MENU BUTTONS
-# =========================
+# ==================================
+# MAIN HANDLER
+# ==================================
 
 @bot.message_handler(content_types=["text"])
 def menu_handler(message):
@@ -1033,78 +1057,67 @@ def menu_handler(message):
     elif text == "⚡ ترقية المنجم":
         bot.send_message(
             chat_id,
-            "⚡ ترقيات المنجم لم تُفعّل بعد.\n"
-            "لن يتم خصم أي رصيد."
+            "⚡ الترقيات غير مفعلة بعد."
         )
 
     elif text == "🏆 المكافآت":
         bot.send_message(
             chat_id,
-            "🏆 مكافآت EN96 الافتراضية.\n"
-            "يمكنك استخدام أكواد هدايا الفيديو."
+            "🏆 مكافآت EN96 الافتراضية."
         )
 
     elif text == "📺 مشاهدة الفيديوهات":
-        bot.send_message(
-            chat_id,
-            "📺 مكتبة فيديوهات EN96 داخل التطبيق.\n"
-            "افتح التطبيق واختر قسم الهدايا "
-            "لمشاهدة الفيديوهات."
-        )
-
-        if message.chat.type == "private":
-            app_button(chat_id)
+        show_videos(chat_id)
 
     elif text == "🎁 استلام الهدية":
         WAITING_GIFT.add(uid)
 
         bot.send_message(
             chat_id,
-            "🎁 أرسل كود الهدية الموجود "
-            "في فيديو YouTube."
+            "🎁 أرسل كود هدية الفيديو."
         )
 
     elif text in (
         "🐻 أعضاء القبيلة",
         "🐉 أعضاء القبيلة"
     ):
-        bot.send_message(
-            chat_id,
-            "👥 مجتمع EN96 الجليدي.\n"
-            "روابط الدعوات متاحة داخل التطبيق.\n"
-            "مكافآت الدعوات لم تُفعّل بعد."
-        )
-
-        if message.chat.type == "private":
-            app_button(chat_id)
+        tribe(chat_id, uid)
 
     elif text == "ℹ️ معلومات EN96":
         bot.send_message(
             chat_id,
-            "🐻❄️ EN96 Ice Bear Mining\n\n"
-            "⚡ معدل التعدين: 0.001 EN96/ثانية\n"
-            "⏱️ مدة الجلسة: 24 ساعة\n"
-            "💎 المكافأة النظرية: 86.4 EN96\n\n"
-            "⚠️ هذا تعدين افتراضي، "
-            "وليس تعدين أجهزة حقيقيًا."
+            "🐻 EN96 Ice Bear Mining\n\n"
+            "⛏️ تعدين افتراضي.\n"
+            "⚡ 0.001 EN96 في الثانية.\n"
+            "⏱️ مدة الجلسة 24 ساعة.\n"
+            "💎 86.4 EN96 لكل جلسة مكتملة.\n"
+            "السحب يدوي."
         )
 
-    elif text == "🛠️ إدارة الهدايا" and is_admin(uid):
+    elif (
+        text == "🛠️ إدارة الهدايا"
+        and is_admin(uid)
+    ):
         bot.send_message(
             chat_id,
             "🛠️ إدارة الهدايا",
             reply_markup=admin_menu()
         )
 
-    elif text == "➕ إنشاء كود هدية" and is_admin(uid):
+    elif (
+        text == "➕ إنشاء كود هدية"
+        and is_admin(uid)
+    ):
         WAITING_ADMIN_CODE.add(uid)
-
         bot.send_message(
             chat_id,
-            "أرسل كود الهدية الجديد."
+            "أرسل الكود الجديد."
         )
 
-    elif text == "📋 أكواد الهدايا" and is_admin(uid):
+    elif (
+        text == "📋 أكواد الهدايا"
+        and is_admin(uid)
+    ):
         list_gifts(chat_id)
 
     elif (
@@ -1124,7 +1137,7 @@ def menu_handler(message):
 
         bot.send_message(
             chat_id,
-            "أرسل الكود الذي تريد تغيير حالته."
+            "أرسل الكود."
         )
 
     elif text == "🔙 القائمة الرئيسية":
@@ -1136,16 +1149,11 @@ def menu_handler(message):
     elif text == "🌐 فتح تطبيق EN96":
         if message.chat.type == "private":
             app_button(chat_id)
-        else:
-            bot.send_message(
-                chat_id,
-                "افتح بوت EN96 في محادثة خاصة."
-            )
 
     else:
         send_menu(
             chat_id,
-            "اختر أحد أزرار EN96.",
+            "اختر زرًا من قائمة EN96.",
             user_id=uid
         )
 
