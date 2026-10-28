@@ -3,7 +3,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#031329">
 <title>EN96 Ice Bear Mining Bot</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -23,8 +23,7 @@ body {
   margin:0;
   color:var(--text);
   font-family:Tahoma,Arial,sans-serif;
-  background:
-    radial-gradient(circle at top,#0b417c,#020b1c 70%);
+  background:radial-gradient(circle at top,#0b417c,#020b1c 70%);
   padding-bottom:85px;
 }
 header {
@@ -49,10 +48,7 @@ main {
 }
 .page {display:none}
 .page.active {display:block}
-h2 {
-  text-align:center;
-  font-size:21px;
-}
+h2 {text-align:center;font-size:21px}
 .card {
   margin:12px 0;
   padding:17px;
@@ -75,22 +71,11 @@ button,.btn {
   text-decoration:none;
   width:100%;
 }
-button:disabled {
-  opacity:.5;
-  cursor:not-allowed;
-}
+button:disabled {opacity:.5;cursor:not-allowed}
 .secondary {background:#143c6b}
-.green {
-  background:linear-gradient(#10c78b,#047a55);
-}
-.red {
-  background:linear-gradient(#ff506e,#af123a);
-}
-.muted {
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.7;
-}
+.green {background:linear-gradient(#10c78b,#047a55)}
+.red {background:linear-gradient(#ff506e,#af123a)}
+.muted {color:var(--muted);font-size:13px;line-height:1.7}
 .notice {
   padding:12px;
   margin:10px 0;
@@ -110,11 +95,7 @@ button:disabled {
   box-shadow:0 0 28px #008eff40;
   background:#032246;
 }
-.hero img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+.hero img {width:100%;height:100%;object-fit:cover}
 .hero:after {
   content:"";
   position:absolute;
@@ -146,16 +127,8 @@ button:disabled {
   background:linear-gradient(145deg,#0960b1,#051934);
   box-shadow:0 0 16px #008eff25;
 }
-.tile span {
-  display:block;
-  font-size:35px;
-  margin-bottom:7px;
-}
-.tile small {
-  display:block;
-  color:#93cfff;
-  margin-top:4px;
-}
+.tile span {display:block;font-size:35px;margin-bottom:7px}
+.tile small {display:block;color:#93cfff;margin-top:4px}
 .menu-banner {
   position:relative;
   height:210px;
@@ -165,11 +138,7 @@ button:disabled {
   border:1px solid #1faaff;
   background:#04254c;
 }
-.menu-banner img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+.menu-banner img {width:100%;height:100%;object-fit:cover}
 .menu-banner strong {
   position:absolute;
   bottom:0;
@@ -264,11 +233,7 @@ button:disabled {
   border-radius:13px;
   font-size:12px;
 }
-.stat strong {
-  display:block;
-  font-size:18px;
-  margin-bottom:5px;
-}
+.stat strong {display:block;font-size:18px;margin-bottom:5px}
 .wallet-coin {
   width:110px;
   height:110px;
@@ -349,20 +314,16 @@ nav span {
 
 <main>
 
-<!-- شاشة الترحيب وتسجيل الدخول -->
 <section class="page active" id="welcome">
-
   <div class="card">
     <h2>🔐 تسجيل الدخول إلى EN96</h2>
     <p class="muted">
       سجل حسابك مجانًا عبر تيليغرام.
       لا تحتاج إلى بريد إلكتروني أو كلمة مرور.
     </p>
-
     <div id="loginStatus" class="notice">
       افتح البوت واضغط Start ثم افتح تطبيق EN96.
     </div>
-
     <a class="btn"
        href="https://t.me/EN96_IceDragon_2026_Bot">
       📲 تسجيل الدخول / إنشاء حساب
@@ -370,8 +331,9 @@ nav span {
   </div>
 
   <div class="hero">
-    <img src="assets/en96-welcome.jpg"
-         alt="الدب الجليدي EN96">
+    <img
+      src="https://raw.githubusercontent.com/Fouad1299/en96/main/en96-welcome.jpg"
+      alt="الدب الجليدي EN96">
     <div class="hero-content">
       <h1>EN96 MINING BOT</h1>
       <p>🐻❄️ بناء مستقبل أقوى</p>
@@ -380,14 +342,13 @@ nav span {
       </button>
     </div>
   </div>
-
 </section>
 
-<!-- القائمة الرئيسية -->
 <section class="page" id="menu">
-
   <div class="menu-banner">
-    <img src="assets/en96-welcome.jpg" alt="EN96">
+    <img
+      src="https://raw.githubusercontent.com/Fouad1299/en96/main/en96-welcome.jpg"
+      alt="EN96">
     <strong>❄️ EN96 ICE BEAR</strong>
   </div>
 
@@ -396,54 +357,45 @@ nav span {
       <span>⛏️</span> بدء التعدين
       <small>MINING</small>
     </button>
-
     <button class="tile" onclick="page('wallet')">
       <span>💼</span> محفظتي
       <small>WALLET</small>
     </button>
-
     <button class="tile" onclick="page('upgrades')">
       <span>⬆️</span> ترقية المنجم
       <small>UPGRADES</small>
     </button>
-
     <button class="tile" onclick="page('rewards')">
       <span>🏆</span> المكافآت
       <small>REWARDS</small>
     </button>
-
     <button class="tile" onclick="page('rewards')">
       <span>📺</span> مشاهدة الفيديوهات
       <small>VIDEOS</small>
     </button>
-
     <button class="tile" onclick="page('rewards')">
       <span>🎁</span> استلام الهدية
       <small>GIFT CODE</small>
     </button>
-
     <button class="tile" onclick="page('tribe')">
       <span>👥</span> أعضاء القبيلة
       <small>REFERRALS</small>
     </button>
-
     <button class="tile" onclick="page('info')">
       <span>ℹ️</span> معلومات EN96
       <small>ABOUT</small>
     </button>
   </div>
-
 </section>
 
-<!-- شاشة التعدين -->
 <section class="page" id="mining">
-
   <h2>🟢 التعدين الافتراضي النشط</h2>
 
   <div class="mining-circle" id="miningCircle">
     <div class="circle-inner">
-      <img src="assets/en96-bear-face.webp"
-           alt="دب التعدين الجليدي">
+      <img
+        src="https://raw.githubusercontent.com/Fouad1299/en96/main/en96-bear-face.webp"
+        alt="دب التعدين الجليدي">
       <div class="circle-label">
         ⚡ 0.001 EN96/ثانية
       </div>
@@ -453,10 +405,7 @@ nav span {
   <p class="muted" style="text-align:center">
     ⏳ الوقت المتبقي
   </p>
-
-  <div class="clock" id="timer">
-    24:00:00
-  </div>
+  <div class="clock" id="timer">24:00:00</div>
 
   <div class="progress">
     <div id="progressBar"></div>
@@ -502,23 +451,17 @@ nav span {
     ⚠️ هذا تعدين افتراضي. العدّاد تقديري،
     والمكافآت الفعلية تعتمدها Supabase.
   </p>
-
 </section>
 
-<!-- المحفظة -->
 <section class="page" id="wallet">
-
   <h2>💎 محفظتي</h2>
 
   <div class="card">
-
     <img class="wallet-coin"
-         src="assets/en96-coin.webp"
-         alt="عملة EN96">
+      src="https://raw.githubusercontent.com/Fouad1299/en96/main/en96-coin.webp"
+      alt="عملة EN96">
 
-    <h3 style="text-align:center">
-      EN96 WALLET
-    </h3>
+    <h3 style="text-align:center">EN96 WALLET</h3>
 
     <p class="muted">الرصيد المتاح</p>
     <div class="reward" id="available">—</div>
@@ -529,13 +472,10 @@ nav span {
     <button class="green" onclick="loadWallet()">
       🔄 تحديث الرصيد
     </button>
-
   </div>
 
   <div class="card">
-
     <h3>👤 معلومات حسابي</h3>
-
     <p>
       Telegram ID:
       <strong id="telegramId">—</strong>
@@ -544,8 +484,7 @@ nav span {
     <p class="muted">عنوان Stellar العام</p>
 
     <input id="stellar"
-           maxlength="56"
-           placeholder="G...">
+      maxlength="56" placeholder="G...">
 
     <button onclick="saveStellar()">
       💾 حفظ عنوان Stellar
@@ -554,43 +493,35 @@ nav span {
     <div class="notice" id="walletMsg">
       لا تكتب مفتاح Stellar السري.
     </div>
-
   </div>
 
   <div class="notice">
     💸 الحد الأدنى للسحب اليدوي 500 EN96.
     تتم مراجعة السحب بواسطة المسؤول.
   </div>
-
 </section>
 
-<!-- هدايا الفيديو -->
 <section class="page" id="rewards">
-
   <h2>📺 مشاهدة فيديوهات EN96</h2>
 
   <img class="video-cover"
-       src="assets/en96-welcome.jpg"
-       alt="فيديو EN96">
+    src="https://raw.githubusercontent.com/Fouad1299/en96/main/en96-welcome.jpg"
+    alt="فيديو EN96">
 
   <div class="card">
     <h3>🎬 فيديوهات الهدايا</h3>
-
     <p class="muted">
       افتح الفيديو على YouTube،
       وابحث عن كود الهدية داخل الفيديو.
     </p>
-
-    <div id="videos">
-      جارٍ تحميل الفيديوهات...
-    </div>
+    <div id="videos">جارٍ تحميل الفيديوهات...</div>
   </div>
 
   <div class="card">
     <h3>🎁 استلام هدية الفيديو</h3>
 
     <input id="giftCode"
-           placeholder="أدخل كود الهدية">
+      placeholder="أدخل كود الهدية">
 
     <button onclick="redeemGift()">
       🎁 استلام الهدية
@@ -601,12 +532,9 @@ nav span {
       ولا يمكن استعمال الكود نفسه مرتين.
     </div>
   </div>
-
 </section>
 
-<!-- الترقيات -->
 <section class="page" id="upgrades">
-
   <h2>⚡ ترقية المنجم</h2>
 
   <div class="level">
@@ -633,22 +561,18 @@ nav span {
     الترقيات غير مفعّلة بعد،
     ولن يتم خصم أي رصيد.
   </div>
-
 </section>
 
 <section class="page" id="tribe">
   <h2>👥 أعضاء القبيلة</h2>
   <div class="card">
     <h3>🐻 قبيلة EN96 الجليدية</h3>
-    <p class="muted">
-      نظام دعوة الأصدقاء قيد الإعداد.
-    </p>
+    <p class="muted">نظام دعوة الأصدقاء قيد الإعداد.</p>
   </div>
 </section>
 
 <section class="page" id="info">
   <h2>ℹ️ معلومات EN96</h2>
-
   <div class="card">
     <h3>EN96 Mining Bot</h3>
     <p>🐻 مملكة الدب الجليدي</p>
@@ -722,7 +646,7 @@ async function api(path, body) {
   }
 
   const headers = {
-    "X-Telegram-Init-Data":tg.initData
+    "X-Telegram-Init-Data": tg.initData
   };
 
   const options = {
@@ -908,7 +832,13 @@ async function loadVideos() {
     box.replaceChildren();
 
     for (const video of result.videos || []) {
-      const url = new URL(video.video_url);
+      let url;
+
+      try {
+        url = new URL(video.video_url);
+      } catch(e) {
+        continue;
+      }
 
       if (!["http:","https:"].includes(url.protocol)) {
         continue;
@@ -1000,10 +930,10 @@ async function login() {
   }
 }
 
-// تحديث العداد المرئي كل ثانية
+// عداد التعدين يتحرك كل ثانية
 setInterval(renderCounter,1000);
 
-// تحديث الحالة عند العودة إلى التطبيق
+// تحديث حالة التعدين عند العودة للتطبيق
 document.addEventListener(
   "visibilitychange",()=>{
     if (!document.hidden && loggedIn) {
@@ -1012,7 +942,10 @@ document.addEventListener(
   }
 );
 
-// التحقق من الصور
+// التحقق من تحميل صور الدب والعملة
+const IMAGE_BASE =
+  "https://raw.githubusercontent.com/Fouad1299/en96/main/";
+
 [
   "en96-welcome.jpg",
   "en96-bear-face.webp",
@@ -1022,14 +955,15 @@ document.addEventListener(
 
   image.onerror = () => {
     console.warn(
-      "صورة EN96 غير موجودة: assets/"+file
+      "تعذّر تحميل صورة EN96 من GitHub: "+file
     );
   };
 
-  image.src = "assets/"+file;
+  image.src = IMAGE_BASE + file;
 });
 
 login();
 </script>
+
 </body>
 </html>
