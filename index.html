@@ -4,864 +4,568 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#030812">
-<title>EN96 — Ice Bear Kingdom</title>
-
+<meta name="theme-color" content="#060a13">
+<title>EN96 | Ice Bear Kingdom</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
-:root {
-  --black:#050608;
-  --navy:#07192e;
-  --blue:#29b7ff;
-  --ice:#93ecff;
-  --gold:#f2c75d;
-  --gold2:#a67a26;
-  --white:#f7fbff;
-  --muted:#9cb3ca;
-  --green:#35efa9;
-}
-
-* {box-sizing:border-box}
-html {scroll-behavior:smooth}
-
-body {
-  margin:0;
-  min-height:100vh;
-  padding-bottom:118px;
-  background:
-    radial-gradient(circle at 50% 0%,#14548a 0,transparent 40%),
-    linear-gradient(180deg,#081d38,#02060c 85%);
-  color:var(--white);
-  font-family:Tahoma,Arial,sans-serif;
-}
-
-button,input {font-family:inherit}
-button {cursor:pointer}
-button:disabled {opacity:.55;cursor:not-allowed}
-
-button:focus-visible,
-input:focus-visible {
-  outline:2px solid var(--ice);
-  outline-offset:3px;
-}
-
-[hidden] {display:none!important}
-
-header {
-  position:sticky;
-  top:0;
-  z-index:10;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:12px 15px;
-  background:#030912f2;
-  border-bottom:1px solid #a67a2655;
-  backdrop-filter:blur(14px);
-}
-
-.brand {
-  text-align:center;
-  line-height:1.4;
-}
-
-.brand strong {
-  color:var(--gold);
-  font-size:18px;
-  letter-spacing:1px;
-}
-
-.brand small {
-  display:block;
-  font-size:10px;
-  color:var(--ice);
-}
-
-.head-btn {
-  background:#11100c;
-  border:1px solid var(--gold2);
-  color:var(--gold);
-  border-radius:11px;
-  padding:9px 12px;
-  font-size:13px;
-}
-
-main {
-  max-width:500px;
-  margin:auto;
-  padding:14px;
-}
-
-.page {
-  display:none;
-  animation:enter .25s ease;
-}
-
-.page.active {display:block}
-
-@keyframes enter {
-  from {opacity:0;transform:translateY(8px)}
-  to {opacity:1;transform:none}
-}
-
-h1,h2,h3 {margin-top:0}
-
-h2 {
-  text-align:center;
-  color:var(--gold);
-  font-size:21px;
-  margin:17px 0;
-}
-
-p {line-height:1.8}
-
-.card {
-  margin:14px 0;
-  padding:17px;
-  border-radius:19px;
-  background:linear-gradient(145deg,#0b2542,#06111f);
-  border:1px solid #32668d;
-  box-shadow:0 12px 30px #0007;
-}
-
-.muted {
-  color:var(--muted);
-  font-size:13px;
-}
-
-.note {
-  margin-top:12px;
-  padding:12px;
-  border-radius:12px;
-  background:#061322;
-  border:1px solid #285479;
-  color:#c2dbed;
-  font-size:13px;
-  line-height:1.8;
-  overflow-wrap:anywhere;
-}
-
-.gold-btn {
-  display:block;
-  width:100%;
-  border-radius:13px;
-  border:1px solid #ffe19a;
-  background:linear-gradient(135deg,#ffe394,#bb8427);
-  color:#171005;
-  padding:14px 10px;
-  font-size:15px;
-  font-weight:bold;
-  text-align:center;
-  text-decoration:none;
-  box-shadow:0 4px 16px #dba62b33;
-}
-
-.gold-btn:active {transform:scale(.98)}
-
-.dark-btn {
-  display:block;
-  width:100%;
-  border-radius:12px;
-  border:1px solid var(--gold2);
-  background:linear-gradient(#181711,#060607);
-  color:var(--gold);
-  padding:13px 8px;
-  font-size:14px;
-  font-weight:bold;
-}
-
-.row-buttons {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-  margin-top:10px;
-}
-
-input {
-  width:100%;
-  border:1px solid #6088a9;
-  border-radius:12px;
-  background:#eaf7ff;
-  color:#102239;
-  padding:13px;
-  font-size:15px;
-  margin:9px 0;
-  direction:ltr;
-  text-align:left;
-}
-
-.hero {
-  position:relative;
-  height:420px;
-  overflow:hidden;
-  border-radius:24px;
-  border:1px solid #4fcbff;
-  box-shadow:0 0 30px #1aaaff55;
-  background:#071b32;
-  animation:glow 3s ease-in-out infinite alternate;
-}
-
-.hero img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.hero:after {
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(
-    transparent 35%,
-    #02091488 68%,
-    #020914 100%
-  );
-}
-
-.hero-content {
-  position:absolute;
-  z-index:1;
-  bottom:18px;
-  left:15px;
-  right:15px;
-  text-align:center;
-}
-
-.hero-content h1 {
-  color:#e8faff;
-  font-size:30px;
-  text-shadow:0 0 18px #00aaff;
-}
-
-.hero-content p {
-  color:#b9eaff;
-  margin:7px 0 14px;
-}
-
-@keyframes glow {
-  from {box-shadow:0 0 15px #168fff55}
-  to {box-shadow:0 0 40px #50dcff88}
-}
-
-.banner {
-  height:175px;
-  border-radius:18px;
-  position:relative;
-  overflow:hidden;
-  border:1px solid #28baff;
-  margin-bottom:16px;
-}
-
-.banner img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.banner strong {
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  padding:23px 12px 13px;
-  text-align:center;
-  font-size:23px;
-  color:#e9fbff;
-  background:linear-gradient(transparent,#020811ee);
-}
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:12px;
-}
-
-.tile {
-  min-height:132px;
-  border-radius:19px;
-  border:1px solid var(--gold2);
-  background:linear-gradient(150deg,#211c10,#040404 78%);
-  color:#f8df99;
-  font-size:14px;
-  font-weight:bold;
-  padding:12px 5px;
-  box-shadow:inset 0 0 17px #f2c75d15,0 6px 15px #0009;
-}
-
-.tile-icon {
-  width:65px;
-  height:65px;
-  display:grid;
-  place-items:center;
-  margin:0 auto 9px;
-  border-radius:50%;
-  border:2px solid #be9745;
-  background:radial-gradient(circle at 35% 28%,#393020,#050505 75%);
-  color:var(--gold);
-  font-size:31px;
-  box-shadow:0 0 14px #f7ca5435;
-}
-
-.tile small {
-  display:block;
-  color:#aca79e;
-  font-size:10px;
-  margin-top:5px;
-}
-
-.tile:active {
-  transform:scale(.96);
-  box-shadow:0 0 22px #edc45d77;
-}
-
-.ring {
-  --pct:0%;
-  width:min(290px,82vw);
-  aspect-ratio:1;
-  padding:10px;
-  margin:18px auto;
-  border-radius:50%;
-  background:conic-gradient(
-    #ffd477 var(--pct),
-    #16466d var(--pct)
-  );
-  box-shadow:0 0 40px #21aaff66;
-  animation:glow 2.8s ease-in-out infinite alternate;
-}
-
-.ring-inner {
-  position:relative;
-  height:100%;
-  border:3px solid #74e3ff;
-  border-radius:50%;
-  overflow:hidden;
-  background:#041324;
-}
-
-.ring-inner img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  filter:saturate(1.25) contrast(1.1);
-}
-
-.ring-inner strong {
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:17px;
-  background:#020d20c9;
-  padding:9px 2px;
-  text-align:center;
-  font-size:13px;
-}
-
-.paw {animation:paw .6s ease-out}
-
-@keyframes paw {
-  35% {transform:scale(1.05);filter:brightness(1.5)}
-}
-
-.clock {
-  margin:12px 0;
-  padding:14px;
-  border-radius:14px;
-  border:1px solid #2977a3;
-  background:#051a31;
-  text-align:center;
-  font-size:34px;
-  font-weight:bold;
-  font-variant-numeric:tabular-nums;
-  color:#def8ff;
-}
-
-.progress {
-  height:9px;
-  background:#153857;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-.progress div {
-  width:0%;
-  height:100%;
-  background:linear-gradient(90deg,#008bff,#ffe18d);
-}
-
-.reward {
-  text-align:center;
-  font-size:27px;
-  font-weight:bold;
-  color:var(--gold);
-  overflow-wrap:anywhere;
-}
-
-.stats {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:7px;
-}
-
-.stat {
-  padding:11px 5px;
-  border:1px solid #305f82;
-  border-radius:12px;
-  text-align:center;
-  background:#061629;
-  font-size:11px;
-}
-
-.stat b {
-  display:block;
-  color:var(--gold);
-  font-size:18px;
-  margin-bottom:5px;
-}
-
-.coin {
-  display:block;
-  width:115px;
-  height:115px;
-  margin:10px auto;
-  object-fit:cover;
-  border-radius:50%;
-  border:2px solid var(--gold);
-  box-shadow:0 0 22px #ecc14a66;
-}
-
-.video-cover {
-  width:100%;
-  max-height:230px;
-  object-fit:cover;
-  border-radius:14px;
-}
-
-.video-nav {
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
-  gap:8px;
-  align-items:center;
-  margin-top:12px;
-}
-
-.video-nav button {font-size:12px}
-#videoCount {color:var(--ice);font-size:12px}
-
-.level {
-  padding:15px;
-  margin:10px 0;
-  border:1px solid #3c6688;
-  border-radius:13px;
-  background:#071a30;
-}
-
-.level strong {color:var(--gold)}
-
-.referral-box {
-  padding:15px;
-  border-radius:13px;
-  background:#11100c;
-  border:1px solid var(--gold2);
-  margin:12px 0;
-}
-
-.referral-box strong {
-  color:var(--gold);
-  font-size:21px;
-}
-
-/* ======================================
-   EN96 TAP TO EARN DESIGN
-   ====================================== */
-
-.tap-shell {
-  margin:12px 0 22px;
-  padding:16px 12px 20px;
-  border-radius:27px;
-  background:
-    radial-gradient(circle at 50% 45%,#113e63 0,transparent 55%),
-    linear-gradient(155deg,#151209,#030407 70%);
-  border:2px solid #bf913d;
-  box-shadow:
-    0 0 30px #b88a2525,
-    inset 0 0 30px #ffce4310;
-  overflow:hidden;
-  text-align:center;
-}
-
-.tap-crown {
-  color:#ffe4a1;
-  font-weight:bold;
-  font-size:17px;
-  letter-spacing:1px;
-  text-shadow:0 0 12px #e0a82e;
-}
-
-.tap-subtitle {
-  color:#92dfff;
-  font-size:11px;
-  letter-spacing:2px;
-  margin:5px 0 15px;
-}
-
-.tap-wallet-card {
-  border:1px solid #d1a249;
-  background:linear-gradient(125deg,#221a0b,#090909);
-  border-radius:19px;
-  padding:12px;
-  margin:8px 0 12px;
-  box-shadow:inset 0 0 18px #e7aa2c20;
-}
-
-.tap-wallet-label {
-  font-size:12px;
-  color:#ccb987;
-}
-
-.tap-wallet-value {
-  color:#ffe29a;
-  font-size:clamp(23px,7vw,33px);
-  font-weight:900;
-  font-variant-numeric:tabular-nums;
-  overflow-wrap:anywhere;
-  text-shadow:0 0 18px #e8b34d77;
-  margin:5px 0;
-}
-
-.tap-wallet-unit {
-  color:#f6cd65;
-  font-size:13px;
-  font-weight:bold;
-}
-
-.tap-earn-card {
-  background:linear-gradient(120deg,#062d24,#04130f);
-  border:1px solid #248969;
-  border-radius:15px;
-  padding:12px;
-  margin-bottom:14px;
-}
-
-.tap-earn-value {
-  color:var(--green);
-  font-size:clamp(21px,6vw,28px);
-  font-weight:bold;
-  font-variant-numeric:tabular-nums;
-  text-shadow:0 0 15px #1ed99e66;
-}
-
-.tap-earn-label {
-  color:#a2e1cb;
-  font-size:11px;
-  margin-top:5px;
-}
-
-.tap-counter-label {
-  color:#d3c39b;
-  font-size:12px;
-  margin:4px 0;
-}
-
-.tap-counter {
-  color:#ffe49d;
-  font-size:clamp(25px,8vw,38px);
-  font-weight:900;
-  font-variant-numeric:tabular-nums;
-  direction:ltr;
-  text-shadow:0 0 18px #edbb4b88;
-  margin:4px 0 12px;
-}
-
-.tap-bear-area {
-  position:relative;
-  max-width:330px;
-  margin:10px auto 18px;
-  padding:10px;
-}
-
-.tap-aura {
-  position:absolute;
-  inset:0;
-  border-radius:50%;
-  background:radial-gradient(
-    circle,
-    #3bcbff2a 20%,
-    #00aaff20 53%,
-    transparent 72%
-  );
-  filter:blur(13px);
-  animation:iceAura 3s ease-in-out infinite alternate;
-  pointer-events:none;
-}
-
-@keyframes iceAura {
-  from {opacity:.65;transform:scale(.97)}
-  to {opacity:1;transform:scale(1.08)}
-}
-
-.tap-bear-button {
-  position:relative;
-  display:block;
-  width:min(292px,76vw);
-  aspect-ratio:1;
-  border-radius:50%;
-  margin:auto;
-  padding:9px;
-  border:4px solid #eec466;
-  background:
-    conic-gradient(
-      #ffe39b,
-      #98631c,
-      #fff0ac,
-      #785017,
-      #ffe39b
-    );
-  box-shadow:
-    0 0 18px #e9ba5788,
-    0 0 45px #1bbaff66,
-    inset 0 0 20px #ffe5a355;
-  cursor:pointer;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-  transition:transform .09s ease;
-  overflow:hidden;
-}
-
-.tap-bear-button:active:not(:disabled) {
-  transform:scale(.95);
-}
-
-.tap-bear-button img {
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  object-fit:cover;
-  border:3px solid #62d9ff;
-  filter:saturate(1.15) contrast(1.1);
-  pointer-events:none;
-}
-
-.tap-bear-button::after {
-  content:"";
-  position:absolute;
-  inset:12px;
-  border-radius:50%;
-  border:2px solid #c3f7ff44;
-  box-shadow:inset 0 0 32px #15c9ff40;
-  pointer-events:none;
-}
-
-.tap-bear-button.tap-flash img {
-  animation:tapFlash .38s ease-out;
-}
-
-@keyframes tapFlash {
-  0% {filter:brightness(1.1)}
-  35% {filter:brightness(1.9) saturate(1.6)}
-  100% {filter:brightness(1.1)}
-}
-
-.tap-float {
-  position:absolute;
-  left:50%;
-  top:17%;
-  transform:translateX(-50%);
-  color:#5effb6;
-  font-size:21px;
-  font-weight:bold;
-  text-shadow:0 0 9px #000,0 0 20px #28ffb9;
-  z-index:5;
-  pointer-events:none;
-  opacity:0;
-  white-space:nowrap;
-}
-
-.tap-float.animate {
-  animation:floatReward .85s ease-out forwards;
-}
-
-@keyframes floatReward {
-  0% {
-    opacity:0;
-    transform:translate(-50%,20px) scale(.8);
-  }
-  20% {
-    opacity:1;
-    transform:translate(-50%,0) scale(1.05);
-  }
-  100% {
-    opacity:0;
-    transform:translate(-50%,-65px) scale(1);
-  }
-}
-
-.tap-instruction {
-  color:#d8ecff;
-  font-size:13px;
-  margin:4px 0 18px;
-}
-
-.tap-energy-card {
-  background:#100f0c;
-  border:1px solid #86672d;
-  border-radius:16px;
-  padding:14px;
-  margin-top:10px;
-}
-
-.tap-energy-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  color:#ffdb82;
-  font-size:13px;
-  font-weight:bold;
-  gap:8px;
-}
-
-.tap-energy-track {
-  height:17px;
-  margin-top:12px;
-  background:#332613;
-  border-radius:30px;
-  border:1px solid #8a6729;
-  overflow:hidden;
-}
-
-.tap-energy-fill {
-  height:100%;
-  width:100%;
-  border-radius:30px;
-  background:linear-gradient(
-    90deg,
-    #a95a09,
-    #ffad28,
-    #ffe18b
-  );
-  box-shadow:0 0 15px #ffaf3988;
-  transition:width .3s ease;
-}
-
-.tap-time-label {
-  color:#a8d3ef;
-  font-size:12px;
-  margin-top:15px;
-}
-
-.tap-time-value {
-  color:#ffe2a0;
-  font-size:29px;
-  font-weight:bold;
-  margin:7px 0;
-  font-variant-numeric:tabular-nums;
-  direction:ltr;
-}
-
-.tap-message {
-  font-size:12px;
-  line-height:1.8;
-  color:#b8d7e8;
-  margin-top:14px;
-  padding:10px;
-  background:#061523;
-  border:1px solid #285473;
-  border-radius:12px;
-  overflow-wrap:anywhere;
-}
-
-.tap-daily-info {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-  margin:14px 0;
-}
-
-.tap-daily-info div {
-  background:#100f0b;
-  border:1px solid #86672d;
-  border-radius:12px;
-  padding:11px 5px;
-  font-size:11px;
-  color:#d4c5a2;
-}
-
-.tap-daily-info strong {
-  display:block;
-  color:#ffe4a1;
-  font-size:19px;
-  margin-bottom:5px;
-}
-
-.tap-refresh {
-  margin-top:12px;
-}
-
-/* ======================================
-   NAVIGATION
-   ====================================== */
-
-nav {
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  z-index:15;
-  max-width:500px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:2px;
-  padding:9px 3px max(10px,env(safe-area-inset-bottom));
-  background:linear-gradient(#11100d,#020202);
-  border-top:1px solid #a78237;
-  border-radius:18px 18px 0 0;
-}
-
-nav button {
-  background:transparent;
-  border:0;
-  color:#e9dfc4;
-  font-size:10px;
-  font-weight:bold;
-  padding:4px 0;
-  min-width:0;
-  text-align:center;
-}
-
-.nav-circle {
-  width:46px;
-  height:46px;
-  margin:0 auto 6px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  border:2px solid #9d7b36;
-  background:radial-gradient(circle at 30% 25%,#3a3120,#030303 70%);
-  color:var(--gold);
-  font-size:23px;
-}
-
-nav button.active .nav-circle {
-  border-color:#ffe08b;
-  box-shadow:0 0 16px #f5c65e88;
-}
-
-@media(max-width:370px) {
-  .hero {height:355px}
-  .tile {min-height:118px;font-size:12px}
-  .tile-icon {width:56px;height:56px}
-  .nav-circle {width:39px;height:39px;font-size:19px}
-  nav button {font-size:9px}
-  .tap-bear-button {width:min(260px,75vw)}
-}
-
-@media(prefers-reduced-motion:reduce) {
-  *,*:before,*:after {
-    animation:none!important;
-    transition:none!important;
-  }
+:root{
+ --gold:#f4cc70;
+ --ice:#9feaff;
+ --muted:#b1c5d6;
+ --green:#45efad
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+ margin:0;
+ min-height:100vh;
+ padding-bottom:120px;
+ background:radial-gradient(circle at top,#14517b,#07192b 40%,#020408 95%);
+ color:#f5fbff;
+ font-family:Tahoma,Arial,sans-serif
+}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+[hidden]{display:none!important}
+header{
+ position:sticky;
+ top:0;
+ z-index:15;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:8px;
+ padding:12px;
+ background:#03070ef2;
+ border-bottom:1px solid #a67f35
+}
+.brand{text-align:center}
+.brand b{display:block;color:var(--gold)}
+.brand small{font-size:10px;color:var(--ice)}
+.head-btn{
+ color:var(--gold);
+ background:#14110b;
+ border:1px solid #ab843c;
+ border-radius:11px;
+ padding:9px 12px
+}
+main{
+ max-width:500px;
+ margin:auto;
+ padding:13px
+}
+.page{display:none}
+.page.active{
+ display:block;
+ animation:appear .25s ease
+}
+@keyframes appear{
+ from{opacity:.2;transform:translateY(8px)}
+ to{opacity:1;transform:none}
+}
+h2{
+ text-align:center;
+ color:var(--gold);
+ font-size:21px;
+ margin:16px 0
+}
+p{line-height:1.75}
+.muted{font-size:13px;color:var(--muted)}
+.card{
+ background:linear-gradient(140deg,#0c2b4a,#06111f);
+ border:1px solid #326585;
+ border-radius:18px;
+ padding:16px;
+ margin:13px 0;
+ box-shadow:0 10px 25px #0007
+}
+.note{
+ font-size:13px;
+ line-height:1.8;
+ padding:12px;
+ border-radius:12px;
+ background:#061727;
+ border:1px solid #315d7d;
+ margin:12px 0;
+ overflow-wrap:anywhere
+}
+.gold-btn,.dark-btn{
+ display:block;
+ text-align:center;
+ text-decoration:none;
+ width:100%;
+ border-radius:12px;
+ padding:13px 9px;
+ font-weight:bold;
+ font-size:14px
+}
+.gold-btn{
+ border:1px solid #ffe6a0;
+ color:#211604;
+ background:linear-gradient(125deg,#ffeba9,#b7832c)
+}
+.dark-btn{
+ border:1px solid #b28a41;
+ color:var(--gold);
+ background:linear-gradient(#1e1a13,#060606)
+}
+input{
+ width:100%;
+ border-radius:12px;
+ padding:12px;
+ margin:8px 0;
+ border:1px solid #638eab;
+ background:#eaf8ff;
+ color:#14283a;
+ direction:ltr;
+ text-align:left
+}
+.hero{
+ position:relative;
+ height:410px;
+ overflow:hidden;
+ border:1px solid #52d7ff;
+ border-radius:21px;
+ box-shadow:0 0 30px #0ab8ff66
+}
+.hero>img,.banner>img{
+ width:100%;
+ height:100%;
+ object-fit:cover
+}
+.hero:after{
+ content:"";
+ position:absolute;
+ inset:40% 0 0;
+ background:linear-gradient(transparent,#000e);
+ pointer-events:none
+}
+.hero-content{
+ position:absolute;
+ bottom:16px;
+ left:13px;
+ right:13px;
+ z-index:2;
+ text-align:center
+}
+.hero-content h1{
+ color:#e1faff;
+ text-shadow:0 0 17px #3bd1ff
+}
+.banner{
+ height:175px;
+ position:relative;
+ overflow:hidden;
+ border-radius:16px;
+ border:1px solid #51caff;
+ margin-bottom:15px
+}
+.banner strong{
+ position:absolute;
+ bottom:0;
+ left:0;
+ right:0;
+ text-align:center;
+ padding:23px 8px 12px;
+ background:linear-gradient(transparent,#000e);
+ font-size:22px
+}
+.grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:11px
+}
+.tile{
+ min-height:120px;
+ border-radius:18px;
+ border:1px solid #a7823a;
+ background:linear-gradient(140deg,#201a0d,#030405 80%);
+ color:#ffe1a0;
+ font-size:14px;
+ font-weight:bold
+}
+.tile span{
+ display:grid;
+ place-items:center;
+ font-size:31px;
+ width:61px;
+ height:61px;
+ border:2px solid #c6a055;
+ border-radius:50%;
+ margin:0 auto 6px;
+ background:radial-gradient(circle at 30% 25%,#3d3221,#030303);
+ box-shadow:0 0 13px #e7bb5949
+}
+.tile small{
+ display:block;
+ color:#aaa192;
+ font-size:10px;
+ margin-top:4px
+}
+.ring{
+ --pct:0%;
+ width:min(290px,80vw);
+ aspect-ratio:1;
+ padding:10px;
+ margin:17px auto;
+ border-radius:50%;
+ background:conic-gradient(
+  #f6cd6c var(--pct),
+  #164768 var(--pct)
+ );
+ box-shadow:0 0 30px #1aaaff75
+}
+.ring-inner{
+ height:100%;
+ border-radius:50%;
+ overflow:hidden;
+ position:relative;
+ border:3px solid #69d9ff
+}
+.ring-inner img{
+ width:100%;
+ height:100%;
+ object-fit:cover
+}
+.ring-inner strong{
+ position:absolute;
+ bottom:12px;
+ left:0;
+ right:0;
+ background:#0016;
+ text-align:center;
+ padding:10px 2px
+}
+.clock{
+ padding:13px;
+ border:1px solid #407fa5;
+ border-radius:13px;
+ background:#07192f;
+ text-align:center;
+ font-size:31px;
+ font-weight:bold;
+ font-variant-numeric:tabular-nums
+}
+.progress{
+ height:10px;
+ margin:12px 0;
+ background:#17354e;
+ border-radius:15px;
+ overflow:hidden
+}
+.progress div{
+ height:100%;
+ width:0%;
+ background:linear-gradient(90deg,#008dff,#ffe9a0)
+}
+.reward{
+ font-size:25px;
+ font-weight:bold;
+ color:var(--gold);
+ text-align:center;
+ overflow-wrap:anywhere
+}
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:7px
+}
+.stat{
+ background:#081b30;
+ border:1px solid #396788;
+ border-radius:12px;
+ padding:10px 3px;
+ text-align:center;
+ font-size:11px
+}
+.stat b{
+ display:block;
+ color:var(--gold);
+ font-size:18px
+}
+.coin{
+ display:block;
+ width:110px;
+ height:110px;
+ border-radius:50%;
+ border:2px solid var(--gold);
+ object-fit:cover;
+ margin:12px auto;
+ box-shadow:0 0 22px #f5c15375
+}
+.video-cover{
+ width:100%;
+ max-height:230px;
+ object-fit:cover;
+ border-radius:14px
+}
+.video-nav{
+ display:grid;
+ grid-template-columns:1fr auto 1fr;
+ gap:7px;
+ align-items:center;
+ margin:10px 0
+}
+.video-nav button{font-size:12px}
+.level{
+ padding:14px;
+ border:1px solid #416b87;
+ border-radius:12px;
+ background:#071b30;
+ margin:10px 0
+}
+.level strong{color:var(--gold)}
+.referral-box{
+ padding:15px;
+ border:1px solid #bc934a;
+ border-radius:13px;
+ background:#17120c;
+ margin:12px 0
+}
+.referral-box strong{
+ color:var(--gold);
+ font-size:21px
+}
+
+/* ICE BEAR TAP */
+
+.tap-arena{
+ position:relative;
+ overflow:hidden;
+ padding:17px 12px 20px;
+ border-radius:24px;
+ border:2px solid #d4a754;
+ background:radial-gradient(
+  circle at 50% 43%,
+  #164668,#071a2c 52%,#080705 92%
+ );
+ box-shadow:0 0 28px #d7aa443c,inset 0 0 30px #0008
+}
+.tap-title{
+ text-align:center;
+ color:#ffe6a4;
+ font-size:15px;
+ font-weight:900;
+ letter-spacing:1px;
+ text-shadow:0 0 14px #c79b43
+}
+.tap-count-panel{
+ border:1px solid #d7ad60;
+ border-radius:16px;
+ background:linear-gradient(#261c0b,#060606);
+ padding:12px;
+ margin:13px 0;
+ text-align:center
+}
+.tap-count-panel small{
+ display:block;
+ color:#b9b6a9
+}
+.tap-count-panel strong{
+ display:block;
+ color:#ffe6a8;
+ font-size:clamp(25px,8vw,37px);
+ font-weight:900;
+ direction:ltr;
+ font-variant-numeric:tabular-nums;
+ text-shadow:0 0 15px #d9ac48
+}
+.tap-money{
+ background:linear-gradient(130deg,#073d2b,#031c16);
+ border:1px solid #3d9675;
+ border-radius:15px;
+ padding:12px;
+ text-align:center;
+ margin-bottom:12px
+}
+.tap-money b{
+ display:block;
+ font-size:24px;
+ color:var(--green);
+ text-shadow:0 0 13px #10d19d80
+}
+.tap-money small{
+ font-size:11px;
+ color:#a4e6cf
+}
+.tap-wallet{
+ text-align:center;
+ color:#c8d6de;
+ font-size:13px
+}
+.tap-wallet b{color:var(--gold)}
+.tap-face-wrap{
+ width:min(288px,78vw);
+ aspect-ratio:1;
+ position:relative;
+ margin:17px auto 10px
+}
+.tap-face{
+ position:relative;
+ display:block;
+ width:100%;
+ height:100%;
+ border-radius:50%;
+ padding:0;
+ border:7px solid #e6bb63;
+ overflow:hidden;
+ background:#0a2b44;
+ box-shadow:
+  0 0 0 5px #8c692e55,
+  0 0 35px #1bbbff9c,
+  0 0 40px #c89a4166;
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;
+ user-select:none
+}
+.tap-face img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ pointer-events:none;
+ filter:contrast(1.08) saturate(1.17)
+}
+.tap-face::after{
+ content:"🐾 TAP EN96";
+ position:absolute;
+ left:14%;
+ right:14%;
+ bottom:8%;
+ background:#000c;
+ color:#ffe6ad;
+ border:1px solid #c69b48;
+ border-radius:20px;
+ padding:5px;
+ font-size:13px;
+ pointer-events:none
+}
+.tap-face:active:not(:disabled){
+ transform:scale(.955);
+ filter:brightness(1.3)
+}
+.tap-float{
+ position:absolute;
+ z-index:4;
+ left:50%;
+ top:40%;
+ font-size:21px;
+ font-weight:900;
+ color:#77ffc4;
+ white-space:nowrap;
+ text-shadow:0 0 12px #17efa2;
+ pointer-events:none;
+ animation:fly .65s forwards
+}
+@keyframes fly{
+ from{opacity:1;transform:translate(-50%,0)}
+ to{opacity:0;transform:translate(-50%,-83px)}
+}
+.tap-power{
+ padding:14px;
+ background:linear-gradient(#201709,#070707);
+ border:1px solid #b58c42;
+ border-radius:16px;
+ margin-top:14px
+}
+.tap-power-head{
+ display:flex;
+ justify-content:space-between;
+ gap:8px;
+ font-size:13px;
+ font-weight:bold;
+ color:#ffe4a6
+}
+.tap-bar{
+ height:16px;
+ border:1px solid #bd903c;
+ border-radius:20px;
+ background:#3c2b12;
+ overflow:hidden;
+ margin:12px 0
+}
+.tap-bar div{
+ height:100%;
+ width:100%;
+ background:linear-gradient(90deg,#bd8026,#edbb51,#fff0b3);
+ transition:width .12s
+}
+.tap-timer{
+ text-align:center;
+ font-size:31px;
+ font-weight:bold;
+ color:#ffe5a4;
+ font-variant-numeric:tabular-nums
+}
+.tap-pending{
+ text-align:center;
+ color:#f7cb74;
+ font-size:12px;
+ min-height:19px;
+ margin:10px 0
+}
+.tap-message{
+ background:#061b2e;
+ border:1px solid #326a8c;
+ border-radius:12px;
+ padding:12px;
+ text-align:center;
+ font-size:13px;
+ line-height:1.75
+}
+
+/* NAVIGATION */
+
+nav{
+ position:fixed;
+ bottom:0;
+ left:0;
+ right:0;
+ max-width:500px;
+ margin:auto;
+ z-index:20;
+ display:grid;
+ grid-template-columns:repeat(6,minmax(0,1fr));
+ gap:2px;
+ background:linear-gradient(#16120c,#020202);
+ border-top:1px solid #ad8538;
+ border-radius:17px 17px 0 0;
+ padding:8px 2px max(10px,env(safe-area-inset-bottom));
+ direction:ltr
+}
+nav button{
+ min-width:0;
+ border:0;
+ color:#e6d7b9;
+ background:none;
+ font-size:9px;
+ font-weight:bold
+}
+.nav-circle{
+ display:grid;
+ place-items:center;
+ width:min(46px,12vw);
+ height:min(46px,12vw);
+ border-radius:50%;
+ border:2px solid #a5833c;
+ background:radial-gradient(circle at 25% 25%,#40331d,#030303);
+ font-size:21px;
+ margin:0 auto 5px
+}
+nav button.active .nav-circle{
+ border-color:#ffe49c;
+ box-shadow:0 0 16px #edc56b88
+}
+@media(max-width:370px){
+ .hero{height:350px}
+ .nav-circle{width:39px;height:39px;font-size:18px}
+ nav button{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{
+  animation:none!important;
+  transition:none!important
+ }
 }
 </style>
 </head>
@@ -869,1670 +573,1617 @@ nav button.active .nav-circle {
 <body>
 
 <header>
-  <button class="head-btn" onclick="page('menu')">⌂</button>
-
-  <div class="brand">
-    <strong>❄ EN96 MINING ❄</strong>
-    <small>ICE BEAR KINGDOM</small>
-  </div>
-
-  <button class="head-btn" id="soundToggle">🔇</button>
+ <button class="head-btn" onclick="page('menu')">⌂</button>
+ <div class="brand">
+  <b>❄ EN96 MINING ❄</b>
+  <small>ICE BEAR KINGDOM</small>
+ </div>
+ <button class="head-btn" id="soundToggle"
+  aria-label="تشغيل أو كتم الصوت">🔇</button>
 </header>
 
 <main>
 
-<!-- ======================================
-     WELCOME
-     ====================================== -->
+<!-- WELCOME -->
 
 <section class="page active" id="welcome">
-
-  <div class="hero">
-    <img src="/assets/en96-welcome.jpg" alt="الدب الجليدي EN96">
-
-    <div class="hero-content">
-      <h1>EN96 ICE BEAR</h1>
-      <p>🐻❄️ مملكة التعدين الجليدي</p>
-
-      <button class="gold-btn" onclick="page('menu')">
-        👑 دخول المملكة
-      </button>
-    </div>
+ <div class="hero">
+  <img src="/assets/en96-welcome.jpg" alt="الدب الجليدي">
+  <div class="hero-content">
+   <h1>EN96 ICE BEAR</h1>
+   <p>🐻❄️ مملكة التعدين الجليدي</p>
+   <button class="gold-btn" onclick="page('menu')">
+    👑 دخول المملكة
+   </button>
   </div>
-
-  <div class="card">
-    <h2>🔐 تسجيل الدخول</h2>
-
-    <p class="muted">
-      حساب EN96 مرتبط بهويتك داخل تيليغرام.
-      لا تحتاج إلى كلمة مرور أو بريد إلكتروني.
-    </p>
-
-    <div class="note" id="loginStatus">
-      جارٍ التحقق من حسابك...
-    </div>
-
-    <a class="gold-btn"
-       href="https://t.me/EN96_IceDragon_2026_Bot">
-      🐻 افتح بوت EN96
-    </a>
+ </div>
+ <div class="card">
+  <h2>🔐 تسجيل الدخول</h2>
+  <p class="muted">
+   يرتبط حسابك بمعرف تيليغرام، دون بريد إلكتروني أو كلمة مرور.
+  </p>
+  <div class="note" id="loginStatus">
+   جارٍ التحقق من حسابك...
   </div>
-
+  <a class="gold-btn"
+   href="https://t.me/EN96_IceDragon_2026_Bot">
+   🐻 افتح بوت EN96
+  </a>
+ </div>
 </section>
 
-<!-- ======================================
-     MAIN MENU
-     ====================================== -->
+<!-- MAIN MENU -->
 
 <section class="page" id="menu">
+ <div class="banner">
+  <img src="/assets/en96-welcome.jpg" alt="EN96">
+  <strong>🐻 EN96 ICE BEAR</strong>
+ </div>
 
-  <div class="banner">
-    <img src="/assets/en96-welcome.jpg" alt="EN96 Ice Bear">
-    <strong>🐻 EN96 ICE BEAR</strong>
-  </div>
-
-  <div class="grid">
-
-    <button class="tile" onclick="page('mining')">
-      <span class="tile-icon">⛏️</span>
-      التعدين
-      <small>MINING</small>
-    </button>
-
-    <button class="tile" onclick="page('tap')">
-      <span class="tile-icon">🐻</span>
-      انقر واربح EN96
-      <small>TAP TO EARN</small>
-    </button>
-
-    <button class="tile" onclick="page('wallet')">
-      <span class="tile-icon">💎</span>
-      محفظتي
-      <small>WALLET</small>
-    </button>
-
-    <button class="tile" onclick="page('upgrades')">
-      <span class="tile-icon">⚡</span>
-      ترقية المنجم
-      <small>MINERS</small>
-    </button>
-
-    <button class="tile" onclick="page('rewards')">
-      <span class="tile-icon">🎁</span>
-      المكافآت والفيديوهات
-      <small>TASKS</small>
-    </button>
-
-    <button class="tile" onclick="page('tribe')">
-      <span class="tile-icon">👥</span>
-      أعضاء القبيلة
-      <small>FRIENDS</small>
-    </button>
-
-    <button class="tile" onclick="page('info')">
-      <span class="tile-icon">🐻</span>
-      معلومات EN96
-      <small>ABOUT</small>
-    </button>
-
-    <button class="tile" onclick="page('tap')">
-      <span class="tile-icon">👑</span>
-      مملكة النقر
-      <small>ICE BEAR</small>
-    </button>
-
-  </div>
+ <div class="grid">
+  <button class="tile" onclick="page('mining')">
+   <span>⛏️</span>
+   التعدين
+   <small>MINING</small>
+  </button>
+  <button class="tile" onclick="page('tap')">
+   <span>🐻</span>
+   انقر واربح EN96
+   <small>TAP TO EARN</small>
+  </button>
+  <button class="tile" onclick="page('wallet')">
+   <span>💎</span>
+   محفظتي
+   <small>WALLET</small>
+  </button>
+  <button class="tile" onclick="page('upgrades')">
+   <span>⚡</span>
+   ترقية المنجم
+   <small>MINERS</small>
+  </button>
+  <button class="tile" onclick="page('rewards')">
+   <span>🎁</span>
+   الهدايا والفيديوهات
+   <small>TASKS</small>
+  </button>
+  <button class="tile" onclick="page('tribe')">
+   <span>👥</span>
+   أعضاء القبيلة
+   <small>FRIENDS</small>
+  </button>
+  <button class="tile" onclick="page('info')">
+   <span>ℹ️</span>
+   معلومات EN96
+   <small>ABOUT</small>
+  </button>
+ </div>
 </section>
 
-<!-- ======================================
-     MINING - EXISTING SYSTEM
-     ====================================== -->
-
-<section class="page" id="mining">
-
-  <h2>⛏️ منجم الدب الجليدي</h2>
-
-  <div class="ring" id="miningRing">
-    <div class="ring-inner">
-      <img src="/assets/en96-bear-face.webp" alt="الدب الجليدي">
-      <strong>⚡ 0.001 EN96 / ثانية</strong>
-    </div>
-  </div>
-
-  <p class="muted" style="text-align:center">
-    ⏳ الوقت المتبقي للجلسة
-  </p>
-
-  <div class="clock" id="timer">24:00:00</div>
-
-  <div class="progress">
-    <div id="progressBar"></div>
-  </div>
-
-  <div class="card">
-    <p class="muted" style="text-align:center">
-      المكافأة الافتراضية التقديرية
-    </p>
-
-    <div class="reward" id="reward">
-      0.0000000 EN96
-    </div>
-
-    <button class="gold-btn"
-            id="startMining"
-            onclick="startMining()">
-      🐾 بدء / متابعة التعدين
-    </button>
-
-    <button class="dark-btn"
-            style="margin-top:10px"
-            onclick="loadMining()">
-      🔄 تحديث التعدين
-    </button>
-
-    <div class="note" id="mineMsg">
-      جارٍ تحميل حالة التعدين...
-    </div>
-  </div>
-
-  <div class="stats">
-    <div class="stat">
-      <b>86.4</b>
-      EN96 / جلسة
-    </div>
-
-    <div class="stat">
-      <b>0.001</b>
-      EN96 / ثانية
-    </div>
-
-    <div class="stat">
-      <b>24</b>
-      ساعة
-    </div>
-  </div>
-
-  <p class="muted">
-    ⚠️ التعدين افتراضي، وليس هاش ريت حقيقيًا.
-    العداد للعرض، والمكافأة الفعلية تعتمدها Supabase
-    عند اكتمال الجلسة.
-  </p>
-
-</section>
-
-<!-- ======================================
-     NEW - EN96 TAP TO EARN
-     ====================================== -->
+<!-- TAP TO EARN -->
 
 <section class="page" id="tap">
+ <h2>👑 مملكة النقر EN96</h2>
 
-  <h2>👑 مملكة النقر — EN96</h2>
+ <div class="tap-arena">
+  <div class="tap-title">
+   ♛ EN96 ICE BEAR KINGDOM ♛
+  </div>
 
-  <div class="tap-shell">
+  <div class="tap-count-panel">
+   <small>👑 النقرات اليوم (المؤكدة + قيد المعالجة)</small>
+   <strong id="tapCount">0 / 3,650</strong>
+   <small id="tapRemaining">المتبقي 3,650 نقرة</small>
+  </div>
 
-    <div class="tap-crown">
-      ♛ EN96 ICE BEAR ♛
-    </div>
+  <div class="tap-money">
+   <b id="tapEarned">+0.0000000 EN96</b>
+   <small>مكافآت النقر المؤكدة / 15 EN96</small>
+  </div>
 
-    <div class="tap-subtitle">
-      TAP TO EARN
-    </div>
+  <p class="tap-wallet">
+   💎 رصيد محفظتك المؤكد:
+   <b id="tapBalance">— EN96</b>
+  </p>
 
-    <!-- Wallet balance above bear -->
-
-    <div class="tap-wallet-card">
-      <div class="tap-wallet-label">
-        💎 رصيد محفظتك الرئيسية
-      </div>
-
-      <div class="tap-wallet-value" id="tapWallet">
-        —
-      </div>
-
-      <div class="tap-wallet-unit">
-        EN96
-      </div>
-    </div>
-
-    <!-- Daily earnings -->
-
-    <div class="tap-earn-card">
-      <div class="tap-earn-value" id="tapEarned">
-        +0.0000000 EN96
-      </div>
-
-      <div class="tap-earn-label">
-        مجموع مكافآت النقر خلال الدورة الحالية
-      </div>
-    </div>
-
-    <!-- Tap count above bear -->
-
-    <div class="tap-counter-label">
-      👑 عدد النقرات المسجلة
-    </div>
-
-    <div class="tap-counter" id="tapCounter">
-      0 / 3,650
-    </div>
-
-    <!-- Click directly on bear face -->
-
-    <div class="tap-bear-area">
-
-      <div class="tap-aura"></div>
-
-      <div class="tap-float" id="tapFloat">
-        +0.0041096 EN96
-      </div>
-
-      <button type="button"
-              class="tap-bear-button"
-              id="tapBear"
-              onclick="tapBear()"
-              disabled
-              aria-label="انقر على وجه الدب الجليدي لجمع EN96">
-
-        <img
-          src="/assets/en96-bear-face.webp"
-          alt="وجه الدب الجليدي EN96">
-
-      </button>
-
-    </div>
-
-    <p class="tap-instruction">
-      🐾 انقر على وجه الدب الجليدي واجمع EN96
-    </p>
-
-    <!-- Energy -->
-
-    <div class="tap-energy-card">
-
-      <div class="tap-energy-header">
-        <span>⚡ الطاقة المتبقية</span>
-        <span id="tapEnergyText">3,650 / 3,650</span>
-      </div>
-
-      <div class="tap-energy-track">
-        <div class="tap-energy-fill"
-             id="tapEnergyBar"></div>
-      </div>
-
-      <div class="tap-time-label">
-        ⏳ الوقت المتبقي لتجديد النقرات
-      </div>
-
-      <div class="tap-time-value" id="tapTimer">
-        24:00:00
-      </div>
-
-    </div>
-
-    <div class="tap-daily-info">
-
-      <div>
-        <strong>3,650</strong>
-        نقرة خلال 24 ساعة
-      </div>
-
-      <div>
-        <strong>15 EN96</strong>
-        أقصى مكافأة للدورة
-      </div>
-
-    </div>
-
-    <div class="tap-message" id="tapMessage" role="status">
-      جارٍ تحميل عداد النقرات من Supabase...
-    </div>
-
-    <button type="button"
-            class="dark-btn tap-refresh"
-            onclick="loadTapStatus()">
-      🔄 تحديث النقرات والرصيد
-    </button>
-
+  <div class="tap-face-wrap" id="tapFaceWrap">
+   <button type="button" class="tap-face"
+    id="tapBear" onclick="tapBear()" disabled
+    aria-label="النقر على وجه الدب">
+    <img src="/assets/en96-bear-face.webp"
+     alt="وجه الدب الجليدي EN96">
+   </button>
   </div>
 
   <p class="muted" style="text-align:center">
-    تُحفظ كل نقرة ناجحة في Supabase.
-    المكافآت تضاف إلى محفظة EN96 نفسها،
-    ولا تُحتسب النقرة إلا بعد تأكيد الخادم.
+   🐾 اضغط على وجه الدب بسرعة — ستظهر الحركة فورًا!
   </p>
 
+  <div class="tap-power">
+   <div class="tap-power-head">
+    <span>⚡ الطاقة المتبقية</span>
+    <span id="tapEnergyNumber">3,650 / 3,650</span>
+   </div>
+
+   <div class="tap-bar">
+    <div id="tapEnergyBar"></div>
+   </div>
+
+   <p class="muted" style="text-align:center">
+    ⏳ تجديد الطاقة بعد
+   </p>
+   <div class="tap-timer" id="tapTimer">--:--:--</div>
+
+   <p class="muted" style="text-align:center">
+    3,650 نقرة خلال 24 ساعة = 15 EN96
+   </p>
+  </div>
+
+  <div class="tap-pending" id="tapPending"></div>
+  <div class="tap-message" id="tapMsg" role="status">
+   جارٍ الاتصال بـSupabase...
+  </div>
+ </div>
+
+ <button class="dark-btn" style="margin-top:12px"
+  onclick="loadTapStatus()">
+  🔄 تحديث النقرات والرصيد
+ </button>
+
+ <p class="muted" style="text-align:center">
+  تُضاف العملات إلى الرصيد فقط بعد اعتماد الدفعات في Supabase.
+ </p>
 </section>
 
-<!-- ======================================
-     WALLET
-     ====================================== -->
+<!-- MINING -->
+
+<section class="page" id="mining">
+ <h2>⛏️ منجم الدب الجليدي</h2>
+
+ <div class="ring" id="miningRing">
+  <div class="ring-inner">
+   <img src="/assets/en96-bear-face.webp"
+    alt="الدب الجليدي">
+   <strong>⚡ 0.001 EN96 / ثانية</strong>
+  </div>
+ </div>
+
+ <p class="muted" style="text-align:center">
+  ⏳ الوقت المتبقي للجلسة
+ </p>
+ <div class="clock" id="timer">24:00:00</div>
+
+ <div class="progress">
+  <div id="progressBar"></div>
+ </div>
+
+ <div class="card">
+  <p class="muted" style="text-align:center">
+   المكافأة الافتراضية التقديرية
+  </p>
+
+  <div class="reward" id="reward">0.0000000 EN96</div>
+
+  <button class="gold-btn" id="startMining"
+   onclick="startMining()">
+   🐾 بدء / متابعة التعدين
+  </button>
+
+  <button class="dark-btn" style="margin-top:10px"
+   onclick="loadMining()">
+   🔄 تحديث التعدين
+  </button>
+
+  <div class="note" id="mineMsg">
+   جارٍ تحميل حالة التعدين...
+  </div>
+ </div>
+
+ <div class="stats">
+  <div class="stat">
+   <b>86.4</b>
+   EN96 / جلسة
+  </div>
+  <div class="stat">
+   <b>0.001</b>
+   EN96 / ثانية
+  </div>
+  <div class="stat">
+   <b>24</b>
+   ساعة
+  </div>
+ </div>
+
+ <p class="muted">
+  ⚠️ التعدين افتراضي، وليس قوة تعدين حقيقية.
+  المكافأة الفعلية تعتمدها Supabase عند اكتمال الجلسة.
+ </p>
+</section>
+
+<!-- WALLET -->
 
 <section class="page" id="wallet">
+ <h2>💎 محفظة EN96</h2>
 
-  <h2>💎 محفظة EN96</h2>
+ <div class="card">
+  <img class="coin" src="/assets/en96-coin.webp"
+   alt="عملة EN96">
 
-  <div class="card">
+  <p class="muted">الرصيد المتاح</p>
+  <div class="reward" id="available">—</div>
 
-    <img class="coin"
-         src="/assets/en96-coin.webp"
-         alt="عملة EN96">
+  <p class="muted">الرصيد المحجوز</p>
+  <div class="reward" id="reserved">—</div>
 
-    <p class="muted">الرصيد المتاح</p>
+  <button class="gold-btn" onclick="loadWallet()">
+   🔄 تحديث المحفظة
+  </button>
+ </div>
 
-    <div class="reward" id="available">
-      —
-    </div>
+ <div class="card">
+  <h3>👤 حسابي</h3>
+  <p>
+   Telegram ID:
+   <strong id="telegramId">—</strong>
+  </p>
 
-    <p class="muted">الرصيد المحجوز</p>
+  <label class="muted" for="stellar">
+   عنوان Stellar العام
+  </label>
 
-    <div class="reward" id="reserved">
-      —
-    </div>
+  <input id="stellar" maxlength="56" placeholder="G...">
 
-    <button class="gold-btn" onclick="loadWallet()">
-      🔄 تحديث المحفظة
-    </button>
+  <button class="dark-btn" onclick="saveStellar()">
+   💾 حفظ عنوان Stellar
+  </button>
 
+  <div class="note" id="walletMsg">
+   لا ترسل مفتاحك السري أو عبارة الاسترداد.
   </div>
+ </div>
 
-  <div class="card">
-
-    <h3>👤 حسابي</h3>
-
-    <p>
-      Telegram ID:
-      <strong id="telegramId">—</strong>
-    </p>
-
-    <label for="stellar" class="muted">
-      عنوان محفظة Stellar العام
-    </label>
-
-    <input id="stellar"
-           maxlength="56"
-           placeholder="G...">
-
-    <button class="dark-btn" onclick="saveStellar()">
-      💾 حفظ عنوان Stellar
-    </button>
-
-    <div class="note" id="walletMsg">
-      لا تشارك المفتاح السري أو عبارة الاسترداد.
-    </div>
-
-  </div>
-
-  <div class="note">
-    💸 الحد الأدنى للسحب: 500 EN96.
-    تتم مراجعة طلبات السحب يدويًا.
-  </div>
-
+ <div class="note">
+  💸 الحد الأدنى للسحب 500 EN96،
+  والطلبات تتم مراجعتها يدويًا.
+ </div>
 </section>
 
-<!-- ======================================
-     VIDEO REWARDS
-     ====================================== -->
+<!-- VIDEO GIFTS -->
 
 <section class="page" id="rewards">
+ <h2>🎁 مكافآت EN96</h2>
 
-  <h2>🎁 مكافآت EN96</h2>
+ <div class="card">
+  <img class="video-cover" src="/assets/en96-welcome.jpg"
+   alt="فيديوهات EN96">
 
-  <div class="card">
+  <h3>📺 مكتبة فيديوهات EN96</h3>
 
-    <img class="video-cover"
-         src="/assets/en96-welcome.jpg"
-         alt="فيديوهات EN96">
+  <p class="muted">
+   شاهد فيديو واحدًا في كل مرة،
+   وابحث عن كود الهدية داخله.
+  </p>
 
-    <h3 style="margin-top:14px">
-      📺 مكتبة فيديوهات EN96
-    </h3>
+  <button class="gold-btn" id="videosToggle"
+   onclick="toggleVideos()">
+   📺 فتح مكتبة الفيديوهات
+  </button>
 
-    <p class="muted">
-      شاهد فيديو واحدًا في كل مرة،
-      وابحث عن كود الهدية داخله.
-    </p>
+  <div id="videoLibrary" hidden>
+   <div class="card">
+    <p id="videoStatus" class="muted">جارٍ التحميل...</p>
+    <h3 id="videoTitle">فيديو EN96</h3>
+    <p id="videoReward" class="muted"></p>
 
-    <button class="gold-btn"
-            id="videosToggle"
-            onclick="toggleVideos()">
-      📺 فتح مكتبة الفيديوهات
+    <button class="gold-btn" id="watchVideoBtn"
+     onclick="watchCurrentVideo()" disabled>
+     ▶ مشاهدة الفيديو على YouTube
     </button>
 
-    <div id="videoLibrary" hidden>
-
-      <div class="card">
-
-        <p id="videoStatus" class="muted">
-          جارٍ التحميل...
-        </p>
-
-        <h3 id="videoTitle">فيديو EN96</h3>
-
-        <p id="videoReward" class="muted"></p>
-
-        <button class="gold-btn"
-                id="watchVideoBtn"
-                onclick="watchCurrentVideo()"
-                disabled>
-          ▶ مشاهدة الفيديو على YouTube
-        </button>
-
-        <div class="video-nav">
-
-          <button class="dark-btn"
-                  id="prevVideo"
-                  onclick="changeVideo(-1)"
-                  disabled>
-            السابق
-          </button>
-
-          <span id="videoCount">0 / 0</span>
-
-          <button class="dark-btn"
-                  id="nextVideo"
-                  onclick="changeVideo(1)"
-                  disabled>
-            التالي
-          </button>
-
-        </div>
-
-      </div>
-
+    <div class="video-nav">
+     <button class="dark-btn" id="prevVideo"
+      onclick="changeVideo(-1)" disabled>
+      السابق
+     </button>
+     <span id="videoCount">0 / 0</span>
+     <button class="dark-btn" id="nextVideo"
+      onclick="changeVideo(1)" disabled>
+      التالي
+     </button>
     </div>
+   </div>
   </div>
+ </div>
 
-  <div class="card">
+ <div class="card">
+  <h3>🎁 استلام الهدية</h3>
+  <p class="muted">
+   أدخل الكود الموجود في فيديو EN96.
+  </p>
 
-    <h3>🎁 استلام الهدية</h3>
+  <input id="giftCode" maxlength="100"
+   placeholder="كود الفيديو">
 
-    <p class="muted">
-      أدخل الكود الذي وجدته داخل فيديو EN96.
-    </p>
+  <button class="gold-btn" onclick="redeemGift()">
+   🎁 استلام الهدية
+  </button>
 
-    <input id="giftCode"
-           maxlength="100"
-           placeholder="كود الفيديو">
-
-    <button class="gold-btn"
-            onclick="redeemGift()">
-      🎁 استلام الهدية
-    </button>
-
-    <div class="note" id="giftMsg">
-      يُطبق شرط الانتظار ساعتين بين الهدايا،
-      ولا يمكن استخدام الكود نفسه مرتين.
-    </div>
-
+  <div class="note" id="giftMsg">
+   انتظار ساعتين بين الهدايا،
+   ولا يمكن تكرار استخدام الكود نفسه.
   </div>
-
+ </div>
 </section>
 
-<!-- ======================================
-     TRIBE AND REFERRALS
-     ====================================== -->
+<!-- TRIBE -->
 
 <section class="page" id="tribe">
+ <h2>👥 قبيلة الدب الجليدي</h2>
 
-  <h2>👥 قبيلة الدب الجليدي</h2>
+ <div class="banner">
+  <img src="/assets/en96-welcome.jpg" alt="قبيلة EN96">
+  <strong>👑 EN96 TRIBE</strong>
+ </div>
 
-  <div class="banner">
-    <img src="/assets/en96-welcome.jpg"
-         alt="قبيلة EN96">
-    <strong>👑 EN96 TRIBE</strong>
+ <div class="referral-box">
+  <strong>🎁 50 EN96</strong>
+  <p class="muted">
+   مكافأة صاحب الدعوة عندما يُكمل صديقه الجديد
+   أول جلسة تعدين مؤهلة.
+  </p>
+ </div>
+
+ <div class="referral-box">
+  <strong>⛏️ 5%</strong>
+  <p class="muted">
+   من مكافآت التعدين المؤكدة للأصدقاء المباشرين،
+   وفق شروط النظام.
+  </p>
+ </div>
+
+ <div class="card">
+  <h3>🔗 رابط الدعوة الخاص بك</h3>
+
+  <input id="referralLink" readonly
+   placeholder="جارٍ تحميل الرابط">
+
+  <button class="gold-btn" onclick="copyInvite()">
+   📋 نسخ رابط الدعوة
+  </button>
+
+  <button class="dark-btn" style="margin-top:10px"
+   onclick="shareInvite()">
+   📨 مشاركة الدعوة
+  </button>
+
+  <div class="note" id="inviteMsg">
+   تُسجّل الدعوات المؤهلة عبر البوت،
+   وتُصرف مكافآتها وفق شروط التعدين.
   </div>
+ </div>
 
-  <div class="referral-box">
-    <strong>🎁 50 EN96</strong>
+ <div class="card">
+  <h3>📊 إحصائيات القبيلة</h3>
 
-    <p class="muted">
-      مكافأة صاحب الدعوة عند اكتمال
-      أول جلسة تعدين مؤهلة لصديقه الجديد.
-    </p>
-  </div>
+  <p class="muted">
+   لعرض عدد الأصدقاء الحقيقي ومكافآتهم،
+   افتح البوت وأرسل /tribe.
+  </p>
 
-  <div class="referral-box">
-    <strong>⛏️ 5%</strong>
-
-    <p class="muted">
-      من مكافآت تعدين الأصدقاء المباشرين
-      المؤكدة، وفق شروط النظام.
-    </p>
-  </div>
-
-  <div class="card">
-
-    <h3>🔗 رابط الدعوة الخاص بك</h3>
-
-    <input id="referralLink"
-           readonly
-           placeholder="جارٍ تحميل الرابط">
-
-    <button class="gold-btn"
-            onclick="copyInvite()">
-      📋 نسخ رابط الدعوة
-    </button>
-
-    <button class="dark-btn"
-            style="margin-top:10px"
-            onclick="shareInvite()">
-      📨 مشاركة الدعوة
-    </button>
-
-    <div class="note" id="inviteMsg">
-      تُسجَّل الدعوات المؤهلة عبر البوت.
-      وتُصرف المكافآت فقط عند تأكيد التعدين.
-    </div>
-
-  </div>
-
-  <div class="card">
-    <h3>📊 إحصائيات القبيلة</h3>
-
-    <p class="muted">
-      لعرض العدد الحقيقي لأصدقائك
-      ومجموع مكافآت الدعوات، افتح
-      بوت EN96 وأرسل الأمر:
-    </p>
-
-    <p style="text-align:center;color:var(--gold)">
-      <strong>/tribe</strong>
-    </p>
-
-    <button class="gold-btn"
-            onclick="openTribeBot()">
-      🐻 فتح إحصائيات القبيلة في البوت
-    </button>
-  </div>
-
+  <button class="gold-btn" onclick="openTribeBot()">
+   🐻 فتح إحصائيات القبيلة في البوت
+  </button>
+ </div>
 </section>
 
-<!-- ======================================
-     UPGRADES
-     ====================================== -->
+<!-- UPGRADES -->
 
 <section class="page" id="upgrades">
+ <h2>⚡ ترقية المنجم</h2>
 
-  <h2>⚡ ترقية المنجم</h2>
+ <div class="level">
+  <strong>✅ المستوى 1</strong>
+  <p>0.001 EN96/ثانية — مجاني</p>
+ </div>
+ <div class="level">
+  <strong>🔒 المستوى 2</strong>
+  <p>قريبًا</p>
+ </div>
+ <div class="level">
+  <strong>🔒 المستوى 3</strong>
+  <p>قريبًا</p>
+ </div>
 
-  <div class="level">
-    <strong>✅ المستوى 1</strong>
-    <p>0.001 EN96/ثانية — مجاني</p>
-  </div>
-
-  <div class="level">
-    <strong>🔒 المستوى 2</strong>
-    <p>قريبًا</p>
-  </div>
-
-  <div class="level">
-    <strong>🔒 المستوى 3</strong>
-    <p>قريبًا</p>
-  </div>
-
-  <div class="note">
-    الترقيات لم تُفعّل بعد.
-    لن يُخصم أي رصيد عند فتح هذه الصفحة.
-  </div>
-
+ <div class="note">
+  الترقيات غير مفعّلة بعد، ولن يُخصم أي رصيد.
+ </div>
 </section>
 
-<!-- ======================================
-     INFORMATION
-     ====================================== -->
+<!-- ABOUT -->
 
 <section class="page" id="info">
+ <h2>ℹ️ معلومات المملكة</h2>
 
-  <h2>ℹ️ معلومات المملكة</h2>
-
-  <div class="card">
-
-    <h3>🐻 EN96 ICE BEAR</h3>
-
-    <p>❄️ مملكة التعدين الجليدي.</p>
-    <p>⛏️ التعدين افتراضي.</p>
-    <p>⚡ المعدل: 0.001 EN96/ثانية.</p>
-    <p>⏱️ الجلسة: 24 ساعة.</p>
-    <p>🐾 نظام النقر: 3,650 نقرة لكل 24 ساعة.</p>
-    <p>👑 مكافأة النقر القصوى: 15 EN96.</p>
-    <p>🎁 هدايا فيديوهات YouTube.</p>
-    <p>👥 مكافآت الدعوة: 50 EN96 و5%.</p>
-    <p>💎 معاملات Stellar تتم بشكل منفصل.</p>
-    <p>🔊 أصوات اختيارية، والوضع الصامت متاح.</p>
-
-  </div>
-
+ <div class="card">
+  <h3>🐻 EN96 ICE BEAR</h3>
+  <p>❄️ مملكة الدب الجليدي.</p>
+  <p>⛏️ تعدين افتراضي بمعدل 0.001 EN96/ثانية وجلسة 24 ساعة.</p>
+  <p>🐾 نظام النقر: 3,650 نقرة خلال 24 ساعة بمكافأة قصوى 15 EN96.</p>
+  <p>🎁 هدايا فيديوهات YouTube.</p>
+  <p>👥 نظام القبيلة: 50 EN96 و5% حسب شروط الاستحقاق.</p>
+  <p>💎 معاملات Stellar تتم بشكل منفصل.</p>
+  <p>🔊 الصوت اختياري ويمكن كتمه.</p>
+ </div>
 </section>
 
 </main>
 
-<!-- ======================================
-     BOTTOM NAVIGATION
-     ====================================== -->
+<!-- BOTTOM MENU -->
 
-<nav aria-label="قائمة EN96">
-
-  <button data-nav="mining"
-          onclick="page('mining')">
-    <span class="nav-circle">⛏️</span>
-    Mine
-  </button>
-
-  <button data-nav="tap"
-          onclick="page('tap')">
-    <span class="nav-circle">🐻</span>
-    Tap
-  </button>
-
-  <button data-nav="rewards"
-          onclick="page('rewards')">
-    <span class="nav-circle">🎁</span>
-    Tasks
-  </button>
-
-  <button data-nav="upgrades"
-          onclick="page('upgrades')">
-    <span class="nav-circle">⚡</span>
-    Miners
-  </button>
-
-  <button data-nav="tribe"
-          onclick="page('tribe')">
-    <span class="nav-circle">👥</span>
-    Friends
-  </button>
-
-  <button data-nav="wallet"
-          onclick="page('wallet')">
-    <span class="nav-circle">👤</span>
-    Profile
-  </button>
-
+<nav aria-label="التنقل الرئيسي">
+ <button data-nav="mining" onclick="page('mining')">
+  <span class="nav-circle">⛏️</span>
+  Mine
+ </button>
+ <button data-nav="tap" onclick="page('tap')">
+  <span class="nav-circle">🐻</span>
+  Tap
+ </button>
+ <button data-nav="rewards" onclick="page('rewards')">
+  <span class="nav-circle">🎁</span>
+  Tasks
+ </button>
+ <button data-nav="upgrades" onclick="page('upgrades')">
+  <span class="nav-circle">⚡</span>
+  Miners
+ </button>
+ <button data-nav="tribe" onclick="page('tribe')">
+  <span class="nav-circle">👥</span>
+  Friends
+ </button>
+ <button data-nav="wallet" onclick="page('wallet')">
+  <span class="nav-circle">👤</span>
+  Profile
+ </button>
 </nav>
 
 <script>
+const tg=window.Telegram?.WebApp;
+const $=id=>document.getElementById(id);
 
-/* ======================================
-   EN96 TELEGRAM SETUP
-   ====================================== */
+const BOT='EN96_IceDragon_2026_Bot';
+const RATE=.001;
+const DURATION=86400;
+const TAP_LIMIT=3650;
 
-const tg = window.Telegram?.WebApp;
-const $ = id => document.getElementById(id);
+let loggedIn=false;
+let memberId='';
+let miningState=null;
+let miningSync=performance.now();
 
-const RATE = 0.001;
-const DURATION = 86400;
-const BOT = "EN96_IceDragon_2026_Bot";
+try{
+ tg?.ready();
+ tg?.expand();
+}catch(e){}
 
-const TAP_LIMIT = 3650;
-const TAP_TOTAL = 15;
+/* SOUND SYSTEM */
 
-let loggedIn = false;
-let memberId = "";
+let audioOn=false;
+let audioCtx=null;
+let scratchBuffer=null;
+let lastScratch=-1;
 
-let miningState = null;
-let syncTime = performance.now();
+try{
+ audioOn=localStorage.getItem('en96_sound')==='on';
+}catch(e){}
 
-let tapState = {
-  taps:0,
-  remaining:TAP_LIMIT,
-  earned:"0",
-  reset_at:null,
-  available:null
-};
+function audioContext(){
+ try{
+  const C=window.AudioContext||window.webkitAudioContext;
+  if(!C)return null;
 
-let tapBusy = false;
-let tapLoaded = false;
-let tapPendingId = null;
+  if(!audioCtx)audioCtx=new C();
 
-try {
-  tg?.ready();
-  tg?.expand();
-} catch(e) {}
-
-/* ======================================
-   OPTIONAL SOUND
-   ====================================== */
-
-let audioOn = false;
-let audioCtx = null;
-
-try {
-  audioOn = localStorage.getItem("en96_sound") === "on";
-} catch(e) {}
-
-function soundContext() {
-  try {
-    const AudioClass =
-      window.AudioContext || window.webkitAudioContext;
-
-    if (!AudioClass) return null;
-
-    if (!audioCtx) audioCtx = new AudioClass();
-
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume();
-    }
-
-    return audioCtx;
-  } catch(e) {
-    return null;
+  if(audioCtx.state==='suspended'){
+   audioCtx.resume().catch(()=>{});
   }
+
+  return audioCtx;
+ }catch(e){
+  return null;
+ }
 }
 
-function tone(frequency, duration = .08) {
-  const ctx = soundContext();
-  if (!ctx) return;
+function tone(freq,duration=.09,type='sine'){
+ const c=audioContext();
+ if(!c)return;
 
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const t = ctx.currentTime;
+ try{
+  const o=c.createOscillator();
+  const g=c.createGain();
+  const t=c.currentTime;
 
-  osc.type = "sine";
-  osc.frequency.value = frequency;
+  o.type=type;
+  o.frequency.setValueAtTime(freq,t);
 
-  gain.gain.setValueAtTime(.0001,t);
-  gain.gain.exponentialRampToValueAtTime(.045,t+.01);
-  gain.gain.exponentialRampToValueAtTime(
-    .0001,t+duration
+  if(type==='sawtooth'){
+   o.frequency.exponentialRampToValueAtTime(
+    Math.max(40,freq*.55),
+    t+duration
+   );
+  }
+
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.042,t+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+
+  o.connect(g);
+  g.connect(c.destination);
+  o.start(t);
+  o.stop(t+duration+.02);
+ }catch(e){}
+}
+
+/* Original synthetic ice-bear paw scratch */
+
+function scratch(){
+ const c=audioContext();
+ if(!c)return;
+
+ const t=c.currentTime;
+
+ if(t-lastScratch<.065)return;
+ lastScratch=t;
+
+ try{
+  if(!scratchBuffer){
+   const len=Math.floor(c.sampleRate*.095);
+   scratchBuffer=c.createBuffer(1,len,c.sampleRate);
+
+   const a=scratchBuffer.getChannelData(0);
+
+   for(let i=0;i<len;i++){
+    a[i]=(Math.random()*2-1)*
+     Math.pow(1-i/len,1.5);
+   }
+  }
+
+  const s=c.createBufferSource();
+  const f=c.createBiquadFilter();
+  const g=c.createGain();
+
+  s.buffer=scratchBuffer;
+  f.type='bandpass';
+  f.frequency.value=1050;
+  f.Q.value=.7;
+  g.gain.value=.075;
+
+  s.connect(f);
+  f.connect(g);
+  g.connect(c.destination);
+  s.start(t);
+ }catch(e){}
+}
+
+function sound(kind='click'){
+ if(!audioOn)return;
+
+ if(kind==='tap'){
+  scratch();
+ }else if(kind==='bear'){
+  tone(135,.32,'sawtooth');
+  scratch();
+ }else if(kind==='gift'){
+  tone(780,.18);
+ }else{
+  tone(640,.07);
+ }
+}
+
+function soundButton(){
+ $('soundToggle').textContent=audioOn?'🔊':'🔇';
+}
+
+$('soundToggle').addEventListener('click',()=>{
+ audioOn=!audioOn;
+
+ try{
+  localStorage.setItem(
+   'en96_sound',
+   audioOn?'on':'off'
   );
+ }catch(e){}
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
+ soundButton();
 
-  osc.start(t);
-  osc.stop(t+duration+.02);
-}
-
-function sound(which = "click") {
-  if (!audioOn) return;
-
-  if (which === "paw") {
-    tone(140,.20);
-  } else if (which === "gift") {
-    tone(720,.17);
-  } else if (which === "tap") {
-    tone(620,.055);
-  } else {
-    tone(600,.07);
-  }
-}
-
-function updateSoundButton() {
-  $("soundToggle").textContent =
-    audioOn ? "🔊" : "🔇";
-}
-
-$("soundToggle").addEventListener("click", () => {
-  audioOn = !audioOn;
-
-  try {
-    localStorage.setItem(
-      "en96_sound",
-      audioOn ? "on" : "off"
-    );
-  } catch(e) {}
-
-  updateSoundButton();
-
-  if (audioOn) sound("click");
+ if(audioOn){
+  audioContext();
+  tone(660,.10);
+ }
 });
 
-document.addEventListener("click",event => {
-  const button = event.target.closest("button");
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button');
 
-  if (!button || button.disabled) return;
-  if (button.id === "soundToggle") return;
+ if(!b||b.disabled||
+  ['soundToggle','tapBear'].includes(b.id)){
+  return;
+ }
 
-  if (button.id === "tapBear") {
-    return;
-  }
+ sound(b.id==='startMining'?'bear':'click');
 
-  if (button.id === "startMining") {
-    sound("paw");
-
-    const ring = $("miningRing");
-    ring.classList.remove("paw");
-    void ring.offsetWidth;
-    ring.classList.add("paw");
-  } else {
-    sound("click");
-  }
-
-  try {
-    tg?.HapticFeedback?.impactOccurred("light");
-  } catch(e) {}
+ try{
+  tg?.HapticFeedback?.impactOccurred('light');
+ }catch(e){}
 });
 
-updateSoundButton();
+soundButton();
 
-/* ======================================
-   PAGES
-   ====================================== */
+/* NAVIGATION */
 
-function page(name) {
-  if (
-    !loggedIn &&
-    name !== "welcome" &&
-    name !== "info"
-  ) {
-    $("loginStatus").textContent =
-      "🔐 افتح EN96 من زر الدخول داخل بوت تيليغرام.";
+function page(name){
+ if(!loggedIn&&!['welcome','info'].includes(name)){
+  $('loginStatus').textContent=
+   '🔒 افتح التطبيق من زر EN96 داخل تيليغرام.';
 
-    name = "welcome";
+  name='welcome';
+ }
+
+ document.querySelectorAll('.page').forEach(el=>{
+  el.classList.toggle(
+   'active',
+   el.id===name
+  );
+ });
+
+ document.querySelectorAll(
+  'nav button[data-nav]'
+ ).forEach(b=>{
+  b.classList.toggle(
+   'active',
+   b.dataset.nav===name
+  );
+ });
+
+ window.scrollTo(0,0);
+
+ if(!loggedIn)return;
+
+ if(name==='wallet')loadWallet();
+ if(name==='mining')loadMining();
+ if(name==='tap')loadTapStatus();
+}
+
+/* SECURE TELEGRAM API */
+
+async function api(path,body){
+ if(!tg?.initData){
+  throw Error(
+   'افتح EN96 من داخل بوت تيليغرام.'
+  );
+ }
+
+ const options={
+  method:body===undefined?'GET':'POST',
+  cache:'no-store',
+  headers:{
+   'X-Telegram-Init-Data':tg.initData
   }
+ };
 
-  document.querySelectorAll(".page").forEach(el => {
-    el.classList.toggle(
-      "active",
-      el.id === name
+ if(body!==undefined){
+  options.headers['Content-Type']='application/json';
+  options.body=JSON.stringify(body);
+ }
+
+ let r;
+
+ try{
+  r=await fetch(path,options);
+ }catch(e){
+  throw Error('انقطع الاتصال بالخادم.');
+ }
+
+ let d;
+
+ try{
+  d=await r.json();
+ }catch(e){
+  throw Error(
+   'تعذّر قراءة رد خادم EN96.'
+  );
+ }
+
+ if(!r.ok||d.error){
+  throw Error(
+   d.error||'تعذّر الاتصال بالخادم.'
+  );
+ }
+
+ return d;
+}
+
+function number(v){
+ return Number(v||0).toFixed(7);
+}
+
+function clock(sec){
+ sec=Math.max(0,Math.floor(sec));
+
+ return [
+  Math.floor(sec/3600),
+  Math.floor(sec%3600/60),
+  sec%60
+ ].map(x=>String(x).padStart(2,'0')).join(':');
+}
+
+/* EXISTING MINING */
+
+function displayMining(){
+ let elapsed=0;
+
+ if(
+  miningState&&
+  ['active','ready'].includes(miningState.status)
+ ){
+  elapsed=Math.min(
+   DURATION,
+   Math.max(
+    0,
+    Number(miningState.elapsed_seconds||0)+
+    (performance.now()-miningSync)/1000
+   )
+  );
+ }
+
+ $('timer').textContent=clock(
+  DURATION-elapsed
+ );
+
+ $('reward').textContent=
+  number(elapsed*RATE)+' EN96';
+
+ const pct=elapsed/DURATION*100;
+
+ $('progressBar').style.width=pct+'%';
+
+ $('miningRing').style.setProperty(
+  '--pct',
+  pct+'%'
+ );
+}
+
+function miningUpdate(s){
+ miningState=s;
+ miningSync=performance.now();
+ displayMining();
+}
+
+async function loadMining(){
+ try{
+  const s=await api('/api/mining/status');
+
+  miningUpdate(s);
+
+  $('mineMsg').textContent=
+   s.status==='ready'
+    ?'⏰ انتهت الجلسة؛ اضغط متابعة لتسجيل المكافأة وبدء جلسة جديدة.'
+    :s.status==='not_started'
+    ?'🐻 اضغط بدء التعدين لتبدأ أول جلسة.'
+    :'✅ التعدين نشط؛ المكافآت الفعلية تعتمدها Supabase.';
+
+ }catch(e){
+  $('mineMsg').textContent=e.message;
+ }
+}
+
+async function startMining(){
+ const b=$('startMining');
+ b.disabled=true;
+
+ try{
+  const r=await api('/api/mining',{});
+
+  miningUpdate(r.mining);
+
+  $('mineMsg').textContent=
+   r.result?.status==='rewarded_and_started'
+    ?'✅ اعتمدت المكافأة وبدأت جلسة جديدة.'
+    :'✅ تم تحديث حالة جلسة التعدين.';
+
+ }catch(e){
+  $('mineMsg').textContent=e.message;
+ }finally{
+  b.disabled=false;
+ }
+}
+
+/* WALLET */
+
+async function loadWallet(){
+ try{
+  const u=await api('/api/me');
+
+  $('available').textContent=
+   number(u.available)+' EN96';
+
+  $('reserved').textContent=
+   number(u.reserved)+' EN96';
+
+  $('telegramId').textContent=
+   u.telegram_id||'—';
+
+  $('stellar').value=
+   u.stellar_public_address||'';
+
+ }catch(e){
+  $('walletMsg').textContent=e.message;
+ }
+}
+
+async function saveStellar(){
+ const address=$('stellar').value.trim().toUpperCase();
+
+ if(!/^G[A-Z2-7]{55}$/.test(address)){
+  $('walletMsg').textContent=
+   'أدخل عنوان Stellar العام الصحيح (56 حرفًا يبدأ بـ G).';
+  return;
+ }
+
+ try{
+  await api('/api/profile/stellar',{address});
+
+  $('walletMsg').textContent=
+   '✅ تم حفظ عنوان Stellar العام.';
+
+ }catch(e){
+  $('walletMsg').textContent=e.message;
+ }
+}
+
+/* VIDEO LIBRARY */
+
+let videoItems=[];
+let videoIndex=0;
+let videosLoaded=false;
+
+function toggleVideos(){
+ const e=$('videoLibrary');
+ e.hidden=!e.hidden;
+
+ $('videosToggle').textContent=
+  e.hidden
+   ?'📺 فتح مكتبة الفيديوهات'
+   :'📺 إغلاق مكتبة الفيديوهات';
+
+ if(!e.hidden&&!videosLoaded){
+  loadVideos();
+ }
+}
+
+async function loadVideos(){
+ $('videoStatus').textContent=
+  'جارٍ تحميل الفيديوهات...';
+
+ try{
+  const r=await api('/api/videos');
+
+  videoItems=(r.videos||[]).filter(v=>{
+   try{
+    const u=new URL(v.video_url);
+
+    return u.protocol==='https:'&&(
+     /(^|\.)youtube\.com$/.test(u.hostname)||
+     u.hostname==='youtu.be'
     );
+   }catch(e){
+    return false;
+   }
   });
 
-  document.querySelectorAll("nav [data-nav]")
-    .forEach(button => {
-      button.classList.toggle(
-        "active",
-        button.dataset.nav === name
-      );
-    });
-
-  window.scrollTo(0,0);
-
-  if (!loggedIn) return;
-
-  if (name === "mining") loadMining();
-  if (name === "wallet") loadWallet();
-  if (name === "tap") loadTapStatus();
-}
-
-/* ======================================
-   SECURE TELEGRAM API
-   ====================================== */
-
-async function api(path,body) {
-  if (!tg?.initData) {
-    throw new Error(
-      "افتح EN96 من زر الدخول داخل بوت تيليغرام."
-    );
-  }
-
-  const options = {
-    method:body === undefined ? "GET" : "POST",
-    cache:"no-store",
-    headers:{
-      "X-Telegram-Init-Data":tg.initData
-    }
-  };
-
-  if (body !== undefined) {
-    options.headers["Content-Type"] =
-      "application/json";
-
-    options.body = JSON.stringify(body);
-  }
-
-  let response;
-
-  try {
-    response = await fetch(path,options);
-  } catch(e) {
-    const err = new Error(
-      "انقطع الاتصال بخادم EN96."
-    );
-
-    err.network = true;
-    throw err;
-  }
-
-  let data;
-
-  try {
-    data = await response.json();
-  } catch(e) {
-    throw new Error(
-      "تعذّر قراءة رد خادم EN96."
-    );
-  }
-
-  if (!response.ok || data.error) {
-    const err = new Error(
-      data.error || "تعذّر الاتصال بالخادم."
-    );
-
-    err.statusCode = response.status;
-    throw err;
-  }
-
-  return data;
-}
-
-function number(value) {
-  return Number(value || 0).toFixed(7);
-}
-
-function clock(seconds) {
-  const s = Math.max(
-    0,
-    Math.floor(seconds)
-  );
-
-  const hours = Math.floor(s/3600);
-  const minutes = Math.floor((s%3600)/60);
-  const secs = s%60;
-
-  return [hours,minutes,secs]
-    .map(v=>String(v).padStart(2,"0"))
-    .join(":");
-}
-
-/* ======================================
-   MINING - EXISTING LOGIC
-   ====================================== */
-
-function displayMining() {
-  let elapsed = 0;
-
-  if (
-    miningState &&
-    ["active","ready"].includes(miningState.status)
-  ) {
-    elapsed = Math.min(
-      DURATION,
-      Math.max(
-        0,
-        Number(miningState.elapsed_seconds || 0) +
-        (performance.now() - syncTime)/1000
-      )
-    );
-  }
-
-  $("timer").textContent = clock(
-    DURATION-elapsed
-  );
-
-  $("reward").textContent =
-    number(elapsed*RATE)+" EN96";
-
-  const progress = elapsed/DURATION*100;
-
-  $("progressBar").style.width =
-    progress+"%";
-
-  $("miningRing").style.setProperty(
-    "--pct",
-    progress+"%"
-  );
-}
-
-function miningUpdate(data) {
-  miningState = data;
-  syncTime = performance.now();
-  displayMining();
-}
-
-async function loadMining() {
-  try {
-    const state = await api(
-      "/api/mining/status"
-    );
-
-    miningUpdate(state);
-
-    if (state.status === "ready") {
-      $("mineMsg").textContent =
-        "⏰ انتهت الجلسة. اضغط متابعة " +
-        "لتأكيد المكافأة وبدء جلسة جديدة.";
-    } else if (state.status === "not_started") {
-      $("mineMsg").textContent =
-        "🐻 اضغط بدء التعدين لتبدأ أول جلسة.";
-    } else {
-      $("mineMsg").textContent =
-        "✅ التعدين نشط. الرصيد الفعلي " +
-        "محفوظ في Supabase.";
-    }
-  } catch(e) {
-    $("mineMsg").textContent = e.message;
-  }
-}
-
-async function startMining() {
-  const button = $("startMining");
-  button.disabled = true;
-
-  try {
-    const data = await api(
-      "/api/mining",
-      {}
-    );
-
-    miningUpdate(data.mining);
-
-    if (
-      data.result?.status ===
-      "rewarded_and_started"
-    ) {
-      $("mineMsg").textContent =
-        "✅ أُكدت مكافأة الجلسة " +
-        "وبدأت جلسة تعدين جديدة.";
-    } else {
-      $("mineMsg").textContent =
-        "✅ تم تحديث حالة التعدين.";
-    }
-  } catch(e) {
-    $("mineMsg").textContent = e.message;
-  } finally {
-    button.disabled = false;
-  }
-}
-
-/* ======================================
-   TAP TO EARN - NEW SYSTEM
-   ====================================== */
-
-function tapFormat(value) {
-  return Number(value || 0)
-    .toLocaleString("en-US",{
-      minimumFractionDigits:7,
-      maximumFractionDigits:7
-    });
-}
-
-function tapCountFormat(value) {
-  return Number(value || 0)
-    .toLocaleString("en-US");
-}
-
-function updateTapDisplay() {
-  const taps = Math.min(
-    TAP_LIMIT,
-    Math.max(0,Number(tapState.taps)||0)
-  );
-
-  const remaining = TAP_LIMIT-taps;
-
-  $("tapCounter").textContent =
-    tapCountFormat(taps) +
-    " / " +
-    tapCountFormat(TAP_LIMIT);
-
-  $("tapEnergyText").textContent =
-    tapCountFormat(remaining) +
-    " / " +
-    tapCountFormat(TAP_LIMIT);
-
-  $("tapEnergyBar").style.width =
-    (remaining/TAP_LIMIT*100)+"%";
-
-  $("tapEarned").textContent =
-    "+" + tapFormat(tapState.earned) +
-    " EN96";
-
-  if (tapState.available !== null &&
-      tapState.available !== undefined) {
-    $("tapWallet").textContent =
-      tapFormat(tapState.available);
-  }
-
-  $("tapBear").disabled =
-    !tapLoaded ||
-    tapBusy ||
-    remaining <= 0;
-
-  if (remaining <= 0) {
-    $("tapMessage").textContent =
-      "👑 ممتاز! أكملت 3,650 نقرة. " +
-      "لقد وصلت إلى 15 EN96 لهذه الدورة.";
-  }
-}
-
-function updateTapTimer() {
-  if (!tapState.reset_at) {
-    $("tapTimer").textContent = "24:00:00";
-    return;
-  }
-
-  const reset = Date.parse(tapState.reset_at);
-
-  if (!Number.isFinite(reset)) {
-    $("tapTimer").textContent = "—";
-    return;
-  }
-
-  const seconds = Math.max(
-    0,
-    Math.ceil((reset-Date.now())/1000)
-  );
-
-  $("tapTimer").textContent = clock(seconds);
-
-  if (seconds === 0 && !tapBusy) {
-    $("tapTimer").textContent = "00:00:00";
-  }
-}
-
-async function loadTapStatus() {
-  if (!loggedIn || tapBusy) return;
-
-  tapLoaded = false;
-  $("tapBear").disabled = true;
-
-  $("tapMessage").textContent =
-    "🔄 جارٍ تحديث النقرات والرصيد...";
-
-  try {
-    const data = await api("/api/tap/status");
-
-    tapState = {
-      ...tapState,
-      ...data
-    };
-
-    tapLoaded = true;
-
-    $("tapMessage").textContent =
-      Number(data.remaining) <= 0
-        ? "👑 انتهت طاقة النقر لهذا اليوم."
-        : "✅ النقر جاهز. اضغط على وجه الدب!";
-
-    updateTapDisplay();
-    updateTapTimer();
-
-  } catch(e) {
-    $("tapMessage").textContent =
-      "تعذّر تحميل النقرات: " + e.message;
-
-    tapLoaded = false;
-    $("tapBear").disabled = true;
-  }
-}
-
-function newTapRequestId() {
-  if (window.crypto?.randomUUID) {
-    return window.crypto.randomUUID();
-  }
-
-  if (window.crypto?.getRandomValues) {
-    const bytes = new Uint8Array(16);
-    window.crypto.getRandomValues(bytes);
-
-    bytes[6] = (bytes[6]&15)|64;
-    bytes[8] = (bytes[8]&63)|128;
-
-    const hex = Array.from(bytes)
-      .map(v=>v.toString(16).padStart(2,"0"))
-      .join("");
-
-    return [
-      hex.slice(0,8),
-      hex.slice(8,12),
-      hex.slice(12,16),
-      hex.slice(16,20),
-      hex.slice(20)
-    ].join("-");
-  }
-
-  throw new Error(
-    "المتصفح لا يدعم توليد معرّف آمن للنقرة."
-  );
-}
-
-function animateTapReward(reward) {
-  const bear = $("tapBear");
-  const float = $("tapFloat");
-
-  float.textContent =
-    "+" + tapFormat(reward) + " EN96";
-
-  float.classList.remove("animate");
-  bear.classList.remove("tap-flash");
-
-  void float.offsetWidth;
-  void bear.offsetWidth;
-
-  float.classList.add("animate");
-  bear.classList.add("tap-flash");
-
-  sound("tap");
-
-  try {
-    tg?.HapticFeedback?.impactOccurred("light");
-  } catch(e) {}
-}
-
-async function tapBear() {
-  if (
-    !loggedIn ||
-    !tapLoaded ||
-    tapBusy ||
-    Number(tapState.remaining) <= 0
-  ) {
-    return;
-  }
-
-  tapBusy = true;
-  $("tapBear").disabled = true;
-
-  $("tapMessage").textContent =
-    "🐾 جارٍ تسجيل النقرة في Supabase...";
-
-  try {
-    if (!tapPendingId) {
-      tapPendingId = newTapRequestId();
-    }
-
-    const data = await api(
-      "/api/tap",
-      {request_id:tapPendingId}
-    );
-
-    const isNewTap = data.status === "ok";
-
-    if (
-      !isNewTap &&
-      data.status !== "duplicate"
-    ) {
-      throw new Error(
-        "لم يتم تأكيد النقرة."
-      );
-    }
-
-    tapPendingId = null;
-
-    tapState.taps = Number(
-      data.taps || 0
-    );
-
-    tapState.remaining =
-      TAP_LIMIT-tapState.taps;
-
-    tapState.earned = String(
-      data.earned ?? tapState.earned
-    );
-
-    if (
-      data.available !== undefined &&
-      data.available !== null
-    ) {
-      tapState.available =
-        String(data.available);
-    }
-
-    if (data.reset_at) {
-      tapState.reset_at = data.reset_at;
-    }
-
-    if (isNewTap) {
-      animateTapReward(
-        data.reward || 0
-      );
-
-      $("tapMessage").textContent =
-        "✅ تم تسجيل النقرة وإضافة المكافأة " +
-        "إلى محفظة EN96.";
-    } else {
-      $("tapMessage").textContent =
-        "✅ هذه النقرة مسجلة سابقًا. " +
-        "لم تتكرر المكافأة.";
-    }
-
-  } catch(e) {
-
-    if (!e.network) {
-      tapPendingId = null;
-    }
-
-    $("tapMessage").textContent =
-      "⚠️ " + e.message;
-
-  } finally {
-    tapBusy = false;
-    updateTapDisplay();
-    updateTapTimer();
-  }
-}
-
-setInterval(updateTapTimer,1000);
-
-/* ======================================
-   WALLET - EXISTING SYSTEM
-   ====================================== */
-
-async function loadWallet() {
-  try {
-    const user = await api("/api/me");
-
-    $("available").textContent =
-      number(user.available)+" EN96";
-
-    $("reserved").textContent =
-      number(user.reserved)+" EN96";
-
-    $("telegramId").textContent =
-      user.telegram_id || "—";
-
-    $("stellar").value =
-      user.stellar_public_address || "";
-
-  } catch(e) {
-    $("walletMsg").textContent =
-      e.message;
-  }
-}
-
-async function saveStellar() {
-  const address = $("stellar").value
-    .trim()
-    .toUpperCase();
-
-  if (!/^G[A-Z2-7]{55}$/.test(address)) {
-    $("walletMsg").textContent =
-      "أدخل عنوان Stellar العام الصحيح " +
-      "(56 حرفًا يبدأ بـ G).";
-    return;
-  }
-
-  try {
-    await api(
-      "/api/profile/stellar",
-      {address}
-    );
-
-    $("walletMsg").textContent =
-      "✅ تم حفظ عنوان Stellar العام.";
-  } catch(e) {
-    $("walletMsg").textContent =
-      e.message;
-  }
-}
-
-/* ======================================
-   VIDEO LIBRARY - EXISTING SYSTEM
-   ====================================== */
-
-let videoItems = [];
-let videoIndex = 0;
-let videosLoaded = false;
-
-function toggleVideos() {
-  const library = $("videoLibrary");
-
-  library.hidden = !library.hidden;
-
-  $("videosToggle").textContent =
-    library.hidden
-      ? "📺 فتح مكتبة الفيديوهات"
-      : "📺 إغلاق مكتبة الفيديوهات";
-
-  if (!library.hidden && !videosLoaded) {
-    loadVideos();
-  }
-}
-
-async function loadVideos() {
-  $("videoStatus").textContent =
-    "جارٍ تحميل فيديوهات EN96...";
-
-  try {
-    const data = await api("/api/videos");
-
-    videoItems = (data.videos || []).filter(v => {
-      try {
-        const u = new URL(v.video_url);
-
-        return (
-          ["https:","http:"].includes(u.protocol) &&
-          (
-            u.hostname === "youtube.com" ||
-            u.hostname.endsWith(".youtube.com") ||
-            u.hostname === "youtu.be"
-          )
-        );
-      } catch(e) {
-        return false;
-      }
-    });
-
-    videosLoaded = true;
-    videoIndex = 0;
-
-    renderVideo();
-
-  } catch(e) {
-    $("videoStatus").textContent =
-      e.message;
-  }
-}
-
-function renderVideo() {
-  const count = videoItems.length;
-
-  $("videoCount").textContent =
-    count
-      ? `${videoIndex+1} / ${count}`
-      : "0 / 0";
-
-  $("watchVideoBtn").disabled = !count;
-  $("prevVideo").disabled = videoIndex <= 0;
-  $("nextVideo").disabled =
-    videoIndex >= count-1;
-
-  if (!count) {
-    $("videoTitle").textContent =
-      "لا توجد فيديوهات مفعّلة حاليًا.";
-
-    $("videoReward").textContent = "";
-    return;
-  }
-
-  const video = videoItems[videoIndex];
-
-  $("videoTitle").textContent =
-    video.description ||
-    `فيديو EN96 رقم ${videoIndex+1}`;
-
-  $("videoReward").textContent =
-    "🎁 مكافأة الفيديو: " +
-    (video.reward ?? 1)+" EN96";
-
-  $("videoStatus").textContent =
-    "شاهد الفيديو وابحث عن كود الهدية.";
-}
-
-function changeVideo(direction) {
-  if (!videoItems.length) return;
-
-  videoIndex = Math.max(
-    0,
-    Math.min(
-      videoItems.length-1,
-      videoIndex+direction
-    )
-  );
-
+  videosLoaded=true;
+  videoIndex=0;
   renderVideo();
+
+ }catch(e){
+  $('videoStatus').textContent=e.message;
+ }
 }
 
-function watchCurrentVideo() {
-  const video = videoItems[videoIndex];
-  if (!video) return;
+function renderVideo(){
+ const n=videoItems.length;
 
-  try {
-    if (tg?.openLink) {
-      tg.openLink(video.video_url);
-    } else {
-      window.open(
-        video.video_url,
-        "_blank",
-        "noopener,noreferrer"
-      );
-    }
-  } catch(e) {
-    window.open(video.video_url,"_blank");
-  }
+ $('videoCount').textContent=
+  n?`${videoIndex+1} / ${n}`:'0 / 0';
+
+ $('watchVideoBtn').disabled=!n;
+ $('prevVideo').disabled=videoIndex<=0;
+ $('nextVideo').disabled=videoIndex>=n-1;
+
+ if(!n){
+  $('videoTitle').textContent=
+   'لا توجد فيديوهات مفعلة حاليًا.';
+
+  $('videoReward').textContent='';
+  return;
+ }
+
+ const v=videoItems[videoIndex];
+
+ $('videoTitle').textContent=
+  v.description||
+  `فيديو EN96 رقم ${videoIndex+1}`;
+
+ $('videoReward').textContent=
+  '🎁 مكافأة الفيديو: '+
+  (v.reward??1)+' EN96';
+
+ $('videoStatus').textContent=
+  'شاهد الفيديو وابحث عن الكود.';
 }
 
-async function redeemGift() {
-  const code = $("giftCode").value.trim();
+function changeVideo(n){
+ if(!videoItems.length)return;
 
-  if (!code) {
-    $("giftMsg").textContent =
-      "أدخل الكود الموجود في الفيديو.";
-    return;
-  }
+ videoIndex=Math.max(
+  0,
+  Math.min(
+   videoItems.length-1,
+   videoIndex+n
+  )
+ );
 
-  try {
-    const result = await api(
-      "/api/redeem-gift",
-      {code}
-    );
-
-    if (result.success) {
-      $("giftMsg").textContent =
-        "🎉 تم استلام " +
-        result.reward+" EN96 بنجاح!";
-
-      $("giftCode").value = "";
-      sound("gift");
-
-    } else {
-      $("giftMsg").textContent =
-        "لم تؤكد قاعدة البيانات الهدية.";
-    }
-
-  } catch(e) {
-    $("giftMsg").textContent = e.message;
-  }
+ renderVideo();
 }
 
-/* ======================================
-   TRIBE & REFERRALS
-   ====================================== */
+function watchCurrentVideo(){
+ const v=videoItems[videoIndex];
 
-function inviteLink() {
-  if (!memberId) return "";
+ if(!v)return;
 
-  return (
-    "https://t.me/" + BOT +
-    "?start=ref_" + memberId
+ try{
+  if(tg?.openLink){
+   tg.openLink(v.video_url);
+  }else{
+   window.open(
+    v.video_url,
+    '_blank',
+    'noopener,noreferrer'
+   );
+  }
+ }catch(e){
+  window.open(
+   v.video_url,
+   '_blank',
+   'noopener,noreferrer'
   );
+ }
 }
 
-function setupInvite() {
-  $("referralLink").value = inviteLink();
+async function redeemGift(){
+ const code=$('giftCode').value.trim();
+
+ if(!code){
+  $('giftMsg').textContent=
+   'أدخل كود الفيديو.';
+  return;
+ }
+
+ try{
+  const r=await api(
+   '/api/redeem-gift',
+   {code}
+  );
+
+  if(r.success){
+   $('giftMsg').textContent=
+    '🎉 تم استلام '+
+    r.reward+' EN96 بنجاح!';
+
+   $('giftCode').value='';
+   sound('gift');
+  }
+
+ }catch(e){
+  $('giftMsg').textContent=e.message;
+ }
 }
 
-async function copyInvite() {
-  const link = inviteLink();
+/* TRIBE & REFERRALS */
 
-  if (!link) {
-    $("inviteMsg").textContent =
-      "سجّل الدخول من تيليغرام أولًا.";
-    return;
-  }
-
-  try {
-    await navigator.clipboard.writeText(link);
-  } catch(e) {
-    $("referralLink").select();
-    document.execCommand("copy");
-  }
-
-  $("inviteMsg").textContent =
-    "✅ تم نسخ رابط الدعوة. " +
-    "تُحتسب المكافأة بعد استيفاء شروط التعدين.";
+function inviteLink(){
+ return memberId
+  ?'https://t.me/'+BOT+'?start=ref_'+memberId
+  :'';
 }
 
-function shareInvite() {
-  const link = inviteLink();
-  if (!link) return;
-
-  const share =
-    "https://t.me/share/url?url=" +
-    encodeURIComponent(link) +
-    "&text=" +
-    encodeURIComponent(
-      "🐻❄️ انضم إلى مملكة EN96"
-    );
-
-  if (tg?.openTelegramLink) {
-    tg.openTelegramLink(share);
-  } else {
-    window.open(share,"_blank");
-  }
+function setupInvite(){
+ $('referralLink').value=inviteLink();
 }
 
-function openTribeBot() {
-  const url =
-    "https://t.me/EN96_IceDragon_2026_Bot";
+async function copyInvite(){
+ const s=inviteLink();
 
-  if (tg?.openTelegramLink) {
-    tg.openTelegramLink(url);
-  } else {
-    window.open(url,"_blank");
-  }
+ if(!s){
+  $('inviteMsg').textContent=
+   'سجّل الدخول عبر تيليغرام أولًا.';
+  return;
+ }
+
+ try{
+  await navigator.clipboard.writeText(s);
+ }catch(e){
+  $('referralLink').select();
+  document.execCommand('copy');
+ }
+
+ $('inviteMsg').textContent=
+  '✅ تم نسخ رابط الدعوة.';
 }
 
-/* ======================================
-   LOGIN
-   ====================================== */
+function shareInvite(){
+ const s=inviteLink();
 
-async function login() {
-  if (!tg?.initData) {
-    $("loginStatus").textContent =
-      "🔐 افتح EN96 من زر الدخول " +
-      "داخل محادثة البوت في تيليغرام.";
+ if(!s)return;
 
-    return;
-  }
+ const url=
+  'https://t.me/share/url?url='+
+  encodeURIComponent(s)+
+  '&text='+
+  encodeURIComponent(
+   '🐻❄️ انضم إلى مملكة EN96'
+  );
 
-  try {
-    const user = await api("/api/me");
-
-    loggedIn = true;
-
-    memberId = String(
-      user.telegram_id || ""
-    );
-
-    setupInvite();
-
-    $("loginStatus").textContent =
-      "✅ تم تسجيل الدخول بنجاح.";
-
-    page("menu");
-
-  } catch(e) {
-    $("loginStatus").textContent =
-      "تعذّر تسجيل الدخول: " +
-      e.message;
-  }
+ if(tg?.openTelegramLink){
+  tg.openTelegramLink(url);
+ }else{
+  window.open(url,'_blank');
+ }
 }
 
-/* ======================================
-   AUTOMATIC UPDATES
-   ====================================== */
+function openTribeBot(){
+ const u='https://t.me/'+BOT;
+
+ if(tg?.openTelegramLink){
+  tg.openTelegramLink(u);
+ }else{
+  window.open(u,'_blank');
+ }
+}
+
+/* FAST TAP TO EARN */
+
+let tapState=null;
+let tapQueued=0;
+let tapSending=null;
+let tapSendingNow=false;
+
+let tapFlushTimer=null;
+let tapResetEpoch=null;
+let tapStop=false;
+let tapStatusLoading=false;
+let lastHaptic=0;
+
+/*
+ Instant animation.
+ Supabase confirms payments.
+ Batches keep the same ID when retried.
+*/
+
+function tapKey(){
+ return 'en96_tap_pending_v2_'+memberId;
+}
+
+function savePending(){
+ if(!memberId)return;
+
+ try{
+  localStorage.setItem(
+   tapKey(),
+   JSON.stringify({
+    queued:tapQueued,
+    sending:tapSending,
+    saved:Date.now()
+   })
+  );
+ }catch(e){}
+}
+
+function restorePending(){
+ if(!memberId)return;
+
+ try{
+  const x=JSON.parse(
+   localStorage.getItem(tapKey())||'null'
+  );
+
+  if(
+   !x||
+   !Number.isFinite(x.saved)||
+   Date.now()-x.saved>36*3600000
+  ){
+   return;
+  }
+
+  tapQueued=Math.max(
+   0,
+   Math.min(
+    80,
+    Math.floor(Number(x.queued)||0)
+   )
+  );
+
+  const b=x.sending;
+
+  if(
+   b&&
+   typeof b.id==='string'&&
+   /^[0-9a-f-]{36}$/i.test(b.id)&&
+   Number.isInteger(b.count)&&
+   b.count>=1&&b.count<=20
+  ){
+   tapSending=b;
+  }
+
+ }catch(e){}
+}
+
+function pendingCount(){
+ return tapQueued+(tapSending?.count||0);
+}
+
+function renderTap(){
+ if(!tapState)return;
+
+ const confirmed=Math.max(
+  0,
+  Number(tapState.taps||0)
+ );
+
+ const shown=Math.min(
+  TAP_LIMIT,
+  confirmed+pendingCount()
+ );
+
+ const remain=TAP_LIMIT-shown;
+
+ $('tapCount').textContent=
+  shown.toLocaleString('en-US')+
+  ' / 3,650';
+
+ $('tapRemaining').textContent=
+  'المتبقي '+
+  remain.toLocaleString('en-US')+
+  ' نقرة';
+
+ $('tapEnergyNumber').textContent=
+  remain.toLocaleString('en-US')+
+  ' / 3,650';
+
+ $('tapEnergyBar').style.width=
+  (remain/TAP_LIMIT*100)+'%';
+
+ $('tapEarned').textContent=
+  '+'+number(tapState.earned)+' EN96';
+
+ if(
+  tapState.available!==undefined&&
+  tapState.available!==null
+ ){
+  $('tapBalance').textContent=
+   number(tapState.available)+' EN96';
+ }
+
+ $('tapPending').textContent=
+  pendingCount()
+   ?'⏳ '+pendingCount()+
+    ' نقرة تنتظر اعتماد Supabase'
+   :'';
+
+ $('tapBear').disabled=
+  !loggedIn||
+  remain<=0||
+  tapStop;
+
+ updateTapClock();
+}
+
+function updateTapClock(){
+ if(
+  !tapResetEpoch||
+  !Number.isFinite(tapResetEpoch)
+ ){
+  $('tapTimer').textContent='--:--:--';
+  return;
+ }
+
+ const sec=Math.max(
+  0,
+  Math.ceil(
+   (tapResetEpoch-Date.now())/1000
+  )
+ );
+
+ $('tapTimer').textContent=clock(sec);
+
+ if(
+  sec===0&&
+  !tapStatusLoading&&
+  !tapSending&&
+  !tapSendingNow
+ ){
+  tapResetEpoch=null;
+  loadTapStatus();
+ }
+}
+
+function applyTap(data){
+ if(!data)return;
+
+ tapState={
+  ...(tapState||{}),
+  ...data
+ };
+
+ if(
+  Object.prototype.hasOwnProperty.call(
+   data,'reset_at'
+  )
+ ){
+  tapResetEpoch=data.reset_at
+   ?Date.parse(data.reset_at)
+   :null;
+ }
+
+ renderTap();
+}
+
+async function loadTapStatus(){
+ if(!loggedIn||tapStatusLoading)return;
+
+ tapStatusLoading=true;
+
+ try{
+  const r=await api('/api/tap/status');
+
+  applyTap(r);
+  tapStop=false;
+
+  $('tapMsg').textContent=
+   Number(r.taps)>=TAP_LIMIT
+    ?'⚡ انتهت طاقة هذه الدورة، انتظر التجديد.'
+    :'🐾 الدب جاهز للنقر السريع!';
+
+  renderTap();
+
+  if(tapQueued||tapSending){
+   scheduleFlush(100);
+  }
+
+ }catch(e){
+  $('tapMsg').textContent=
+   '⚠️ تعذّر تحميل النقر: '+e.message;
+
+  if(!tapState){
+   $('tapBear').disabled=true;
+  }
+
+ }finally{
+  tapStatusLoading=false;
+ }
+}
+
+function tapEffect(){
+ const wrap=$('tapFaceWrap');
+ const face=$('tapBear');
+ const spark=document.createElement('span');
+
+ spark.className='tap-float';
+ spark.textContent='+0.0041096';
+
+ spark.style.left=
+  (40+Math.random()*20)+'%';
+
+ wrap.appendChild(spark);
+
+ spark.addEventListener(
+  'animationend',
+  ()=>spark.remove(),
+  {once:true}
+ );
+
+ if(face.animate){
+  face.animate(
+   [
+    {transform:'scale(1)'},
+    {transform:'scale(.95)'},
+    {transform:'scale(1)'}
+   ],
+   {
+    duration:140,
+    easing:'ease-out'
+   }
+  );
+ }
+}
+
+function scheduleFlush(delay=170){
+ if(tapFlushTimer!==null){
+  clearTimeout(tapFlushTimer);
+ }
+
+ tapFlushTimer=setTimeout(()=>{
+  tapFlushTimer=null;
+  flushTap();
+ },delay);
+}
+
+function newUUID(){
+ if(crypto?.randomUUID){
+  return crypto.randomUUID();
+ }
+
+ if(!crypto?.getRandomValues){
+  throw Error(
+   'متصفح تيليغرام لا يدعم معرفات آمنة.'
+  );
+ }
+
+ const a=new Uint8Array(16);
+
+ crypto.getRandomValues(a);
+
+ a[6]=a[6]&15|64;
+ a[8]=a[8]&63|128;
+
+ const h=Array.from(
+  a,
+  b=>b.toString(16).padStart(2,'0')
+ ).join('');
+
+ return [
+  h.slice(0,8),
+  h.slice(8,12),
+  h.slice(12,16),
+  h.slice(16,20),
+  h.slice(20)
+ ].join('-');
+}
+
+function tapBear(){
+ if(!loggedIn||!tapState||tapStop){
+  return;
+ }
+
+ if(
+  Number(tapState.taps||0)+
+  pendingCount()>=TAP_LIMIT
+ ){
+  return;
+ }
+
+ if(tapQueued>=80){
+  $('tapMsg').textContent=
+   '⏳ يتم تسجيل النقرات السابقة...';
+  return;
+ }
+
+ // Immediate visual response
+ tapQueued++;
+
+ savePending();
+ tapEffect();
+ sound('tap');
+ renderTap();
+
+ if(
+  performance.now()-lastHaptic>110
+ ){
+  try{
+   tg?.HapticFeedback?.impactOccurred('light');
+  }catch(e){}
+
+  lastHaptic=performance.now();
+ }
+
+ scheduleFlush(
+  tapQueued>=8?35:170
+ );
+}
+
+async function flushTap(){
+ if(
+  tapSendingNow||
+  !loggedIn||
+  !tapState||
+  tapStop
+ ){
+  return;
+ }
+
+ if(!tapSending){
+  if(tapQueued<=0)return;
+
+  try{
+   const count=Math.min(
+    8,
+    tapQueued
+   );
+
+   tapSending={
+    id:newUUID(),
+    count
+   };
+
+   tapQueued-=count;
+   savePending();
+
+  }catch(e){
+   tapStop=true;
+
+   $('tapMsg').textContent=e.message;
+
+   renderTap();
+   return;
+  }
+ }
+
+ const batch=tapSending;
+ tapSendingNow=true;
+
+ try{
+  const r=await fetch(
+   '/api/tap/batch',
+   {
+    method:'POST',
+    cache:'no-store',
+    headers:{
+     'Content-Type':'application/json',
+     'X-Telegram-Init-Data':tg.initData
+    },
+    body:JSON.stringify({
+     batch_id:batch.id,
+     count:batch.count
+    })
+   }
+  );
+
+  const d=await r.json();
+
+  if(
+   r.status===429&&
+   d.status==='too_fast'
+  ){
+   $('tapMsg').textContent=
+    '⚡ يتم تنظيم النقرات السريعة تلقائيًا.';
+
+   scheduleFlush(
+    Math.max(
+     130,
+     Math.min(
+      3000,
+      Number(d.retry_after_ms)||300
+     )
+    )
+   );
+
+   return;
+  }
+
+  if(d.status==='limit_reached'){
+   tapSending=null;
+   tapQueued=0;
+   savePending();
+
+   $('tapMsg').textContent=
+    '⚡ انتهت طاقة الدورة.';
+
+   await loadTapStatus();
+   return;
+  }
+
+  if(
+   r.ok&&
+   ['ok','duplicate'].includes(d.status)
+  ){
+   tapSending=null;
+   savePending();
+
+   applyTap(d);
+
+   $('tapMsg').textContent=
+    '✅ تم اعتماد '+
+    Number(d.accepted||0)+
+    ' نقرة في Supabase.';
+
+   if(Number(d.taps)>=TAP_LIMIT){
+    tapQueued=0;
+    savePending();
+   }else if(tapQueued>0){
+    scheduleFlush(80);
+   }
+
+   return;
+  }
+
+  if([400,401,403,404].includes(r.status)){
+   tapStop=true;
+
+   $('tapMsg').textContent=
+    '🔒 '+
+    (d.error||
+     'تعذّر التحقق من التطبيق أو مسار الدفعات.');
+
+  }else{
+   $('tapMsg').textContent=
+    '⚠️ لم تؤكد الدفعة، ستتم إعادة المحاولة بنفس المعرّف.';
+
+   scheduleFlush(1800);
+  }
+
+ }catch(e){
+  $('tapMsg').textContent=
+   '⚠️ الاتصال ضعيف، النقرات معلقة وستُعاد المحاولة.';
+
+  scheduleFlush(1800);
+
+ }finally{
+  tapSendingNow=false;
+  renderTap();
+ }
+}
+
+/* LOGIN */
+
+async function login(){
+ if(!tg?.initData){
+  $('loginStatus').textContent=
+   '🔒 افتح EN96 من زر التطبيق في محادثة البوت.';
+  return;
+ }
+
+ try{
+  const u=await api('/api/me');
+
+  loggedIn=true;
+  memberId=String(u.telegram_id||'');
+
+  setupInvite();
+  restorePending();
+
+  $('loginStatus').textContent=
+   '✅ تم تسجيل الدخول بنجاح.';
+
+  page('menu');
+
+ }catch(e){
+  $('loginStatus').textContent=
+   'تعذّر تسجيل الدخول: '+e.message;
+ }
+}
+
+/* AUTOMATIC UPDATES */
 
 setInterval(displayMining,1000);
+setInterval(updateTapClock,1000);
 
 document.addEventListener(
-  "visibilitychange",
-  () => {
-    if (!document.hidden && loggedIn) {
-      loadMining();
+ 'visibilitychange',
+ ()=>{
+  if(!document.hidden&&loggedIn){
+   loadMining();
 
-      if (
-        document.getElementById("tap")
-          .classList.contains("active")
-      ) {
-        loadTapStatus();
-      }
-    }
+   if($('tap').classList.contains('active')){
+    loadTapStatus();
+   }
+
+   if(tapQueued||tapSending){
+    scheduleFlush(90);
+   }
   }
+ }
 );
 
 login();
-
 </script>
-
 </body>
 </html>
