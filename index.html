@@ -3,10 +3,10 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
- content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#030a16">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#030812">
 <title>EN96 — Ice Bear Kingdom</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
@@ -19,26 +19,33 @@
   --gold2:#a67a26;
   --white:#f7fbff;
   --muted:#9cb3ca;
+  --green:#35efa9;
 }
+
 * {box-sizing:border-box}
 html {scroll-behavior:smooth}
+
 body {
   margin:0;
   min-height:100vh;
-  padding-bottom:112px;
+  padding-bottom:118px;
   background:
     radial-gradient(circle at 50% 0%,#14548a 0,transparent 40%),
     linear-gradient(180deg,#081d38,#02060c 85%);
   color:var(--white);
   font-family:Tahoma,Arial,sans-serif;
 }
+
 button,input {font-family:inherit}
 button {cursor:pointer}
 button:disabled {opacity:.55;cursor:not-allowed}
-button:focus-visible,input:focus-visible {
+
+button:focus-visible,
+input:focus-visible {
   outline:2px solid var(--ice);
   outline-offset:3px;
 }
+
 [hidden] {display:none!important}
 
 header {
@@ -54,20 +61,24 @@ header {
   border-bottom:1px solid #a67a2655;
   backdrop-filter:blur(14px);
 }
+
 .brand {
   text-align:center;
   line-height:1.4;
 }
+
 .brand strong {
   color:var(--gold);
   font-size:18px;
   letter-spacing:1px;
 }
+
 .brand small {
   display:block;
   font-size:10px;
   color:var(--ice);
 }
+
 .head-btn {
   background:#11100c;
   border:1px solid var(--gold2);
@@ -82,7 +93,12 @@ main {
   margin:auto;
   padding:14px;
 }
-.page {display:none;animation:enter .25s ease}
+
+.page {
+  display:none;
+  animation:enter .25s ease;
+}
+
 .page.active {display:block}
 
 @keyframes enter {
@@ -91,24 +107,30 @@ main {
 }
 
 h1,h2,h3 {margin-top:0}
+
 h2 {
   text-align:center;
   color:var(--gold);
   font-size:21px;
   margin:17px 0;
 }
+
 p {line-height:1.8}
 
 .card {
   margin:14px 0;
   padding:17px;
   border-radius:19px;
-  background:
-    linear-gradient(145deg,#0b2542,#06111f);
+  background:linear-gradient(145deg,#0b2542,#06111f);
   border:1px solid #32668d;
   box-shadow:0 12px 30px #0007;
 }
-.muted {color:var(--muted);font-size:13px}
+
+.muted {
+  color:var(--muted);
+  font-size:13px;
+}
+
 .note {
   margin-top:12px;
   padding:12px;
@@ -135,7 +157,9 @@ p {line-height:1.8}
   text-decoration:none;
   box-shadow:0 4px 16px #dba62b33;
 }
+
 .gold-btn:active {transform:scale(.98)}
+
 .dark-btn {
   display:block;
   width:100%;
@@ -147,6 +171,7 @@ p {line-height:1.8}
   font-size:14px;
   font-weight:bold;
 }
+
 .row-buttons {
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -177,11 +202,13 @@ input {
   background:#071b32;
   animation:glow 3s ease-in-out infinite alternate;
 }
+
 .hero img {
   width:100%;
   height:100%;
   object-fit:cover;
 }
+
 .hero:after {
   content:"";
   position:absolute;
@@ -192,6 +219,7 @@ input {
     #020914 100%
   );
 }
+
 .hero-content {
   position:absolute;
   z-index:1;
@@ -200,11 +228,13 @@ input {
   right:15px;
   text-align:center;
 }
+
 .hero-content h1 {
   color:#e8faff;
   font-size:30px;
   text-shadow:0 0 18px #00aaff;
 }
+
 .hero-content p {
   color:#b9eaff;
   margin:7px 0 14px;
@@ -223,11 +253,13 @@ input {
   border:1px solid #28baff;
   margin-bottom:16px;
 }
+
 .banner img {
   width:100%;
   height:100%;
   object-fit:cover;
 }
+
 .banner strong {
   position:absolute;
   bottom:0;
@@ -245,19 +277,19 @@ input {
   grid-template-columns:repeat(2,1fr);
   gap:12px;
 }
+
 .tile {
   min-height:132px;
   border-radius:19px;
   border:1px solid var(--gold2);
-  background:
-    linear-gradient(150deg,#211c10,#040404 78%);
+  background:linear-gradient(150deg,#211c10,#040404 78%);
   color:#f8df99;
   font-size:14px;
   font-weight:bold;
   padding:12px 5px;
-  box-shadow:inset 0 0 17px #f2c75d15,
-             0 6px 15px #0009;
+  box-shadow:inset 0 0 17px #f2c75d15,0 6px 15px #0009;
 }
+
 .tile-icon {
   width:65px;
   height:65px;
@@ -266,19 +298,19 @@ input {
   margin:0 auto 9px;
   border-radius:50%;
   border:2px solid #be9745;
-  background:radial-gradient(
-    circle at 35% 28%,#393020,#050505 75%
-  );
+  background:radial-gradient(circle at 35% 28%,#393020,#050505 75%);
   color:var(--gold);
   font-size:31px;
   box-shadow:0 0 14px #f7ca5435;
 }
+
 .tile small {
   display:block;
   color:#aca79e;
   font-size:10px;
   margin-top:5px;
 }
+
 .tile:active {
   transform:scale(.96);
   box-shadow:0 0 22px #edc45d77;
@@ -298,6 +330,7 @@ input {
   box-shadow:0 0 40px #21aaff66;
   animation:glow 2.8s ease-in-out infinite alternate;
 }
+
 .ring-inner {
   position:relative;
   height:100%;
@@ -306,12 +339,14 @@ input {
   overflow:hidden;
   background:#041324;
 }
+
 .ring-inner img {
   width:100%;
   height:100%;
   object-fit:cover;
   filter:saturate(1.25) contrast(1.1);
 }
+
 .ring-inner strong {
   position:absolute;
   left:0;
@@ -322,9 +357,9 @@ input {
   text-align:center;
   font-size:13px;
 }
-.paw {
-  animation:paw .6s ease-out;
-}
+
+.paw {animation:paw .6s ease-out}
+
 @keyframes paw {
   35% {transform:scale(1.05);filter:brightness(1.5)}
 }
@@ -341,17 +376,20 @@ input {
   font-variant-numeric:tabular-nums;
   color:#def8ff;
 }
+
 .progress {
   height:9px;
   background:#153857;
   border-radius:10px;
   overflow:hidden;
 }
+
 .progress div {
   width:0%;
   height:100%;
   background:linear-gradient(90deg,#008bff,#ffe18d);
 }
+
 .reward {
   text-align:center;
   font-size:27px;
@@ -359,11 +397,13 @@ input {
   color:var(--gold);
   overflow-wrap:anywhere;
 }
+
 .stats {
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:7px;
 }
+
 .stat {
   padding:11px 5px;
   border:1px solid #305f82;
@@ -372,12 +412,14 @@ input {
   background:#061629;
   font-size:11px;
 }
+
 .stat b {
   display:block;
   color:var(--gold);
   font-size:18px;
   margin-bottom:5px;
 }
+
 .coin {
   display:block;
   width:115px;
@@ -388,12 +430,14 @@ input {
   border:2px solid var(--gold);
   box-shadow:0 0 22px #ecc14a66;
 }
+
 .video-cover {
   width:100%;
   max-height:230px;
   object-fit:cover;
   border-radius:14px;
 }
+
 .video-nav {
   display:grid;
   grid-template-columns:1fr auto 1fr;
@@ -401,8 +445,10 @@ input {
   align-items:center;
   margin-top:12px;
 }
+
 .video-nav button {font-size:12px}
 #videoCount {color:var(--ice);font-size:12px}
+
 .level {
   padding:15px;
   margin:10px 0;
@@ -410,7 +456,9 @@ input {
   border-radius:13px;
   background:#071a30;
 }
+
 .level strong {color:var(--gold)}
+
 .referral-box {
   padding:15px;
   border-radius:13px;
@@ -418,10 +466,341 @@ input {
   border:1px solid var(--gold2);
   margin:12px 0;
 }
+
 .referral-box strong {
   color:var(--gold);
   font-size:21px;
 }
+
+/* ======================================
+   EN96 TAP TO EARN DESIGN
+   ====================================== */
+
+.tap-shell {
+  margin:12px 0 22px;
+  padding:16px 12px 20px;
+  border-radius:27px;
+  background:
+    radial-gradient(circle at 50% 45%,#113e63 0,transparent 55%),
+    linear-gradient(155deg,#151209,#030407 70%);
+  border:2px solid #bf913d;
+  box-shadow:
+    0 0 30px #b88a2525,
+    inset 0 0 30px #ffce4310;
+  overflow:hidden;
+  text-align:center;
+}
+
+.tap-crown {
+  color:#ffe4a1;
+  font-weight:bold;
+  font-size:17px;
+  letter-spacing:1px;
+  text-shadow:0 0 12px #e0a82e;
+}
+
+.tap-subtitle {
+  color:#92dfff;
+  font-size:11px;
+  letter-spacing:2px;
+  margin:5px 0 15px;
+}
+
+.tap-wallet-card {
+  border:1px solid #d1a249;
+  background:linear-gradient(125deg,#221a0b,#090909);
+  border-radius:19px;
+  padding:12px;
+  margin:8px 0 12px;
+  box-shadow:inset 0 0 18px #e7aa2c20;
+}
+
+.tap-wallet-label {
+  font-size:12px;
+  color:#ccb987;
+}
+
+.tap-wallet-value {
+  color:#ffe29a;
+  font-size:clamp(23px,7vw,33px);
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+  text-shadow:0 0 18px #e8b34d77;
+  margin:5px 0;
+}
+
+.tap-wallet-unit {
+  color:#f6cd65;
+  font-size:13px;
+  font-weight:bold;
+}
+
+.tap-earn-card {
+  background:linear-gradient(120deg,#062d24,#04130f);
+  border:1px solid #248969;
+  border-radius:15px;
+  padding:12px;
+  margin-bottom:14px;
+}
+
+.tap-earn-value {
+  color:var(--green);
+  font-size:clamp(21px,6vw,28px);
+  font-weight:bold;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 15px #1ed99e66;
+}
+
+.tap-earn-label {
+  color:#a2e1cb;
+  font-size:11px;
+  margin-top:5px;
+}
+
+.tap-counter-label {
+  color:#d3c39b;
+  font-size:12px;
+  margin:4px 0;
+}
+
+.tap-counter {
+  color:#ffe49d;
+  font-size:clamp(25px,8vw,38px);
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  direction:ltr;
+  text-shadow:0 0 18px #edbb4b88;
+  margin:4px 0 12px;
+}
+
+.tap-bear-area {
+  position:relative;
+  max-width:330px;
+  margin:10px auto 18px;
+  padding:10px;
+}
+
+.tap-aura {
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:radial-gradient(
+    circle,
+    #3bcbff2a 20%,
+    #00aaff20 53%,
+    transparent 72%
+  );
+  filter:blur(13px);
+  animation:iceAura 3s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+
+@keyframes iceAura {
+  from {opacity:.65;transform:scale(.97)}
+  to {opacity:1;transform:scale(1.08)}
+}
+
+.tap-bear-button {
+  position:relative;
+  display:block;
+  width:min(292px,76vw);
+  aspect-ratio:1;
+  border-radius:50%;
+  margin:auto;
+  padding:9px;
+  border:4px solid #eec466;
+  background:
+    conic-gradient(
+      #ffe39b,
+      #98631c,
+      #fff0ac,
+      #785017,
+      #ffe39b
+    );
+  box-shadow:
+    0 0 18px #e9ba5788,
+    0 0 45px #1bbaff66,
+    inset 0 0 20px #ffe5a355;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .09s ease;
+  overflow:hidden;
+}
+
+.tap-bear-button:active:not(:disabled) {
+  transform:scale(.95);
+}
+
+.tap-bear-button img {
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #62d9ff;
+  filter:saturate(1.15) contrast(1.1);
+  pointer-events:none;
+}
+
+.tap-bear-button::after {
+  content:"";
+  position:absolute;
+  inset:12px;
+  border-radius:50%;
+  border:2px solid #c3f7ff44;
+  box-shadow:inset 0 0 32px #15c9ff40;
+  pointer-events:none;
+}
+
+.tap-bear-button.tap-flash img {
+  animation:tapFlash .38s ease-out;
+}
+
+@keyframes tapFlash {
+  0% {filter:brightness(1.1)}
+  35% {filter:brightness(1.9) saturate(1.6)}
+  100% {filter:brightness(1.1)}
+}
+
+.tap-float {
+  position:absolute;
+  left:50%;
+  top:17%;
+  transform:translateX(-50%);
+  color:#5effb6;
+  font-size:21px;
+  font-weight:bold;
+  text-shadow:0 0 9px #000,0 0 20px #28ffb9;
+  z-index:5;
+  pointer-events:none;
+  opacity:0;
+  white-space:nowrap;
+}
+
+.tap-float.animate {
+  animation:floatReward .85s ease-out forwards;
+}
+
+@keyframes floatReward {
+  0% {
+    opacity:0;
+    transform:translate(-50%,20px) scale(.8);
+  }
+  20% {
+    opacity:1;
+    transform:translate(-50%,0) scale(1.05);
+  }
+  100% {
+    opacity:0;
+    transform:translate(-50%,-65px) scale(1);
+  }
+}
+
+.tap-instruction {
+  color:#d8ecff;
+  font-size:13px;
+  margin:4px 0 18px;
+}
+
+.tap-energy-card {
+  background:#100f0c;
+  border:1px solid #86672d;
+  border-radius:16px;
+  padding:14px;
+  margin-top:10px;
+}
+
+.tap-energy-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#ffdb82;
+  font-size:13px;
+  font-weight:bold;
+  gap:8px;
+}
+
+.tap-energy-track {
+  height:17px;
+  margin-top:12px;
+  background:#332613;
+  border-radius:30px;
+  border:1px solid #8a6729;
+  overflow:hidden;
+}
+
+.tap-energy-fill {
+  height:100%;
+  width:100%;
+  border-radius:30px;
+  background:linear-gradient(
+    90deg,
+    #a95a09,
+    #ffad28,
+    #ffe18b
+  );
+  box-shadow:0 0 15px #ffaf3988;
+  transition:width .3s ease;
+}
+
+.tap-time-label {
+  color:#a8d3ef;
+  font-size:12px;
+  margin-top:15px;
+}
+
+.tap-time-value {
+  color:#ffe2a0;
+  font-size:29px;
+  font-weight:bold;
+  margin:7px 0;
+  font-variant-numeric:tabular-nums;
+  direction:ltr;
+}
+
+.tap-message {
+  font-size:12px;
+  line-height:1.8;
+  color:#b8d7e8;
+  margin-top:14px;
+  padding:10px;
+  background:#061523;
+  border:1px solid #285473;
+  border-radius:12px;
+  overflow-wrap:anywhere;
+}
+
+.tap-daily-info {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin:14px 0;
+}
+
+.tap-daily-info div {
+  background:#100f0b;
+  border:1px solid #86672d;
+  border-radius:12px;
+  padding:11px 5px;
+  font-size:11px;
+  color:#d4c5a2;
+}
+
+.tap-daily-info strong {
+  display:block;
+  color:#ffe4a1;
+  font-size:19px;
+  margin-bottom:5px;
+}
+
+.tap-refresh {
+  margin-top:12px;
+}
+
+/* ======================================
+   NAVIGATION
+   ====================================== */
 
 nav {
   position:fixed;
@@ -432,13 +811,14 @@ nav {
   max-width:500px;
   margin:auto;
   display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:3px;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:2px;
   padding:9px 3px max(10px,env(safe-area-inset-bottom));
   background:linear-gradient(#11100d,#020202);
   border-top:1px solid #a78237;
   border-radius:18px 18px 0 0;
 }
+
 nav button {
   background:transparent;
   border:0;
@@ -446,21 +826,23 @@ nav button {
   font-size:10px;
   font-weight:bold;
   padding:4px 0;
+  min-width:0;
+  text-align:center;
 }
+
 .nav-circle {
-  width:51px;
-  height:51px;
+  width:46px;
+  height:46px;
   margin:0 auto 6px;
   display:grid;
   place-items:center;
   border-radius:50%;
   border:2px solid #9d7b36;
-  background:radial-gradient(
-    circle at 30% 25%,#3a3120,#030303 70%
-  );
+  background:radial-gradient(circle at 30% 25%,#3a3120,#030303 70%);
   color:var(--gold);
-  font-size:25px;
+  font-size:23px;
 }
+
 nav button.active .nav-circle {
   border-color:#ffe08b;
   box-shadow:0 0 16px #f5c65e88;
@@ -470,9 +852,11 @@ nav button.active .nav-circle {
   .hero {height:355px}
   .tile {min-height:118px;font-size:12px}
   .tile-icon {width:56px;height:56px}
-  .nav-circle {width:44px;height:44px;font-size:22px}
+  .nav-circle {width:39px;height:39px;font-size:19px}
   nav button {font-size:9px}
+  .tap-bear-button {width:min(260px,75vw)}
 }
+
 @media(prefers-reduced-motion:reduce) {
   *,*:before,*:after {
     animation:none!important;
@@ -485,35 +869,32 @@ nav button.active .nav-circle {
 <body>
 
 <header>
-  <button class="head-btn"
-    onclick="page('menu')">⌂</button>
+  <button class="head-btn" onclick="page('menu')">⌂</button>
 
   <div class="brand">
     <strong>❄ EN96 MINING ❄</strong>
     <small>ICE BEAR KINGDOM</small>
   </div>
 
-  <button class="head-btn" id="soundToggle">
-    🔇
-  </button>
+  <button class="head-btn" id="soundToggle">🔇</button>
 </header>
 
 <main>
 
-<!-- WELCOME -->
+<!-- ======================================
+     WELCOME
+     ====================================== -->
 
 <section class="page active" id="welcome">
 
   <div class="hero">
-    <img src="/assets/en96-welcome.jpg"
-         alt="الدب الجليدي EN96">
+    <img src="/assets/en96-welcome.jpg" alt="الدب الجليدي EN96">
 
     <div class="hero-content">
       <h1>EN96 ICE BEAR</h1>
       <p>🐻❄️ مملكة التعدين الجليدي</p>
 
-      <button class="gold-btn"
-        onclick="page('menu')">
+      <button class="gold-btn" onclick="page('menu')">
         👑 دخول المملكة
       </button>
     </div>
@@ -521,6 +902,7 @@ nav button.active .nav-circle {
 
   <div class="card">
     <h2>🔐 تسجيل الدخول</h2>
+
     <p class="muted">
       حساب EN96 مرتبط بهويتك داخل تيليغرام.
       لا تحتاج إلى كلمة مرور أو بريد إلكتروني.
@@ -531,21 +913,21 @@ nav button.active .nav-circle {
     </div>
 
     <a class="gold-btn"
-      href="https://t.me/EN96_IceDragon_2026_Bot">
+       href="https://t.me/EN96_IceDragon_2026_Bot">
       🐻 افتح بوت EN96
     </a>
   </div>
 
 </section>
 
-<!-- MENU -->
+<!-- ======================================
+     MAIN MENU
+     ====================================== -->
 
 <section class="page" id="menu">
 
   <div class="banner">
-    <img src="/assets/en96-welcome.jpg"
-         alt="EN96 Ice Bear">
-
+    <img src="/assets/en96-welcome.jpg" alt="EN96 Ice Bear">
     <strong>🐻 EN96 ICE BEAR</strong>
   </div>
 
@@ -555,6 +937,12 @@ nav button.active .nav-circle {
       <span class="tile-icon">⛏️</span>
       التعدين
       <small>MINING</small>
+    </button>
+
+    <button class="tile" onclick="page('tap')">
+      <span class="tile-icon">🐻</span>
+      انقر واربح EN96
+      <small>TAP TO EARN</small>
     </button>
 
     <button class="tile" onclick="page('wallet')">
@@ -587,11 +975,18 @@ nav button.active .nav-circle {
       <small>ABOUT</small>
     </button>
 
-  </div>
+    <button class="tile" onclick="page('tap')">
+      <span class="tile-icon">👑</span>
+      مملكة النقر
+      <small>ICE BEAR</small>
+    </button>
 
+  </div>
 </section>
 
-<!-- MINING -->
+<!-- ======================================
+     MINING - EXISTING SYSTEM
+     ====================================== -->
 
 <section class="page" id="mining">
 
@@ -599,9 +994,7 @@ nav button.active .nav-circle {
 
   <div class="ring" id="miningRing">
     <div class="ring-inner">
-      <img src="/assets/en96-bear-face.webp"
-           alt="الدب الجليدي">
-
+      <img src="/assets/en96-bear-face.webp" alt="الدب الجليدي">
       <strong>⚡ 0.001 EN96 / ثانية</strong>
     </div>
   </div>
@@ -617,7 +1010,6 @@ nav button.active .nav-circle {
   </div>
 
   <div class="card">
-
     <p class="muted" style="text-align:center">
       المكافأة الافتراضية التقديرية
     </p>
@@ -626,21 +1018,21 @@ nav button.active .nav-circle {
       0.0000000 EN96
     </div>
 
-    <button class="gold-btn" id="startMining"
-      onclick="startMining()">
+    <button class="gold-btn"
+            id="startMining"
+            onclick="startMining()">
       🐾 بدء / متابعة التعدين
     </button>
 
     <button class="dark-btn"
-      style="margin-top:10px"
-      onclick="loadMining()">
+            style="margin-top:10px"
+            onclick="loadMining()">
       🔄 تحديث التعدين
     </button>
 
     <div class="note" id="mineMsg">
       جارٍ تحميل حالة التعدين...
     </div>
-
   </div>
 
   <div class="stats">
@@ -648,10 +1040,12 @@ nav button.active .nav-circle {
       <b>86.4</b>
       EN96 / جلسة
     </div>
+
     <div class="stat">
       <b>0.001</b>
       EN96 / ثانية
     </div>
+
     <div class="stat">
       <b>24</b>
       ساعة
@@ -666,7 +1060,152 @@ nav button.active .nav-circle {
 
 </section>
 
-<!-- WALLET -->
+<!-- ======================================
+     NEW - EN96 TAP TO EARN
+     ====================================== -->
+
+<section class="page" id="tap">
+
+  <h2>👑 مملكة النقر — EN96</h2>
+
+  <div class="tap-shell">
+
+    <div class="tap-crown">
+      ♛ EN96 ICE BEAR ♛
+    </div>
+
+    <div class="tap-subtitle">
+      TAP TO EARN
+    </div>
+
+    <!-- Wallet balance above bear -->
+
+    <div class="tap-wallet-card">
+      <div class="tap-wallet-label">
+        💎 رصيد محفظتك الرئيسية
+      </div>
+
+      <div class="tap-wallet-value" id="tapWallet">
+        —
+      </div>
+
+      <div class="tap-wallet-unit">
+        EN96
+      </div>
+    </div>
+
+    <!-- Daily earnings -->
+
+    <div class="tap-earn-card">
+      <div class="tap-earn-value" id="tapEarned">
+        +0.0000000 EN96
+      </div>
+
+      <div class="tap-earn-label">
+        مجموع مكافآت النقر خلال الدورة الحالية
+      </div>
+    </div>
+
+    <!-- Tap count above bear -->
+
+    <div class="tap-counter-label">
+      👑 عدد النقرات المسجلة
+    </div>
+
+    <div class="tap-counter" id="tapCounter">
+      0 / 3,650
+    </div>
+
+    <!-- Click directly on bear face -->
+
+    <div class="tap-bear-area">
+
+      <div class="tap-aura"></div>
+
+      <div class="tap-float" id="tapFloat">
+        +0.0041096 EN96
+      </div>
+
+      <button type="button"
+              class="tap-bear-button"
+              id="tapBear"
+              onclick="tapBear()"
+              disabled
+              aria-label="انقر على وجه الدب الجليدي لجمع EN96">
+
+        <img
+          src="/assets/en96-bear-face.webp"
+          alt="وجه الدب الجليدي EN96">
+
+      </button>
+
+    </div>
+
+    <p class="tap-instruction">
+      🐾 انقر على وجه الدب الجليدي واجمع EN96
+    </p>
+
+    <!-- Energy -->
+
+    <div class="tap-energy-card">
+
+      <div class="tap-energy-header">
+        <span>⚡ الطاقة المتبقية</span>
+        <span id="tapEnergyText">3,650 / 3,650</span>
+      </div>
+
+      <div class="tap-energy-track">
+        <div class="tap-energy-fill"
+             id="tapEnergyBar"></div>
+      </div>
+
+      <div class="tap-time-label">
+        ⏳ الوقت المتبقي لتجديد النقرات
+      </div>
+
+      <div class="tap-time-value" id="tapTimer">
+        24:00:00
+      </div>
+
+    </div>
+
+    <div class="tap-daily-info">
+
+      <div>
+        <strong>3,650</strong>
+        نقرة خلال 24 ساعة
+      </div>
+
+      <div>
+        <strong>15 EN96</strong>
+        أقصى مكافأة للدورة
+      </div>
+
+    </div>
+
+    <div class="tap-message" id="tapMessage" role="status">
+      جارٍ تحميل عداد النقرات من Supabase...
+    </div>
+
+    <button type="button"
+            class="dark-btn tap-refresh"
+            onclick="loadTapStatus()">
+      🔄 تحديث النقرات والرصيد
+    </button>
+
+  </div>
+
+  <p class="muted" style="text-align:center">
+    تُحفظ كل نقرة ناجحة في Supabase.
+    المكافآت تضاف إلى محفظة EN96 نفسها،
+    ولا تُحتسب النقرة إلا بعد تأكيد الخادم.
+  </p>
+
+</section>
+
+<!-- ======================================
+     WALLET
+     ====================================== -->
 
 <section class="page" id="wallet">
 
@@ -679,10 +1218,16 @@ nav button.active .nav-circle {
          alt="عملة EN96">
 
     <p class="muted">الرصيد المتاح</p>
-    <div class="reward" id="available">—</div>
+
+    <div class="reward" id="available">
+      —
+    </div>
 
     <p class="muted">الرصيد المحجوز</p>
-    <div class="reward" id="reserved">—</div>
+
+    <div class="reward" id="reserved">
+      —
+    </div>
 
     <button class="gold-btn" onclick="loadWallet()">
       🔄 تحديث المحفظة
@@ -704,8 +1249,8 @@ nav button.active .nav-circle {
     </label>
 
     <input id="stellar"
-      maxlength="56"
-      placeholder="G...">
+           maxlength="56"
+           placeholder="G...">
 
     <button class="dark-btn" onclick="saveStellar()">
       💾 حفظ عنوان Stellar
@@ -724,7 +1269,9 @@ nav button.active .nav-circle {
 
 </section>
 
-<!-- REWARDS -->
+<!-- ======================================
+     VIDEO REWARDS
+     ====================================== -->
 
 <section class="page" id="rewards">
 
@@ -746,8 +1293,8 @@ nav button.active .nav-circle {
     </p>
 
     <button class="gold-btn"
-      id="videosToggle"
-      onclick="toggleVideos()">
+            id="videosToggle"
+            onclick="toggleVideos()">
       📺 فتح مكتبة الفيديوهات
     </button>
 
@@ -759,31 +1306,32 @@ nav button.active .nav-circle {
           جارٍ التحميل...
         </p>
 
-        <h3 id="videoTitle">
-          فيديو EN96
-        </h3>
+        <h3 id="videoTitle">فيديو EN96</h3>
 
         <p id="videoReward" class="muted"></p>
 
         <button class="gold-btn"
-          id="watchVideoBtn"
-          onclick="watchCurrentVideo()" disabled>
+                id="watchVideoBtn"
+                onclick="watchCurrentVideo()"
+                disabled>
           ▶ مشاهدة الفيديو على YouTube
         </button>
 
         <div class="video-nav">
 
           <button class="dark-btn"
-            id="prevVideo"
-            onclick="changeVideo(-1)" disabled>
+                  id="prevVideo"
+                  onclick="changeVideo(-1)"
+                  disabled>
             السابق
           </button>
 
           <span id="videoCount">0 / 0</span>
 
           <button class="dark-btn"
-            id="nextVideo"
-            onclick="changeVideo(1)" disabled>
+                  id="nextVideo"
+                  onclick="changeVideo(1)"
+                  disabled>
             التالي
           </button>
 
@@ -792,7 +1340,6 @@ nav button.active .nav-circle {
       </div>
 
     </div>
-
   </div>
 
   <div class="card">
@@ -804,11 +1351,12 @@ nav button.active .nav-circle {
     </p>
 
     <input id="giftCode"
-      maxlength="100"
-      placeholder="كود الفيديو">
+           maxlength="100"
+           placeholder="كود الفيديو">
 
-    <button class="gold-btn" onclick="redeemGift()">
-      🎁 استلام  الهدية
+    <button class="gold-btn"
+            onclick="redeemGift()">
+      🎁 استلام الهدية
     </button>
 
     <div class="note" id="giftMsg">
@@ -820,7 +1368,9 @@ nav button.active .nav-circle {
 
 </section>
 
-<!-- TRIBE -->
+<!-- ======================================
+     TRIBE AND REFERRALS
+     ====================================== -->
 
 <section class="page" id="tribe">
 
@@ -834,6 +1384,7 @@ nav button.active .nav-circle {
 
   <div class="referral-box">
     <strong>🎁 50 EN96</strong>
+
     <p class="muted">
       مكافأة صاحب الدعوة عند اكتمال
       أول جلسة تعدين مؤهلة لصديقه الجديد.
@@ -842,6 +1393,7 @@ nav button.active .nav-circle {
 
   <div class="referral-box">
     <strong>⛏️ 5%</strong>
+
     <p class="muted">
       من مكافآت تعدين الأصدقاء المباشرين
       المؤكدة، وفق شروط النظام.
@@ -853,16 +1405,17 @@ nav button.active .nav-circle {
     <h3>🔗 رابط الدعوة الخاص بك</h3>
 
     <input id="referralLink"
-      readonly
-      placeholder="جارٍ تحميل الرابط">
+           readonly
+           placeholder="جارٍ تحميل الرابط">
 
-    <button class="gold-btn" onclick="copyInvite()">
+    <button class="gold-btn"
+            onclick="copyInvite()">
       📋 نسخ رابط الدعوة
     </button>
 
     <button class="dark-btn"
-      style="margin-top:10px"
-      onclick="shareInvite()">
+            style="margin-top:10px"
+            onclick="shareInvite()">
       📨 مشاركة الدعوة
     </button>
 
@@ -887,14 +1440,16 @@ nav button.active .nav-circle {
     </p>
 
     <button class="gold-btn"
-      onclick="openTribeBot()">
+            onclick="openTribeBot()">
       🐻 فتح إحصائيات القبيلة في البوت
     </button>
   </div>
 
 </section>
 
-<!-- UPGRADES -->
+<!-- ======================================
+     UPGRADES
+     ====================================== -->
 
 <section class="page" id="upgrades">
 
@@ -922,59 +1477,73 @@ nav button.active .nav-circle {
 
 </section>
 
-<!-- INFO -->
+<!-- ======================================
+     INFORMATION
+     ====================================== -->
 
 <section class="page" id="info">
 
   <h2>ℹ️ معلومات المملكة</h2>
 
   <div class="card">
+
     <h3>🐻 EN96 ICE BEAR</h3>
 
     <p>❄️ مملكة التعدين الجليدي.</p>
     <p>⛏️ التعدين افتراضي.</p>
     <p>⚡ المعدل: 0.001 EN96/ثانية.</p>
     <p>⏱️ الجلسة: 24 ساعة.</p>
+    <p>🐾 نظام النقر: 3,650 نقرة لكل 24 ساعة.</p>
+    <p>👑 مكافأة النقر القصوى: 15 EN96.</p>
     <p>🎁 هدايا فيديوهات YouTube.</p>
     <p>👥 مكافآت الدعوة: 50 EN96 و5%.</p>
     <p>💎 معاملات Stellar تتم بشكل منفصل.</p>
     <p>🔊 أصوات اختيارية، والوضع الصامت متاح.</p>
+
   </div>
 
 </section>
 
 </main>
 
-<!-- BOTTOM NAVIGATION -->
+<!-- ======================================
+     BOTTOM NAVIGATION
+     ====================================== -->
 
 <nav aria-label="قائمة EN96">
 
   <button data-nav="mining"
-    onclick="page('mining')">
+          onclick="page('mining')">
     <span class="nav-circle">⛏️</span>
     Mine
   </button>
 
+  <button data-nav="tap"
+          onclick="page('tap')">
+    <span class="nav-circle">🐻</span>
+    Tap
+  </button>
+
   <button data-nav="rewards"
-    onclick="page('rewards')">
+          onclick="page('rewards')">
     <span class="nav-circle">🎁</span>
     Tasks
   </button>
 
   <button data-nav="upgrades"
-    onclick="page('upgrades')">
+          onclick="page('upgrades')">
     <span class="nav-circle">⚡</span>
     Miners
   </button>
 
   <button data-nav="tribe"
-    onclick="page('tribe')">
+          onclick="page('tribe')">
     <span class="nav-circle">👥</span>
     Friends
   </button>
 
   <button data-nav="wallet"
-    onclick="page('wallet')">
+          onclick="page('wallet')">
     <span class="nav-circle">👤</span>
     Profile
   </button>
@@ -983,6 +1552,10 @@ nav button.active .nav-circle {
 
 <script>
 
+/* ======================================
+   EN96 TELEGRAM SETUP
+   ====================================== */
+
 const tg = window.Telegram?.WebApp;
 const $ = id => document.getElementById(id);
 
@@ -990,19 +1563,35 @@ const RATE = 0.001;
 const DURATION = 86400;
 const BOT = "EN96_IceDragon_2026_Bot";
 
+const TAP_LIMIT = 3650;
+const TAP_TOTAL = 15;
+
 let loggedIn = false;
 let memberId = "";
+
 let miningState = null;
 let syncTime = performance.now();
+
+let tapState = {
+  taps:0,
+  remaining:TAP_LIMIT,
+  earned:"0",
+  reset_at:null,
+  available:null
+};
+
+let tapBusy = false;
+let tapLoaded = false;
+let tapPendingId = null;
 
 try {
   tg?.ready();
   tg?.expand();
 } catch(e) {}
 
-// ===========================
-// OPTIONAL SOUND
-// ===========================
+/* ======================================
+   OPTIONAL SOUND
+   ====================================== */
 
 let audioOn = false;
 let audioCtx = null;
@@ -1023,6 +1612,7 @@ function soundContext() {
     if (audioCtx.state === "suspended") {
       audioCtx.resume();
     }
+
     return audioCtx;
   } catch(e) {
     return null;
@@ -1040,28 +1630,30 @@ function tone(frequency, duration = .08) {
   osc.type = "sine";
   osc.frequency.value = frequency;
 
-  gain.gain.setValueAtTime(.0001, t);
-  gain.gain.exponentialRampToValueAtTime(.045, t + .01);
+  gain.gain.setValueAtTime(.0001,t);
+  gain.gain.exponentialRampToValueAtTime(.045,t+.01);
   gain.gain.exponentialRampToValueAtTime(
-    .0001, t + duration
+    .0001,t+duration
   );
 
   osc.connect(gain);
   gain.connect(ctx.destination);
 
   osc.start(t);
-  osc.stop(t + duration + .02);
+  osc.stop(t+duration+.02);
 }
 
 function sound(which = "click") {
   if (!audioOn) return;
 
   if (which === "paw") {
-    tone(140, .20);
+    tone(140,.20);
   } else if (which === "gift") {
-    tone(720, .17);
+    tone(720,.17);
+  } else if (which === "tap") {
+    tone(620,.055);
   } else {
-    tone(600, .07);
+    tone(600,.07);
   }
 }
 
@@ -1081,14 +1673,19 @@ $("soundToggle").addEventListener("click", () => {
   } catch(e) {}
 
   updateSoundButton();
+
   if (audioOn) sound("click");
 });
 
-document.addEventListener("click", event => {
+document.addEventListener("click",event => {
   const button = event.target.closest("button");
 
   if (!button || button.disabled) return;
   if (button.id === "soundToggle") return;
+
+  if (button.id === "tapBear") {
+    return;
+  }
 
   if (button.id === "startMining") {
     sound("paw");
@@ -1108,9 +1705,9 @@ document.addEventListener("click", event => {
 
 updateSoundButton();
 
-// ===========================
-// PAGES
-// ===========================
+/* ======================================
+   PAGES
+   ====================================== */
 
 function page(name) {
   if (
@@ -1120,6 +1717,7 @@ function page(name) {
   ) {
     $("loginStatus").textContent =
       "🔐 افتح EN96 من زر الدخول داخل بوت تيليغرام.";
+
     name = "welcome";
   }
 
@@ -1138,19 +1736,20 @@ function page(name) {
       );
     });
 
-  window.scrollTo(0, 0);
+  window.scrollTo(0,0);
 
   if (!loggedIn) return;
 
   if (name === "mining") loadMining();
   if (name === "wallet") loadWallet();
+  if (name === "tap") loadTapStatus();
 }
 
-// ===========================
-// SECURE TELEGRAM API
-// ===========================
+/* ======================================
+   SECURE TELEGRAM API
+   ====================================== */
 
-async function api(path, body) {
+async function api(path,body) {
   if (!tg?.initData) {
     throw new Error(
       "افتح EN96 من زر الدخول داخل بوت تيليغرام."
@@ -1158,10 +1757,10 @@ async function api(path, body) {
   }
 
   const options = {
-    method: body === undefined ? "GET" : "POST",
-    cache: "no-store",
-    headers: {
-      "X-Telegram-Init-Data": tg.initData
+    method:body === undefined ? "GET" : "POST",
+    cache:"no-store",
+    headers:{
+      "X-Telegram-Init-Data":tg.initData
     }
   };
 
@@ -1172,9 +1771,21 @@ async function api(path, body) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(path, options);
+  let response;
+
+  try {
+    response = await fetch(path,options);
+  } catch(e) {
+    const err = new Error(
+      "انقطع الاتصال بخادم EN96."
+    );
+
+    err.network = true;
+    throw err;
+  }
 
   let data;
+
   try {
     data = await response.json();
   } catch(e) {
@@ -1184,9 +1795,12 @@ async function api(path, body) {
   }
 
   if (!response.ok || data.error) {
-    throw new Error(
+    const err = new Error(
       data.error || "تعذّر الاتصال بالخادم."
     );
+
+    err.statusCode = response.status;
+    throw err;
   }
 
   return data;
@@ -1202,51 +1816,51 @@ function clock(seconds) {
     Math.floor(seconds)
   );
 
-  const hours = Math.floor(s / 3600);
-  const minutes = Math.floor((s % 3600) / 60);
-  const secs = s % 60;
+  const hours = Math.floor(s/3600);
+  const minutes = Math.floor((s%3600)/60);
+  const secs = s%60;
 
-  return [hours, minutes, secs]
-    .map(v => String(v).padStart(2, "0"))
+  return [hours,minutes,secs]
+    .map(v=>String(v).padStart(2,"0"))
     .join(":");
 }
 
-// ===========================
-// MINING
-// ===========================
+/* ======================================
+   MINING - EXISTING LOGIC
+   ====================================== */
 
 function displayMining() {
   let elapsed = 0;
 
   if (
     miningState &&
-    ["active", "ready"].includes(miningState.status)
+    ["active","ready"].includes(miningState.status)
   ) {
     elapsed = Math.min(
       DURATION,
       Math.max(
         0,
         Number(miningState.elapsed_seconds || 0) +
-        (performance.now() - syncTime) / 1000
+        (performance.now() - syncTime)/1000
       )
     );
   }
 
   $("timer").textContent = clock(
-    DURATION - elapsed
+    DURATION-elapsed
   );
 
   $("reward").textContent =
-    number(elapsed * RATE) + " EN96";
+    number(elapsed*RATE)+" EN96";
 
-  const progress = elapsed / DURATION * 100;
+  const progress = elapsed/DURATION*100;
 
   $("progressBar").style.width =
-    progress + "%";
+    progress+"%";
 
   $("miningRing").style.setProperty(
     "--pct",
-    progress + "%"
+    progress+"%"
   );
 }
 
@@ -1276,7 +1890,6 @@ async function loadMining() {
         "✅ التعدين نشط. الرصيد الفعلي " +
         "محفوظ في Supabase.";
     }
-
   } catch(e) {
     $("mineMsg").textContent = e.message;
   }
@@ -1305,7 +1918,6 @@ async function startMining() {
       $("mineMsg").textContent =
         "✅ تم تحديث حالة التعدين.";
     }
-
   } catch(e) {
     $("mineMsg").textContent = e.message;
   } finally {
@@ -1313,19 +1925,287 @@ async function startMining() {
   }
 }
 
-// ===========================
-// WALLET
-// ===========================
+/* ======================================
+   TAP TO EARN - NEW SYSTEM
+   ====================================== */
+
+function tapFormat(value) {
+  return Number(value || 0)
+    .toLocaleString("en-US",{
+      minimumFractionDigits:7,
+      maximumFractionDigits:7
+    });
+}
+
+function tapCountFormat(value) {
+  return Number(value || 0)
+    .toLocaleString("en-US");
+}
+
+function updateTapDisplay() {
+  const taps = Math.min(
+    TAP_LIMIT,
+    Math.max(0,Number(tapState.taps)||0)
+  );
+
+  const remaining = TAP_LIMIT-taps;
+
+  $("tapCounter").textContent =
+    tapCountFormat(taps) +
+    " / " +
+    tapCountFormat(TAP_LIMIT);
+
+  $("tapEnergyText").textContent =
+    tapCountFormat(remaining) +
+    " / " +
+    tapCountFormat(TAP_LIMIT);
+
+  $("tapEnergyBar").style.width =
+    (remaining/TAP_LIMIT*100)+"%";
+
+  $("tapEarned").textContent =
+    "+" + tapFormat(tapState.earned) +
+    " EN96";
+
+  if (tapState.available !== null &&
+      tapState.available !== undefined) {
+    $("tapWallet").textContent =
+      tapFormat(tapState.available);
+  }
+
+  $("tapBear").disabled =
+    !tapLoaded ||
+    tapBusy ||
+    remaining <= 0;
+
+  if (remaining <= 0) {
+    $("tapMessage").textContent =
+      "👑 ممتاز! أكملت 3,650 نقرة. " +
+      "لقد وصلت إلى 15 EN96 لهذه الدورة.";
+  }
+}
+
+function updateTapTimer() {
+  if (!tapState.reset_at) {
+    $("tapTimer").textContent = "24:00:00";
+    return;
+  }
+
+  const reset = Date.parse(tapState.reset_at);
+
+  if (!Number.isFinite(reset)) {
+    $("tapTimer").textContent = "—";
+    return;
+  }
+
+  const seconds = Math.max(
+    0,
+    Math.ceil((reset-Date.now())/1000)
+  );
+
+  $("tapTimer").textContent = clock(seconds);
+
+  if (seconds === 0 && !tapBusy) {
+    $("tapTimer").textContent = "00:00:00";
+  }
+}
+
+async function loadTapStatus() {
+  if (!loggedIn || tapBusy) return;
+
+  tapLoaded = false;
+  $("tapBear").disabled = true;
+
+  $("tapMessage").textContent =
+    "🔄 جارٍ تحديث النقرات والرصيد...";
+
+  try {
+    const data = await api("/api/tap/status");
+
+    tapState = {
+      ...tapState,
+      ...data
+    };
+
+    tapLoaded = true;
+
+    $("tapMessage").textContent =
+      Number(data.remaining) <= 0
+        ? "👑 انتهت طاقة النقر لهذا اليوم."
+        : "✅ النقر جاهز. اضغط على وجه الدب!";
+
+    updateTapDisplay();
+    updateTapTimer();
+
+  } catch(e) {
+    $("tapMessage").textContent =
+      "تعذّر تحميل النقرات: " + e.message;
+
+    tapLoaded = false;
+    $("tapBear").disabled = true;
+  }
+}
+
+function newTapRequestId() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  if (window.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+
+    bytes[6] = (bytes[6]&15)|64;
+    bytes[8] = (bytes[8]&63)|128;
+
+    const hex = Array.from(bytes)
+      .map(v=>v.toString(16).padStart(2,"0"))
+      .join("");
+
+    return [
+      hex.slice(0,8),
+      hex.slice(8,12),
+      hex.slice(12,16),
+      hex.slice(16,20),
+      hex.slice(20)
+    ].join("-");
+  }
+
+  throw new Error(
+    "المتصفح لا يدعم توليد معرّف آمن للنقرة."
+  );
+}
+
+function animateTapReward(reward) {
+  const bear = $("tapBear");
+  const float = $("tapFloat");
+
+  float.textContent =
+    "+" + tapFormat(reward) + " EN96";
+
+  float.classList.remove("animate");
+  bear.classList.remove("tap-flash");
+
+  void float.offsetWidth;
+  void bear.offsetWidth;
+
+  float.classList.add("animate");
+  bear.classList.add("tap-flash");
+
+  sound("tap");
+
+  try {
+    tg?.HapticFeedback?.impactOccurred("light");
+  } catch(e) {}
+}
+
+async function tapBear() {
+  if (
+    !loggedIn ||
+    !tapLoaded ||
+    tapBusy ||
+    Number(tapState.remaining) <= 0
+  ) {
+    return;
+  }
+
+  tapBusy = true;
+  $("tapBear").disabled = true;
+
+  $("tapMessage").textContent =
+    "🐾 جارٍ تسجيل النقرة في Supabase...";
+
+  try {
+    if (!tapPendingId) {
+      tapPendingId = newTapRequestId();
+    }
+
+    const data = await api(
+      "/api/tap",
+      {request_id:tapPendingId}
+    );
+
+    const isNewTap = data.status === "ok";
+
+    if (
+      !isNewTap &&
+      data.status !== "duplicate"
+    ) {
+      throw new Error(
+        "لم يتم تأكيد النقرة."
+      );
+    }
+
+    tapPendingId = null;
+
+    tapState.taps = Number(
+      data.taps || 0
+    );
+
+    tapState.remaining =
+      TAP_LIMIT-tapState.taps;
+
+    tapState.earned = String(
+      data.earned ?? tapState.earned
+    );
+
+    if (
+      data.available !== undefined &&
+      data.available !== null
+    ) {
+      tapState.available =
+        String(data.available);
+    }
+
+    if (data.reset_at) {
+      tapState.reset_at = data.reset_at;
+    }
+
+    if (isNewTap) {
+      animateTapReward(
+        data.reward || 0
+      );
+
+      $("tapMessage").textContent =
+        "✅ تم تسجيل النقرة وإضافة المكافأة " +
+        "إلى محفظة EN96.";
+    } else {
+      $("tapMessage").textContent =
+        "✅ هذه النقرة مسجلة سابقًا. " +
+        "لم تتكرر المكافأة.";
+    }
+
+  } catch(e) {
+
+    if (!e.network) {
+      tapPendingId = null;
+    }
+
+    $("tapMessage").textContent =
+      "⚠️ " + e.message;
+
+  } finally {
+    tapBusy = false;
+    updateTapDisplay();
+    updateTapTimer();
+  }
+}
+
+setInterval(updateTapTimer,1000);
+
+/* ======================================
+   WALLET - EXISTING SYSTEM
+   ====================================== */
 
 async function loadWallet() {
   try {
     const user = await api("/api/me");
 
     $("available").textContent =
-      number(user.available) + " EN96";
+      number(user.available)+" EN96";
 
     $("reserved").textContent =
-      number(user.reserved) + " EN96";
+      number(user.reserved)+" EN96";
 
     $("telegramId").textContent =
       user.telegram_id || "—";
@@ -1334,7 +2214,8 @@ async function loadWallet() {
       user.stellar_public_address || "";
 
   } catch(e) {
-    $("walletMsg").textContent = e.message;
+    $("walletMsg").textContent =
+      e.message;
   }
 }
 
@@ -1358,15 +2239,15 @@ async function saveStellar() {
 
     $("walletMsg").textContent =
       "✅ تم حفظ عنوان Stellar العام.";
-
   } catch(e) {
-    $("walletMsg").textContent = e.message;
+    $("walletMsg").textContent =
+      e.message;
   }
 }
 
-// ===========================
-// VIDEO LIBRARY
-// ===========================
+/* ======================================
+   VIDEO LIBRARY - EXISTING SYSTEM
+   ====================================== */
 
 let videoItems = [];
 let videoIndex = 0;
@@ -1399,7 +2280,7 @@ async function loadVideos() {
         const u = new URL(v.video_url);
 
         return (
-          ["https:", "http:"].includes(u.protocol) &&
+          ["https:","http:"].includes(u.protocol) &&
           (
             u.hostname === "youtube.com" ||
             u.hostname.endsWith(".youtube.com") ||
@@ -1417,7 +2298,8 @@ async function loadVideos() {
     renderVideo();
 
   } catch(e) {
-    $("videoStatus").textContent = e.message;
+    $("videoStatus").textContent =
+      e.message;
   }
 }
 
@@ -1426,13 +2308,13 @@ function renderVideo() {
 
   $("videoCount").textContent =
     count
-      ? `${videoIndex + 1} / ${count}`
+      ? `${videoIndex+1} / ${count}`
       : "0 / 0";
 
   $("watchVideoBtn").disabled = !count;
   $("prevVideo").disabled = videoIndex <= 0;
   $("nextVideo").disabled =
-    videoIndex >= count - 1;
+    videoIndex >= count-1;
 
   if (!count) {
     $("videoTitle").textContent =
@@ -1446,22 +2328,24 @@ function renderVideo() {
 
   $("videoTitle").textContent =
     video.description ||
-    `فيديو EN96 رقم ${videoIndex + 1}`;
+    `فيديو EN96 رقم ${videoIndex+1}`;
 
   $("videoReward").textContent =
     "🎁 مكافأة الفيديو: " +
-    (video.reward ?? 1) + " EN96";
+    (video.reward ?? 1)+" EN96";
 
   $("videoStatus").textContent =
     "شاهد الفيديو وابحث عن كود الهدية.";
 }
 
 function changeVideo(direction) {
+  if (!videoItems.length) return;
+
   videoIndex = Math.max(
     0,
     Math.min(
-      videoItems.length - 1,
-      videoIndex + direction
+      videoItems.length-1,
+      videoIndex+direction
     )
   );
 
@@ -1483,7 +2367,7 @@ function watchCurrentVideo() {
       );
     }
   } catch(e) {
-    window.open(video.video_url, "_blank");
+    window.open(video.video_url,"_blank");
   }
 }
 
@@ -1505,10 +2389,11 @@ async function redeemGift() {
     if (result.success) {
       $("giftMsg").textContent =
         "🎉 تم استلام " +
-        result.reward + " EN96 بنجاح!";
+        result.reward+" EN96 بنجاح!";
 
       $("giftCode").value = "";
       sound("gift");
+
     } else {
       $("giftMsg").textContent =
         "لم تؤكد قاعدة البيانات الهدية.";
@@ -1519,9 +2404,9 @@ async function redeemGift() {
   }
 }
 
-// ===========================
-// TRIBE & REFERRALS
-// ===========================
+/* ======================================
+   TRIBE & REFERRALS
+   ====================================== */
 
 function inviteLink() {
   if (!memberId) return "";
@@ -1572,7 +2457,7 @@ function shareInvite() {
   if (tg?.openTelegramLink) {
     tg.openTelegramLink(share);
   } else {
-    window.open(share, "_blank");
+    window.open(share,"_blank");
   }
 }
 
@@ -1583,19 +2468,20 @@ function openTribeBot() {
   if (tg?.openTelegramLink) {
     tg.openTelegramLink(url);
   } else {
-    window.open(url, "_blank");
+    window.open(url,"_blank");
   }
 }
 
-// ===========================
-// LOGIN
-// ===========================
+/* ======================================
+   LOGIN
+   ====================================== */
 
 async function login() {
   if (!tg?.initData) {
     $("loginStatus").textContent =
       "🔐 افتح EN96 من زر الدخول " +
       "داخل محادثة البوت في تيليغرام.";
+
     return;
   }
 
@@ -1603,6 +2489,7 @@ async function login() {
     const user = await api("/api/me");
 
     loggedIn = true;
+
     memberId = String(
       user.telegram_id || ""
     );
@@ -1621,13 +2508,24 @@ async function login() {
   }
 }
 
-setInterval(displayMining, 1000);
+/* ======================================
+   AUTOMATIC UPDATES
+   ====================================== */
+
+setInterval(displayMining,1000);
 
 document.addEventListener(
   "visibilitychange",
   () => {
     if (!document.hidden && loggedIn) {
       loadMining();
+
+      if (
+        document.getElementById("tap")
+          .classList.contains("active")
+      ) {
+        loadTapStatus();
+      }
     }
   }
 );
