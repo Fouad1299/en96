@@ -7,23 +7,43 @@ import os
 import re
 import threading
 import time
+
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl
+from uuid import UUID
 
-from flask import Flask, Response, abort, jsonify, request, send_from_directory
+from flask import (
+    Flask,
+    Response,
+    abort,
+    jsonify,
+    request,
+    send_from_directory,
+)
 
 import bot as en96_bot
 from en96_accounts import RegistrationError, ensure_profile
 
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("EN96")
+
 app = Flask(__name__)
 BASE = Path(__file__).resolve().parent
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+
 DURATION = 24 * 60 * 60
 RATE = 0.001
+
+TAP_LIMIT = 3650
+TAP_DAILY_REWARD = 15
+
+
+# ======================================
+# EN96 IMAGE LOCATIONS
+# ======================================
 
 IMAGE_ALIASES = {
     "en96-welcome.jpg": [
@@ -47,16 +67,29 @@ IMAGE_ALIASES = {
 }
 
 RAW_IMAGE_BASE = (
-    "https://raw.githubusercontent.com/Fouad1299/en96/main/"
+    "https://raw.githubusercontent.com/"
+    "Fouad1299/en96/main/"
 )
 
 
+# ======================================
+# SECURITY HEADERS
+# ======================================
+
 @app.after_request
 def no_cache(response):
-    if request.path == "/" or request.path.startswith("/api/"):
-        response.headers["Cache-Control"] = "no-store, max-age=0"
+    if (
+        request.path == "/"
+        or request.path.startswith("/api/")
+    ):
+        response.headers["Cache-Control"] = (
+            "no-store, max-age=0"
+        )
 
-    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers[
+        "X-Content-Type-Options"
+    ] = "nosniff"
+
     return response
 
 
@@ -64,7 +97,10 @@ def no_cache(response):
 def not_found(error):
     if request.path.startswith("/api/"):
         return jsonify(
-            error="مسار API غير موجود. تحقق من نشر app.py الجديد."
+            error=(
+                "مسار API غير موجود. "
+                "تحقق من نشر app.py الجديد."
+            )
         ), 404
 
     return error
@@ -80,28 +116,39 @@ def wrong_method(error):
     return error
 
 
+# ======================================
+# TELEGRAM LOGIN VERIFICATION
+# ======================================
+
 def telegram_user():
     init_data = request.headers.get(
         "X-Telegram-Init-Data", ""
     )
 
     if not BOT_TOKEN:
-        return None, "BOT_TOKEN غير موجود في إعدادات Render."
+        return None, (
+            "BOT_TOKEN غير موجود في إعدادات Render."
+        )
 
     if not init_data or len(init_data) > 10000:
         return None, (
-            "افتح التطبيق من زر تيليغرام داخل بوت EN96."
+            "افتح التطبيق من زر تيليغرام "
+            "داخل بوت EN96."
         )
 
     try:
         fields = dict(
-            parse_qsl(init_data, keep_blank_values=True)
+            parse_qsl(
+                init_data,
+                keep_blank_values=True
+            )
         )
 
         received_hash = fields.pop("hash", "")
 
         if not re.fullmatch(
-            r"[0-9a-fA-F]{64}", received_hash
+            r"[0-9a-fA-F]{64}",
+            received_hash
         ):
             return None, "توقيع تيليغرام غير صالح."
 
@@ -126,10 +173,15 @@ def telegram_user():
             expected,
             received_hash.lower()
         ):
-            return None, "فشل التحقق من هوية تيليغرام."
+            return None, (
+                "فشل التحقق من هوية تيليغرام."
+            )
 
         now = int(time.time())
-        auth_date = int(fields.get("auth_date", "0"))
+
+        auth_date = int(
+            fields.get("auth_date", "0")
+        )
 
         if (
             auth_date < now - 86400
@@ -149,7 +201,9 @@ def telegram_user():
         )
 
         if not telegram_id.isdigit():
-            return None, "معرّف تيليغرام غير صالح."
+            return None, (
+                "معرّف تيليغرام غير صالح."
+            )
 
         return {
             "id": telegram_id,
@@ -158,8 +212,14 @@ def telegram_user():
             )[:80],
         }, None
 
-    except (TypeError, ValueError, json.JSONDecodeError):
-        return None, "بيانات تسجيل الدخول غير صالحة."
+    except (
+        TypeError,
+        ValueError,
+        json.JSONDecodeError
+    ):
+        return None, (
+            "بيانات تسجيل الدخول غير صالحة."
+        )
 
 
 def current_account():
@@ -195,13 +255,18 @@ def current_account():
         )
 
 
+# ======================================
+# DATABASE HELPERS
+# ======================================
+
 def wallet_for(profile):
     rows = (
         en96_bot.db.table("balances")
         .select("available,reserved")
         .eq("user_id", profile["id"])
         .limit(1)
-        .execute().data or []
+        .execute()
+        .data or []
     )
 
     if not rows:
@@ -224,8 +289,16 @@ def rpc_value(response):
         except ValueError:
             data = {"message": data}
 
-    return data if isinstance(data, dict) else {}
+    return (
+        data
+        if isinstance(data, dict)
+        else {}
+    )
 
+
+# ======================================
+# MINING STATE
+# ======================================
 
 def mining_state(profile):
     rows = (
@@ -234,7 +307,8 @@ def mining_state(profile):
         .eq("user_id", profile["id"])
         .order("started_at", desc=True)
         .limit(1)
-        .execute().data or []
+        .execute()
+        .data or []
     )
 
     now = time.time()
@@ -262,7 +336,10 @@ def mining_state(profile):
 
     elapsed = min(
         DURATION,
-        max(0, now - started.timestamp())
+        max(
+            0,
+            now - started.timestamp()
+        )
     )
 
     return {
@@ -274,13 +351,18 @@ def mining_state(profile):
         "started_at": started_str,
         "elapsed_seconds": int(elapsed),
         "remaining_seconds": max(
-            0, int(DURATION - elapsed)
+            0,
+            int(DURATION - elapsed)
         ),
         "duration": DURATION,
         "rate": RATE,
         "server_time": now,
     }
 
+
+# ======================================
+# IMAGES AND HOME PAGE
+# ======================================
 
 def find_image(filename):
     if filename not in IMAGE_ALIASES:
@@ -302,7 +384,9 @@ def homepage():
     try:
         html = (
             BASE / "index.html"
-        ).read_text(encoding="utf-8")
+        ).read_text(
+            encoding="utf-8"
+        )
 
     except OSError:
         return "Missing index.html", 500
@@ -346,6 +430,10 @@ def health():
     })
 
 
+# ======================================
+# EN96 WALLET API
+# ======================================
+
 @app.get("/api/me")
 def me():
     user, profile, failure = current_account()
@@ -381,6 +469,10 @@ def me():
             error="تعذّر تحميل رصيد المحفظة."
         ), 500
 
+
+# ======================================
+# EN96 MINING API
+# ======================================
 
 @app.get("/api/mining/status")
 def mining_status():
@@ -449,6 +541,10 @@ def mining_action():
         ), 500
 
 
+# ======================================
+# EN96 VIDEO GIFT API
+# ======================================
+
 @app.get("/api/videos")
 def videos():
     user, profile, failure = current_account()
@@ -458,14 +554,17 @@ def videos():
 
     try:
         rows = (
-            en96_bot.db.table("video_gift_codes")
+            en96_bot.db.table(
+                "video_gift_codes"
+            )
             .select(
                 "video_url,description,reward"
             )
             .eq("active", True)
             .order("created_at", desc=True)
             .limit(10)
-            .execute().data or []
+            .execute()
+            .data or []
         )
 
         return jsonify(
@@ -496,7 +595,8 @@ def redeem_gift():
     if (
         not isinstance(payload, dict)
         or not isinstance(
-            payload.get("code"), str
+            payload.get("code"),
+            str
         )
     ):
         return jsonify(
@@ -543,7 +643,8 @@ def redeem_gift():
                 "استُخدم هذا الكود سابقًا."
             ),
             "cooldown_2_hours": (
-                "يمكنك استلام هدية بعد مرور ساعتين."
+                "يمكنك استلام هدية "
+                "بعد مرور ساعتين."
             ),
             "balance_not_found": (
                 "رصيد حسابك غير موجود."
@@ -574,6 +675,10 @@ def redeem_gift():
         ), 500
 
 
+# ======================================
+# EN96 STELLAR PUBLIC ADDRESS
+# ======================================
+
 @app.post("/api/profile/stellar")
 def save_stellar_address():
     user, profile, failure = current_account()
@@ -588,7 +693,8 @@ def save_stellar_address():
     if (
         not isinstance(payload, dict)
         or not isinstance(
-            payload.get("address"), str
+            payload.get("address"),
+            str
         )
     ):
         return jsonify(
@@ -608,8 +714,8 @@ def save_stellar_address():
         return jsonify(
             error=(
                 "عنوان Stellar العام يجب "
-                "أن يبدأ بـ G ويتكوّن من "
-                "56 حرفًا."
+                "أن يبدأ بـ G ويتكوّن "
+                "من 56 حرفًا."
             )
         ), 400
 
@@ -619,7 +725,8 @@ def save_stellar_address():
         ).update({
             "stellar_public_address": address
         }).eq(
-            "id", profile["id"]
+            "id",
+            profile["id"]
         ).execute()
 
         rows = (
@@ -629,7 +736,8 @@ def save_stellar_address():
             )
             .eq("id", profile["id"])
             .limit(1)
-            .execute().data or []
+            .execute()
+            .data or []
         )
 
         if (
@@ -662,6 +770,206 @@ def save_stellar_address():
             )
         ), 500
 
+
+# ======================================
+# NEW - EN96 TAP STATUS
+# ======================================
+
+@app.get("/api/tap/status")
+def tap_status():
+    user, profile, failure = current_account()
+
+    if failure:
+        return failure
+
+    try:
+        rows = (
+            en96_bot.db.table(
+                "en96_tap_cycles"
+            )
+            .select(
+                "period_start,taps,earned"
+            )
+            .eq("user_id", profile["id"])
+            .limit(1)
+            .execute()
+            .data or []
+        )
+
+        taps = 0
+        earned = "0"
+        reset_at = None
+
+        if rows:
+            started = datetime.fromisoformat(
+                rows[0]["period_start"].replace(
+                    "Z", "+00:00"
+                )
+            )
+
+            if started.tzinfo is None:
+                started = started.replace(
+                    tzinfo=timezone.utc
+                )
+
+            end_time = (
+                started.timestamp() + DURATION
+            )
+
+            if time.time() < end_time:
+                taps = int(
+                    rows[0].get("taps") or 0
+                )
+
+                earned = str(
+                    rows[0].get("earned") or 0
+                )
+
+                reset_at = datetime.fromtimestamp(
+                    end_time,
+                    tz=timezone.utc
+                ).isoformat()
+
+        balance = wallet_for(profile)
+
+        return jsonify({
+            "status": (
+                "limit_reached"
+                if taps >= TAP_LIMIT
+                else "ready"
+            ),
+            "taps": taps,
+            "remaining": TAP_LIMIT - taps,
+            "daily_taps": TAP_LIMIT,
+            "earned": earned,
+            "daily_reward": str(
+                TAP_DAILY_REWARD
+            ),
+            "reset_at": reset_at,
+            "available": str(
+                balance.get("available") or 0
+            ),
+        })
+
+    except Exception:
+        log.exception(
+            "EN96 tap status failed"
+        )
+
+        return jsonify(
+            error="تعذّر تحميل عداد النقر."
+        ), 500
+
+
+# ======================================
+# NEW - EN96 TAP ACTION
+# ======================================
+
+@app.post("/api/tap")
+def tap_action():
+    user, profile, failure = current_account()
+
+    if failure:
+        return failure
+
+    payload = request.get_json(
+        silent=True
+    )
+
+    if not isinstance(payload, dict):
+        return jsonify(
+            error="بيانات النقرة غير صالحة."
+        ), 400
+
+    raw_id = payload.get(
+        "request_id"
+    )
+
+    if not isinstance(raw_id, str):
+        return jsonify(
+            error="معرّف النقرة غير صالح."
+        ), 400
+
+    try:
+        request_id = str(
+            UUID(raw_id)
+        )
+
+    except (ValueError, AttributeError):
+        return jsonify(
+            error="معرّف النقرة غير صالح."
+        ), 400
+
+    try:
+        response = en96_bot.db.rpc(
+            "en96_tap_action",
+            {
+                "p_telegram_id": user["id"],
+                "p_request_id": request_id,
+            }
+        ).execute()
+
+        data = rpc_value(response)
+        state = data.get("status")
+
+        if state in ("ok", "duplicate"):
+
+            # Supabase has already handled
+            # the reward and wallet update.
+
+            try:
+                balance = wallet_for(profile)
+
+                data["available"] = str(
+                    balance.get("available") or 0
+                )
+
+            except Exception:
+                log.warning(
+                    "Tap accepted; balance "
+                    "refresh failed"
+                )
+
+            return jsonify(data)
+
+        if state == "too_fast":
+            return jsonify(
+                **data,
+                error=(
+                    "النقر سريع جدًا. "
+                    "حاول مجددًا."
+                )
+            ), 429
+
+        if state == "limit_reached":
+            return jsonify(
+                **data,
+                error=(
+                    "انتهت طاقة اليوم "
+                    "(3650 نقرة)."
+                )
+            ), 429
+
+        return jsonify(
+            error=(
+                "لم تؤكد قاعدة البيانات النقرة."
+            ),
+            status=state
+        ), 409
+
+    except Exception:
+        log.exception(
+            "EN96 tap action failed"
+        )
+
+        return jsonify(
+            error="تعذّر تسجيل النقرة الآن."
+        ), 500
+
+
+# ======================================
+# TELEGRAM BOT START
+# ======================================
 
 def run_bot():
     try:
