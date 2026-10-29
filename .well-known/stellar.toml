@@ -8,7 +8,7 @@ ORG_DESCRIPTION = "EN96 is a digital asset on Stellar for the EN96 Ice Bear King
 
 [[CURRENCIES]]
 code = "EN96"
-issuer = "GBWLEH67H6HCH264IWJFL66CJYF34B7WEC4GSZQJZPDM23WVC6UKB7SJ"
+issuer = "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB"
 name = "EN96 Ice Bear"
 desc = "EN96 is a Stellar digital asset used for virtual mining, tap-to-earn, and community rewards. Virtual mining is not real blockchain mining."
 display_decimals = 7
