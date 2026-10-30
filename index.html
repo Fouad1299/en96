@@ -1,17 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#050811">
+<meta name="theme-color" content="#050914">
 <title>EN96 Ice Bear Kingdom</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
 :root{
  --gold:#ffda80;
  --ice:#8ee9ff;
- --green:#56e9ad;
+ --green:#55e9ad;
  --muted:#b7c9d9;
 }
 *{box-sizing:border-box}
@@ -20,7 +20,7 @@ body{
  min-height:100vh;
  padding-bottom:105px;
  background:linear-gradient(160deg,#071626,#02060d 75%);
- color:#fff;
+ color:white;
  font-family:Tahoma,Arial,sans-serif;
 }
 button,input{font:inherit}
@@ -52,7 +52,11 @@ header{
  border-radius:10px;
  padding:9px;
 }
-main{max-width:520px;margin:auto;padding:11px}
+main{
+ max-width:520px;
+ margin:auto;
+ padding:11px;
+}
 .page{display:none}
 .page.active{display:block}
 h2{text-align:center;color:var(--gold)}
@@ -117,7 +121,6 @@ input{
  width:100%;
  height:100%;
  object-fit:cover;
- object-position:center 35%;
 }
 .banner strong{
  position:absolute;
@@ -147,6 +150,9 @@ input{
  font-size:27px;
  margin-bottom:6px;
 }
+
+/* MINING AND TAP */
+
 .ring{
  --pct:0%;
  width:min(295px,82vw);
@@ -244,7 +250,9 @@ input{
 .progress div{
  height:100%;
  width:0%;
- background:linear-gradient(90deg,#008dff,#65e4ff,#ffe29a);
+ background:linear-gradient(
+  90deg,#008dff,#65e4ff,#ffe29a
+ );
 }
 .reward{
  font-size:23px;
@@ -297,68 +305,59 @@ input{
 #rewards input{padding:10px}
 #rewards .note{font-size:12px;padding:9px}
 
-/* =========================================
-   EN96 ROYAL MINING MACHINES — 96 LEVELS
-   ========================================= */
+/* ========================================
+   EN96 ROYAL KINGDOM
+   96 MINING MACHINE LEVELS
+   ======================================== */
 
 .royal-hero{
  position:relative;
- height:265px;
- border:2px solid #cda252;
- border-radius:19px;
+ height:255px;
  overflow:hidden;
- background:
-  radial-gradient(circle at 50% 20%,#164f8a,#061024 75%);
- box-shadow:0 0 22px #b8863344;
+ border:2px solid #e1b24e;
+ border-radius:19px;
+ background:radial-gradient(
+  circle,#195395,#051023 78%
+ );
+ box-shadow:0 0 22px #b8853540;
 }
 .royal-hero img{
- position:absolute;
  width:100%;
  height:100%;
  object-fit:cover;
  object-position:center;
- opacity:.92;
 }
 .royal-hero:after{
  content:"";
  position:absolute;
- inset:0;
- background:linear-gradient(
-  transparent 40%,#02050ff0 100%
- );
- pointer-events:none;
+ inset:40% 0 0;
+ background:linear-gradient(transparent,#000e);
 }
 .royal-title{
  position:absolute;
- z-index:2;
+ bottom:13px;
  left:0;
  right:0;
- bottom:12px;
  text-align:center;
- color:var(--gold);
- font-size:21px;
- font-weight:bold;
- text-shadow:0 3px 9px #000;
-}
-.royal-sub{
- text-align:center;
- color:#98dfff;
- font-size:12px;
- margin:9px 0;
+ color:#ffe4a1;
+ font-size:23px;
+ font-weight:900;
+ z-index:1;
+ text-shadow:0 3px 8px #000;
 }
 .level-summary{
- background:linear-gradient(130deg,#101b2c,#100c07);
- border:1px solid #c79b4e;
+ text-align:center;
+ background:#080a10;
+ border:1px solid #ba9049;
  border-radius:14px;
  padding:13px;
  margin:12px 0;
- text-align:center;
 }
-.level-summary b{color:var(--gold)}
+.level-summary b{color:#ffda80}
 .level-summary strong{
  display:block;
- font-size:24px;
- color:#fff0c9;
+ font-size:23px;
+ margin:6px;
 }
 .level-grid{
  display:grid;
@@ -367,201 +366,163 @@ input{
  direction:ltr;
 }
 .level-card{
+ --glow:#008dff;
  position:relative;
  min-width:0;
- direction:ltr;
- padding:8px;
- text-align:center;
  overflow:hidden;
- background:radial-gradient(
-  circle at 50% 35%,#3a2910,#090909 68%
+ border:2px solid #e7b753;
+ border-radius:19px;
+ background:linear-gradient(
+  180deg,#131316,#070708
  );
- border:2px solid #d0a34e;
- border-radius:23px;
+ text-align:center;
+ padding:7px;
  box-shadow:
-  inset 0 0 18px #000,
-  0 0 12px #c8913333;
+  0 0 12px #b9853644,
+  inset 0 0 12px #000;
 }
 .level-card.current{
- border-color:#49f6af;
- box-shadow:0 0 14px #30f4a466;
+ border-color:#35f5b0;
+ box-shadow:0 0 14px #29ffac88;
 }
 .level-tag{
  position:absolute;
+ top:8px;
+ left:8px;
  z-index:3;
- top:9px;
- left:9px;
- padding:5px 9px;
- border:1px solid #74603e;
- background:#0c0c0c;
- color:#fff;
- border-radius:9px;
- font-size:12px;
+ background:#07080cee;
+ border:1px solid #be934f;
+ border-radius:8px;
+ padding:5px 8px;
  font-weight:bold;
+ font-size:12px;
 }
 .machine-scene{
- height:142px;
  position:relative;
- display:flex;
- justify-content:center;
- align-items:center;
- perspective:450px;
+ height:147px;
  overflow:hidden;
  background:radial-gradient(
-  ellipse at 50% 75%,
-  var(--machine-glow,#c18b36) 0%,
-  transparent 61%
+  ellipse at 50% 65%,
+  var(--glow),
+  transparent 74%
  );
 }
-.machine-scene:before{
+.machine-photo{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ object-position:center;
+}
+.machine-scene:after{
  content:"";
  position:absolute;
- inset:0;
- background:
-  linear-gradient(145deg,transparent 40%,#accfff1b 41%,transparent 47%),
-  linear-gradient(30deg,transparent 40%,#b9eaff20 41%,transparent 49%);
+ inset:50% 0 0;
+ background:linear-gradient(transparent,#090809);
+ pointer-events:none;
 }
-.machine{
- width:126px;
- height:79px;
- position:relative;
- border:3px solid #b99049;
- border-radius:10px;
- background:
-  linear-gradient(140deg,#7b622f,#17191c 24%,#08090d 70%,#634820);
- transform:rotateY(-16deg) rotateX(7deg);
- box-shadow:
-  10px 15px 14px #000d,
-  0 0 22px var(--machine-glow,#e9b34d);
- animation:machineFloat 3s ease-in-out infinite;
-}
-.machine:before{
- content:"";
+.photo-fan{
  position:absolute;
- top:-12px;
- left:8px;
- right:8px;
- height:9px;
- border-radius:5px;
- background:linear-gradient(#ffe2a0,#5e4527);
-}
-.machine:after{
- content:"👑";
- position:absolute;
- color:#ffd66f;
- font-size:16px;
- bottom:7px;
- left:50%;
- transform:translateX(-50%);
-}
-.machine-fan{
- position:absolute;
- top:12px;
- width:43px;
- height:43px;
- border:3px solid #a78a58;
+ z-index:2;
+ width:32px;
+ height:32px;
+ left:17%;
+ top:37%;
  border-radius:50%;
- background:
-  radial-gradient(circle,#ffdfa2 0 4px,#273543 5px 8px,transparent 9px),
-  repeating-conic-gradient(#c0964e 0deg 20deg,#111820 21deg 48deg);
- animation:fanSpin .75s linear infinite;
- box-shadow:0 0 10px #dda84a66;
+ border:1px solid #c6a262;
+ background:repeating-conic-gradient(
+  #131a21 0 22deg,
+  #e2b15c 23deg 29deg,
+  #131a21 30deg 45deg
+ );
+ opacity:.65;
+ animation:spinFan .65s linear infinite;
+ mix-blend-mode:screen;
+ box-shadow:0 0 12px var(--glow);
 }
-.machine-fan.one{left:7px}
-.machine-fan.two{
- right:7px;
- animation-duration:.9s;
-}
-.machine-light{
+.photo-fan:after{
+ content:"";
  position:absolute;
- left:13px;
- right:13px;
- bottom:3px;
- height:3px;
- background:#73e9ff;
- box-shadow:0 0 9px #40cfff;
+ inset:12px;
+ background:#f8d685;
+ border-radius:50%;
 }
-@keyframes fanSpin{
+@keyframes spinFan{
  to{transform:rotate(360deg)}
 }
-@keyframes machineFloat{
- 50%{
-  transform:rotateY(-7deg)
-            rotateX(5deg)
-            translateY(-6px);
- }
-}
 .level-price{
+ position:relative;
+ z-index:3;
  display:inline-block;
- min-width:70%;
- padding:5px 8px;
- border:2px solid #bf9246;
+ margin-top:-17px;
+ min-width:72%;
+ background:#080706;
+ border:2px solid #d4a641;
  border-radius:13px;
- background:#090807;
- color:#ffdc8c;
- font-size:19px;
+ color:#ffda77;
+ padding:6px;
+ font-size:18px;
  font-weight:900;
 }
 .level-speed{
  display:flex;
  align-items:center;
  justify-content:space-between;
- gap:4px;
+ margin:11px 0 8px;
+ gap:3px;
+ color:#d7d7d7;
  font-size:11px;
- margin:10px 0;
- color:#c7c7c7;
 }
 .level-speed b{
- color:#ffcf70;
  font-size:11px;
+ color:#ffde83;
 }
 .level-action{
- display:block;
  width:100%;
- padding:10px 3px;
- border-radius:13px;
- border:1px solid #ffe2a1;
- background:linear-gradient(#ffe69e,#bd8127);
- color:#1c1206;
- font-size:11px;
+ min-height:42px;
+ border:1px solid #f7d487;
+ border-radius:12px;
+ background:linear-gradient(#ffe6a1,#c18c31);
  font-weight:bold;
+ font-size:11px;
+ color:#211400;
 }
-.level-card.current .level-action{
- color:#07321c;
- background:linear-gradient(#93ffcc,#2cae78);
+.current .level-action{
+ background:linear-gradient(#77ffca,#09a778);
+ color:#053b26;
 }
 .level-bottom{
- margin:8px 0 1px;
- color:#8fe9ff;
  font-size:10px;
+ color:#8ce9ff;
+ margin:8px 0 3px;
 }
 .level-pages{
  display:flex;
- justify-content:space-between;
+ gap:10px;
  align-items:center;
- gap:8px;
- margin:13px 0;
+ justify-content:space-between;
+ margin:15px 0;
 }
 .level-pages button{
  flex:1;
- padding:12px 5px;
- background:#11100e;
- color:var(--gold);
- border:1px solid #b58b43;
- border-radius:11px;
+ border:1px solid #b88844;
+ background:#110d09;
+ color:#ffe09a;
+ border-radius:10px;
+ padding:11px 3px;
  font-weight:bold;
 }
 .level-pages span{
- flex:1;
+ min-width:65px;
  text-align:center;
- color:var(--gold);
+ color:#ffda80;
  font-weight:bold;
 }
 @media(prefers-reduced-motion:reduce){
- .machine,.machine-fan{animation:none}
+ .photo-fan{animation:none}
 }
 
-/* BOTTOM NAV */
+/* NAVIGATION */
+
 nav{
  position:fixed;
  bottom:0;
@@ -601,13 +562,13 @@ nav button.active .nav-circle{
 }
 </style>
 </head>
-<body>
 
+<body>
 <header>
 <button class="head-btn" onclick="page('menu')">⌂</button>
 <div class="brand">
- <b>❄ EN96 MINING ❄</b>
- <small>ICE BEAR KINGDOM</small>
+<b>❄ EN96 MINING ❄</b>
+<small>ICE BEAR KINGDOM</small>
 </div>
 <button class="head-btn" id="soundBtn"
  onclick="toggleSound()">🔇</button>
@@ -615,305 +576,324 @@ nav button.active .nav-circle{
 
 <main>
 
+<!-- LOGIN -->
 <section class="page active" id="welcome">
- <div class="banner">
-  <img src="/en96-welcome.jpg"
-       onerror="imageFallback(this)"
-       alt="EN96">
-  <strong>🐻 EN96 ICE BEAR KINGDOM 👑</strong>
- </div>
- <div class="card">
-  <h2>👑 دخول مملكة EN96</h2>
-  <p class="muted">
-   سجّل الدخول باستخدام حساب Telegram.
-  </p>
-  <div class="note" id="loginStatus">
-   جارٍ التحقق...
-  </div>
-  <a class="gold-btn"
-   href="https://t.me/EN96_IceDragon_2026_Bot">
-   🐻 فتح بوت EN96
-  </a>
- </div>
+<div class="banner">
+<img src="/en96-welcome.jpg"
+ onerror="imageFallback(this)" alt="EN96">
+<strong>🐻 EN96 ICE BEAR KINGDOM 👑</strong>
+</div>
+<div class="card">
+<h2>👑 دخول مملكة EN96</h2>
+<p class="muted">
+سجّل الدخول باستخدام حساب Telegram.
+</p>
+<div class="note" id="loginStatus">
+جارٍ التحقق...
+</div>
+<a class="gold-btn"
+ href="https://t.me/EN96_IceDragon_2026_Bot">
+🐻 فتح بوت EN96
+</a>
+</div>
 </section>
 
+<!-- HOME -->
 <section class="page" id="menu">
- <div class="banner">
-  <img src="/en96-welcome.jpg"
-       onerror="imageFallback(this)"
-       alt="EN96">
-  <strong>🐻 EN96 ICE BEAR</strong>
- </div>
- <h2>مملكة التعدين الجليدي</h2>
- <div class="grid">
-  <button class="tile" onclick="page('mining')">
-   <span>⛏️</span>التعدين والنقر
-  </button>
-  <button class="tile" onclick="page('wallet')">
-   <span>💎</span>محفظتي
-  </button>
-  <button class="tile" onclick="page('rewards')">
-   <span>🎁</span>الهدايا
-  </button>
-  <button class="tile" onclick="page('tribe')">
-   <span>👥</span>القبيلة
-  </button>
-  <button class="tile" onclick="page('upgrades')">
-   <span>⚡</span>ترقية المنجم
-  </button>
-  <button class="tile" onclick="page('info')">
-   <span>ℹ️</span>معلومات EN96
-  </button>
- </div>
+<div class="banner">
+<img src="/en96-welcome.jpg"
+ onerror="imageFallback(this)" alt="EN96">
+<strong>🐻 EN96 ICE BEAR</strong>
+</div>
+<h2>مملكة التعدين الجليدي</h2>
+<div class="grid">
+<button class="tile" onclick="page('mining')">
+<span>⛏️</span>التعدين والنقر
+</button>
+<button class="tile" onclick="page('wallet')">
+<span>💎</span>محفظتي
+</button>
+<button class="tile" onclick="page('rewards')">
+<span>🎁</span>الهدايا
+</button>
+<button class="tile" onclick="page('tribe')">
+<span>👥</span>القبيلة
+</button>
+<button class="tile" onclick="page('upgrades')">
+<span>⚡</span>ترقية المنجم
+</button>
+<button class="tile" onclick="page('info')">
+<span>ℹ️</span>معلومات EN96
+</button>
+</div>
 </section>
 
+<!-- MINING -->
 <section class="page" id="mining">
- <h2>⛏️ منجم الدب الجليدي</h2>
- <p class="muted" style="text-align:center">
-  🐾 اضغط على وجه الدب لجمع مكافآت TAP.
- </p>
+<h2>⛏️ منجم الدب الجليدي</h2>
+<p class="muted" style="text-align:center">
+🐾 اضغط على وجه الدب لجمع مكافآت TAP.
+</p>
 
- <div class="ring" id="miningRing">
-  <button class="bear-button" id="mineBear"
-   onclick="tapBear()" disabled>
-   <img src="/assets/en96-bear-face.webp"
-        onerror="imageFallback(this)"
-        alt="EN96 Bear">
-   <span class="bear-label">🐾 TAP EN96</span>
-  </button>
- </div>
+<div class="ring" id="miningRing">
+<button class="bear-button" id="mineBear"
+ onclick="tapBear()" disabled>
+<img src="/assets/en96-bear-face.webp"
+ onerror="imageFallback(this)" alt="EN96">
+<span class="bear-label">🐾 TAP EN96</span>
+</button>
+</div>
 
- <div class="tap-panel">
-  <small>النقرات المؤكدة + قيد المعالجة</small>
-  <strong id="mineTapCount">0 / 3,650</strong>
-  <p class="tap-pending" id="mineTapPending"></p>
+<div class="tap-panel">
+<small>النقرات المؤكدة + قيد المعالجة</small>
+<strong id="mineTapCount">0 / 3,650</strong>
+<p class="tap-pending" id="mineTapPending"></p>
 
-  <p>🐾 مكافآت النقر المؤكدة</p>
-  <strong class="tap-money" id="mineTapEarned">
-   +0.0000000 EN96
-  </strong>
+<p>🐾 مكافآت النقر المؤكدة</p>
+<strong class="tap-money" id="mineTapEarned">
++0.0000000 EN96
+</strong>
 
-  <p class="muted">الطاقة المتبقية</p>
-  <strong id="tapEnergyNumber">3650 / 3650</strong>
-  <div class="progress">
-   <div id="tapEnergyBar" style="width:100%"></div>
-  </div>
+<p class="muted">الطاقة المتبقية</p>
+<strong id="tapEnergyNumber">3650 / 3650</strong>
+<div class="progress">
+<div id="tapEnergyBar" style="width:100%"></div>
+</div>
 
-  <p class="muted">⏳ تجديد طاقة النقر بعد</p>
-  <div class="clock" id="tapTimer">--:--:--</div>
-  <div class="note" id="tapMsg">
-   جارٍ تحميل النقرات...
-  </div>
-  <button class="dark-btn" onclick="loadTapStatus()">
-   🔄 تحديث النقرات
-  </button>
- </div>
+<p class="muted">⏳ تجديد طاقة النقر بعد</p>
+<div class="clock" id="tapTimer">--:--:--</div>
+<div class="note" id="tapMsg">
+جارٍ تحميل النقرات...
+</div>
+<button class="dark-btn" onclick="loadTapStatus()">
+🔄 تحديث النقرات
+</button>
+</div>
 
- <h3 style="text-align:center">
-  ⏳ الوقت المتبقي للتعدين
- </h3>
- <div class="clock" id="timer">24:00:00</div>
- <div class="progress"><div id="progressBar"></div></div>
+<h3 style="text-align:center">
+⏳ الوقت المتبقي للتعدين
+</h3>
+<div class="clock" id="timer">24:00:00</div>
+<div class="progress">
+<div id="progressBar"></div>
+</div>
 
- <div class="card">
-  <p class="muted" style="text-align:center">
-   مكافأة التعدين الافتراضية التقديرية
-  </p>
-  <div class="reward" id="reward">
-   0.0000000 EN96
-  </div>
-  <button class="gold-btn" id="startMining"
-   onclick="startMining()">
-   ⛏️ بدء / متابعة التعدين
-  </button>
-  <button class="dark-btn" onclick="loadMining()">
-   🔄 تحديث التعدين
-  </button>
-  <div class="note" id="mineMsg">
-   جارٍ تحميل التعدين...
-  </div>
- </div>
+<div class="card">
+<p class="muted" style="text-align:center">
+مكافأة التعدين الافتراضية التقديرية
+</p>
+<div class="reward" id="reward">
+0.0000000 EN96
+</div>
+<button class="gold-btn" id="startMining"
+ onclick="startMining()">
+⛏️ بدء / متابعة التعدين
+</button>
+<button class="dark-btn" onclick="loadMining()">
+🔄 تحديث التعدين
+</button>
+<div class="note" id="mineMsg">
+جارٍ تحميل التعدين...
+</div>
+</div>
 
- <div class="stats">
-  <div class="stat"><b>0.001</b> EN96/ثانية</div>
-  <div class="stat"><b>86.4</b> EN96/جلسة</div>
-  <div class="stat"><b>24</b> ساعة</div>
- </div>
- <div class="note">
-  التعدين افتراضي وليس قوة تعدين حقيقية.
-  المكافآت المعتمدة محفوظة في Supabase.
- </div>
+<div class="stats">
+<div class="stat">
+<b>0.001</b> EN96/ثانية
+</div>
+<div class="stat">
+<b>86.4</b> EN96/جلسة
+</div>
+<div class="stat">
+<b>24</b> ساعة
+</div>
+</div>
+
+<div class="note">
+التعدين افتراضي وليس قوة تعدين حقيقية.
+المكافآت المعتمدة محفوظة في Supabase.
+</div>
 </section>
 
+<!-- WALLET -->
 <section class="page" id="wallet">
- <h2>💎 محفظة EN96</h2>
- <div class="card">
-  <img class="coin" src="/en96-coin.webp"
-       onerror="imageFallback(this)" alt="EN96">
-  <p>الرصيد المتاح</p>
-  <div class="reward" id="available">—</div>
-  <p>الرصيد المحجوز</p>
-  <div class="reward" id="reserved">—</div>
-  <button class="gold-btn" onclick="loadWallet()">
-   🔄 تحديث المحفظة
-  </button>
- </div>
- <div class="card">
-  <p>Telegram ID: <b id="telegramId">—</b></p>
-  <p>عنوان Stellar العام</p>
-  <input id="stellar" maxlength="56" placeholder="G...">
-  <button class="dark-btn" onclick="saveStellar()">
-   💾 حفظ عنوان Stellar
-  </button>
-  <div class="note" id="walletMsg">
-   لا تُدخل المفتاح السري S.
-  </div>
- </div>
- <div class="note">
-  💸 الحد الأدنى للسحب 500 EN96.
-  الطلبات تُراجع يدويًا.
- </div>
+<h2>💎 محفظة EN96</h2>
+<div class="card">
+<img class="coin" src="/en96-coin.webp"
+ onerror="imageFallback(this)" alt="EN96">
+<p>الرصيد المتاح</p>
+<div class="reward" id="available">—</div>
+<p>الرصيد المحجوز</p>
+<div class="reward" id="reserved">—</div>
+<button class="gold-btn" onclick="loadWallet()">
+🔄 تحديث المحفظة
+</button>
+</div>
+
+<div class="card">
+<p>Telegram ID:
+<b id="telegramId">—</b></p>
+<p>عنوان Stellar العام</p>
+<input id="stellar" maxlength="56" placeholder="G...">
+<button class="dark-btn" onclick="saveStellar()">
+💾 حفظ عنوان Stellar
+</button>
+<div class="note" id="walletMsg">
+لا تُدخل المفتاح السري S.
+</div>
+</div>
+
+<div class="note">
+💸 الحد الأدنى للسحب 500 EN96.
+الطلبات تُراجع يدويًا.
+</div>
 </section>
 
+<!-- GIFTS -->
 <section class="page" id="rewards">
- <h2>🎁 مكافآت EN96</h2>
- <div class="card">
-  <h3>📺 فيديوهات EN96</h3>
-  <button class="gold-btn" onclick="loadVideos()">
-   فتح الفيديوهات
-  </button>
-  <p id="videoStatus">اضغط لعرض الفيديوهات.</p>
-  <h3 id="videoTitle"></h3>
-  <p id="videoReward"></p>
-  <button class="gold-btn" id="watchVideoBtn"
-   onclick="watchVideo()" disabled>
-   ▶ مشاهدة على YouTube
-  </button>
-  <div class="video-nav">
-   <button class="dark-btn" onclick="changeVideo(-1)">
-    السابق
-   </button>
-   <span id="videoCount">0 / 0</span>
-   <button class="dark-btn" onclick="changeVideo(1)">
-    التالي
-   </button>
-  </div>
- </div>
+<h2>🎁 مكافآت EN96</h2>
+<div class="card">
+<h3>📺 فيديوهات EN96</h3>
+<button class="gold-btn" onclick="loadVideos()">
+فتح الفيديوهات
+</button>
+<p id="videoStatus">
+اضغط لعرض الفيديوهات.
+</p>
+<h3 id="videoTitle"></h3>
+<p id="videoReward"></p>
 
- <div class="card">
-  <h3>🎁 استلام الهدية</h3>
-  <input id="giftCode" maxlength="100"
-   placeholder="أدخل كود الفيديو">
-  <button class="gold-btn" onclick="redeemGift()">
-   🎁 استلام الهدية
-  </button>
-  <div class="note" id="giftMsg">
-   كل كود مرة واحدة؛ انتظر ساعتين بين الهدايا.
-  </div>
- </div>
+<button class="gold-btn" id="watchVideoBtn"
+ onclick="watchVideo()" disabled>
+▶ مشاهدة على YouTube
+</button>
+<div class="video-nav">
+<button class="dark-btn" onclick="changeVideo(-1)">
+السابق
+</button>
+<span id="videoCount">0 / 0</span>
+<button class="dark-btn" onclick="changeVideo(1)">
+التالي
+</button>
+</div>
+</div>
+
+<div class="card">
+<h3>🎁 استلام الهدية</h3>
+<input id="giftCode" maxlength="100"
+ placeholder="أدخل كود الفيديو">
+<button class="gold-btn" onclick="redeemGift()">
+🎁 استلام الهدية
+</button>
+<div class="note" id="giftMsg">
+كل كود مرة واحدة؛ انتظر ساعتين بين الهدايا.
+</div>
+</div>
 </section>
 
+<!-- TRIBE -->
 <section class="page" id="tribe">
- <h2>👥 قبيلة EN96</h2>
- <div class="card">
-  <h3>🎁 مكافأة الدعوة</h3>
-  <p>
-   50 EN96 للدعوة المؤهلة، و5% من مكافآت تعدين
-   الأصدقاء المباشرين وفق شروط النظام.
-  </p>
-  <input id="referralLink" readonly
-   placeholder="رابط الدعوة">
-  <button class="gold-btn" onclick="copyInvite()">
-   📋 نسخ رابط الدعوة
-  </button>
-  <button class="dark-btn" onclick="shareInvite()">
-   📨 مشاركة الدعوة
-  </button>
-  <div class="note" id="inviteMsg">
-   المكافآت تعتمد عند استيفاء الشروط.
-  </div>
- </div>
- <button class="dark-btn" onclick="openTribeBot()">
-  فتح إحصائيات القبيلة في البوت
- </button>
+<h2>👥 قبيلة EN96</h2>
+<div class="card">
+<h3>🎁 مكافأة الدعوة</h3>
+<p>
+50 EN96 للدعوة المؤهلة، و5% من مكافآت
+تعدين الأصدقاء المباشرين وفق شروط النظام.
+</p>
+<input id="referralLink" readonly
+ placeholder="رابط الدعوة">
+<button class="gold-btn" onclick="copyInvite()">
+📋 نسخ رابط الدعوة
+</button>
+<button class="dark-btn" onclick="shareInvite()">
+📨 مشاركة الدعوة
+</button>
+<div class="note" id="inviteMsg">
+المكافآت تعتمد عند استيفاء الشروط.
+</div>
+</div>
+<button class="dark-btn" onclick="openTribeBot()">
+فتح إحصائيات القبيلة في البوت
+</button>
 </section>
 
-<!-- 96 MINING LEVELS -->
-
+<!-- ROYAL MINERS -->
 <section class="page" id="upgrades">
 
- <div class="royal-hero">
-  <img id="royalCouple"
-   src="/assets/en96-royal-couple.jpg"
-   onerror="royalFallback(this)"
-   alt="EN96 King and Queen">
-  <div class="royal-title">
-   👑 EN96 — مملكة آلات التعدين
-  </div>
- </div>
+<div class="royal-hero">
+<img
+ src="/assets/en96-royal-couple%20(1).jpg"
+ alt="الدب الملك وزوجته"
+ onerror="this.onerror=null;this.src='/en96-welcome.jpg'">
+<div class="royal-title">
+👑 ترقية المنجم الملكي
+</div>
+</div>
 
- <p class="royal-sub">
-  ❄ الدب الملك وزوجته — 96 مستوى تعدين ❄
- </p>
+<div class="level-summary">
+<b>⚡ قوة التعدين الأساسية</b>
+<strong>0.0010000 EN96/ثانية</strong>
+<small class="muted">
+96 مستوى — الترقيات الإضافية غير مفعلة حاليًا
+</small>
+</div>
 
- <div class="level-summary">
-  <b>⚡ قوة التعدين الحالية</b>
-  <strong>0.0010000 EN96/ثانية</strong>
-  <small class="muted">
-   المستوى الأساسي — الترقيات للمعاينة حاليًا
-  </small>
- </div>
+<h3 style="text-align:center">
+⛏️ آلات التعدين الملكية
+</h3>
 
- <h3 style="text-align:center">
-  ⛏️ آلات التعدين الملكية
- </h3>
+<div class="level-grid" id="levelsGrid"></div>
 
- <div class="level-grid" id="levelsGrid"></div>
+<div class="level-pages">
+<button onclick="previousLevels()">
+❮ السابق
+</button>
+<span id="levelPageLabel">1 / 12</span>
+<button onclick="nextLevels()">
+التالي ❯
+</button>
+</div>
 
- <div class="level-pages">
-  <button onclick="previousLevels()">❮ السابق</button>
-  <span id="levelPageLabel">1 / 12</span>
-  <button onclick="nextLevels()">التالي ❯</button>
- </div>
+<div class="note" id="upgradeMessage">
+🔒 يمكنك معاينة جميع المستويات
+دون شراء أو خصم EN96.
+</div>
 
- <div class="note" id="upgradeMessage">
-  🔒 المستويات من 2 إلى 96 للمعاينة فقط.
-  لا توجد عمليات شراء أو خصم EN96 الآن.
- </div>
 </section>
 
+<!-- INFORMATION -->
 <section class="page" id="info">
- <h2>ℹ️ معلومات EN96</h2>
- <div class="card">
-  <p>🐻 EN96 Ice Bear Kingdom</p>
-  <p>⛏️ التعدين افتراضي.</p>
-  <p>⚡ السرعة الأساسية: 0.001 EN96/ثانية.</p>
-  <p>⏳ الجلسة: 24 ساعة.</p>
-  <p>🐾 النقر: 3,650 نقرة لكل دورة.</p>
-  <p>🎁 أقصى مكافأة للنقر: 15 EN96.</p>
-  <p>👑 مخطط لتطوير 96 مستوى للمنجم.</p>
-  <p>💎 الأرصدة المعتمدة محفوظة في Supabase.</p>
- </div>
+<h2>ℹ️ معلومات EN96</h2>
+<div class="card">
+<p>🐻 EN96 Ice Bear Kingdom</p>
+<p>⛏️ التعدين افتراضي.</p>
+<p>⚡ السرعة الأساسية: 0.001 EN96/ثانية.</p>
+<p>⏳ الجلسة: 24 ساعة.</p>
+<p>🐾 النقر: 3,650 نقرة لكل دورة.</p>
+<p>🎁 أقصى مكافأة للنقر: 15 EN96.</p>
+<p>👑 96 مستوى لآلات التعدين.</p>
+<p>💎 الأرصدة المعتمدة محفوظة في Supabase.</p>
+</div>
 </section>
 
 </main>
 
 <nav>
- <button data-nav="mining" onclick="page('mining')">
-  <span class="nav-circle">⛏️</span>Mine
- </button>
- <button data-nav="rewards" onclick="page('rewards')">
-  <span class="nav-circle">🎁</span>Tasks
- </button>
- <button data-nav="upgrades" onclick="page('upgrades')">
-  <span class="nav-circle">⚡</span>Miners
- </button>
- <button data-nav="tribe" onclick="page('tribe')">
-  <span class="nav-circle">👥</span>Friends
- </button>
- <button data-nav="wallet" onclick="page('wallet')">
-  <span class="nav-circle">👤</span>Profile
- </button>
+<button data-nav="mining" onclick="page('mining')">
+<span class="nav-circle">⛏️</span>Mine
+</button>
+<button data-nav="rewards" onclick="page('rewards')">
+<span class="nav-circle">🎁</span>Tasks
+</button>
+<button data-nav="upgrades" onclick="page('upgrades')">
+<span class="nav-circle">⚡</span>Miners
+</button>
+<button data-nav="tribe" onclick="page('tribe')">
+<span class="nav-circle">👥</span>Friends
+</button>
+<button data-nav="wallet" onclick="page('wallet')">
+<span class="nav-circle">👤</span>Profile
+</button>
 </nav>
 
 <script>
@@ -956,24 +936,18 @@ try{
 
 function imageFallback(img){
  const paths=[
-  '/assets/en96-welcome.jpg',
   '/assets/en96-bear-face.webp',
+  '/en96-welcome.jpg',
   '/en96-coin.webp'
  ];
+ const n=Number(img.dataset.fallback||0);
 
- const step=Number(img.dataset.fallback||0);
-
- if(step<paths.length){
-  img.dataset.fallback=step+1;
-  img.src=paths[step];
+ if(n<paths.length){
+  img.dataset.fallback=n+1;
+  img.src=paths[n];
  }else{
   img.style.display='none';
  }
-}
-
-function royalFallback(img){
- img.onerror=null;
- img.src='/en96-welcome.jpg';
 }
 
 /* SOUND */
@@ -992,9 +966,10 @@ function sound(){
 
  try{
   const C=window.AudioContext||
-          window.webkitAudioContext;
+   window.webkitAudioContext;
 
   if(!C)return;
+
   if(!audioContext)audioContext=new C();
 
   if(audioContext.state==='suspended'){
@@ -1006,6 +981,7 @@ function sound(){
 
   o.frequency.value=620;
   g.gain.value=.018;
+
   o.connect(g);
   g.connect(audioContext.destination);
   o.start();
@@ -1037,7 +1013,9 @@ function page(name){
  }
 
  document.querySelectorAll('.page').forEach(el=>{
-  el.classList.toggle('active',el.id===name);
+  el.classList.toggle(
+   'active',el.id===name
+  );
  });
 
  document.querySelectorAll('nav button').forEach(el=>{
@@ -1056,13 +1034,10 @@ function page(name){
  }
 
  if(name==='wallet')loadWallet();
-
- if(name==='upgrades'){
-  renderLevels();
- }
+ if(name==='upgrades')renderLevels();
 }
 
-/* API */
+/* AUTHENTICATED API */
 
 async function api(path,body){
  if(!tg?.initData){
@@ -1097,7 +1072,9 @@ async function api(path,body){
  try{
   data=await response.json();
  }catch(e){
-  throw Error('رد غير صالح من خادم EN96.');
+  throw Error(
+   'رد غير صالح من خادم EN96.'
+  );
  }
 
  if(!response.ok||data.error){
@@ -1116,8 +1093,10 @@ async function api(path,body){
 function showMining(){
  let elapsed=0;
 
- if(miningState&&
-    ['active','ready'].includes(miningState.status)){
+ if(
+  miningState&&
+  ['active','ready'].includes(miningState.status)
+ ){
   elapsed=Math.min(
    DURATION,
    Math.max(
@@ -1133,6 +1112,7 @@ function showMining(){
   number(elapsed*RATE)+' EN96';
 
  const pct=elapsed/DURATION*100;
+
  $('progressBar').style.width=pct+'%';
  $('miningRing').style.setProperty(
   '--pct',pct+'%'
@@ -1219,7 +1199,7 @@ async function saveStellar(){
  }
 }
 
-/* TAP SYSTEM */
+/* TAP QUEUE */
 
 function tapStorageKey(){
  return 'en96_tap_queue_v3_'+memberId;
@@ -1269,10 +1249,13 @@ function restoreQueue(){
 }
 
 function uuid(){
- if(crypto.randomUUID)return crypto.randomUUID();
+ if(crypto.randomUUID){
+  return crypto.randomUUID();
+ }
 
  const a=new Uint8Array(16);
  crypto.getRandomValues(a);
+
  a[6]=(a[6]&15)|64;
  a[8]=(a[8]&63)|128;
 
@@ -1318,7 +1301,7 @@ function renderTap(){
  $('mineTapPending').textContent=
   tapQueue.length
   ?'⏳ '+tapQueue.length+' نقرة تنتظر اعتماد Supabase'
-  :'✅ جميع النقرات مؤكدة';
+  :'✅ لا توجد نقرات معلقة';
 
  $('mineBear').disabled=
   !loggedIn||
@@ -1369,9 +1352,13 @@ async function loadTapStatus(){
   const r=await api('/api/tap/status');
   applyTap(r);
   tapStopped=false;
-  $('tapMsg').textContent='🐻 الدب جاهز للنقر!';
+
+  $('tapMsg').textContent=
+   '🐻 الدب جاهز للنقر!';
+
   renderTap();
   scheduleTap(100);
+
  }catch(e){
   $('tapMsg').textContent='⚠️ '+e.message;
 
@@ -1406,6 +1393,7 @@ function tapBear(){
  if(!loggedIn||!tapState||tapStopped)return;
 
  const now=performance.now();
+
  if(now-lastTap<75)return;
  lastTap=now;
 
@@ -1434,11 +1422,9 @@ function tapBear(){
  renderTap();
 
  try{
-  const h=performance.now();
-
-  if(h-lastHapticAt>180){
+  if(now-lastHapticAt>180){
    tg?.HapticFeedback?.impactOccurred('light');
-   lastHapticAt=h;
+   lastHapticAt=now;
   }
  }catch(e){}
 
@@ -1465,6 +1451,7 @@ async function flushTap(){
  )return;
 
  tapBusy=true;
+
  const item=tapQueue[0];
  let retry=null;
 
@@ -1473,7 +1460,10 @@ async function flushTap(){
    request_id:item.id
   });
 
-  if(r.status==='ok'||r.status==='duplicate'){
+  if(
+   r.status==='ok'||
+   r.status==='duplicate'
+  ){
    tapQueue.shift();
    saveQueue();
    applyTap(r);
@@ -1508,6 +1498,7 @@ async function flushTap(){
   ){
    tapQueue=[];
    saveQueue();
+
    $('tapMsg').textContent=
     '⚡ انتهت طاقة النقر لهذه الدورة.';
 
@@ -1521,8 +1512,9 @@ async function flushTap(){
 
   }else{
    retry=2000;
+
    $('tapMsg').textContent=
-    '⚠️ لم تؤكد النقرة. سنعيد المحاولة بنفس المعرّف.';
+    '⚠️ لم تؤكد النقرة. ستتم المحاولة بنفس المعرّف.';
   }
 
  }finally{
@@ -1535,7 +1527,7 @@ async function flushTap(){
  }
 }
 
-/* VIDEO GIFTS */
+/* VIDEOS */
 
 async function loadVideos(){
  $('videoStatus').textContent=
@@ -1623,16 +1615,22 @@ function watchVideo(){
  }catch(e){}
 }
 
+/* GIFTS */
+
 async function redeemGift(){
  const code=$('giftCode').value.trim();
 
  if(!code){
-  $('giftMsg').textContent='أدخل كود الهدية.';
+  $('giftMsg').textContent=
+   'أدخل كود الفيديو أولًا.';
   return;
  }
 
  try{
-  const r=await api('/api/redeem-gift',{code});
+  const r=await api(
+   '/api/redeem-gift',
+   {code}
+  );
 
   if(r.success){
    $('giftMsg').textContent=
@@ -1641,7 +1639,7 @@ async function redeemGift(){
   }else{
    $('giftMsg').textContent=
     r.message||r.reason||
-    'تعذّر استلام الهدية.';
+    'تعذر استلام الهدية.';
   }
 
  }catch(e){
@@ -1698,22 +1696,52 @@ function openTribeBot(){
  }
 }
 
-/* =====================================
-   REAL INTERACTIVE 96-LEVEL DISPLAY
-   No payment or Supabase writes
-   ===================================== */
+/* =========================================
+   96 MINING LEVELS
+   WITH REAL IMAGE FROM GITHUB
+   ========================================= */
 
-const LEVEL_COUNT=96;
-const LEVELS_PER_PAGE=8;
 let levelPage=0;
 
-function previewRate(level){
- return .001*(1+(level-1)*.025);
-}
+const PREVIEW_RATES=[
+ .001,
+ .0011,
+ .00125,
+ .0015,
+ .00175,
+ .002,
+ .0025,
+ .003
+];
 
-function previewPrice(level){
- if(level===1)return 0;
- return 10*Math.pow(1.15,level-2);
+const DISPLAY_PRICES=[
+ 0,10,25,50,100,250,500,1000
+];
+
+const DISPLAY_NEEDS=[
+ 0,50,100,250,500,1000,2500,5000
+];
+
+const LEVEL_COLORS=[
+ '#008cff',
+ '#00d65a',
+ '#ffae25',
+ '#a84bff',
+ '#f52a2a',
+ '#008cff',
+ '#ffae25',
+ '#ce37ff'
+];
+
+const MACHINE_IMAGE=
+ '/assets/en96-miner-machine%20(2).png';
+
+function previewRate(level){
+ if(level<=8){
+  return PREVIEW_RATES[level-1];
+ }
+
+ return .003+(level-8)*.00025;
 }
 
 function renderLevels(){
@@ -1722,80 +1750,78 @@ function renderLevels(){
 
  grid.replaceChildren();
 
- const colors=[
-  '#159dff',
-  '#20eb80',
-  '#f5ae36',
-  '#bd5bff',
-  '#ff4545',
-  '#54d7ff',
-  '#f8bc4f',
-  '#d459ff'
- ];
+ const first=levelPage*8+1;
+ const last=Math.min(96,first+7);
 
- const first=levelPage*LEVELS_PER_PAGE+1;
- const last=Math.min(
-  LEVEL_COUNT,
-  first+LEVELS_PER_PAGE-1
- );
+ for(let lvl=first;lvl<=last;lvl++){
+  const i=(lvl-1)%8;
 
- for(let level=first;level<=last;level++){
-  const index=(level-1)%colors.length;
+  const rate=previewRate(lvl).toFixed(7);
 
   const card=document.createElement('article');
+
   card.className=
-   'level-card'+(level===1?' current':'');
+   'level-card'+(lvl===1?' current':'');
 
   card.style.setProperty(
-   '--machine-glow',
-   colors[index]+'77'
+   '--glow',LEVEL_COLORS[i]+'99'
   );
 
-  const speed=previewRate(level).toFixed(7);
-
-  const priceText=level===1
-   ?'0 EN96'
+  const price=lvl<=8
+   ?DISPLAY_PRICES[lvl-1].toLocaleString('en-US')+' EN96'
    :'—';
 
+  const need=lvl<=8
+   ?'تحتاج '+
+    DISPLAY_NEEDS[lvl-1].toLocaleString('en-US')+
+    ' EN96'
+   :'ترقية غير محددة';
+
   card.innerHTML=`
-   <span class="level-tag">Lvl ${level}</span>
+   <span class="level-tag">
+    Lvl ${lvl}
+   </span>
 
    <div class="machine-scene">
-    <div class="machine">
-     <div class="machine-fan one"></div>
-     <div class="machine-fan two"></div>
-     <div class="machine-light"></div>
-    </div>
+    <img
+     class="machine-photo"
+     src="${MACHINE_IMAGE}"
+     alt="EN96 Mining Machine">
+
+    <div class="photo-fan"></div>
    </div>
 
-   <div class="level-price">${priceText}</div>
+   <div class="level-price">
+    ${price}
+   </div>
 
    <div class="level-speed">
     <span>Speed</span>
-    <b>${speed} EN96/s</b>
+    <b>${rate} EN96/s</b>
    </div>
 
    <button class="level-action">
-    ${level===1
+    ${lvl===1
      ?'✓ المستوى الحالي'
-     :'🔒 ترقية المستوى'}
+     :'🔒 '+need}
    </button>
 
    <div class="level-bottom">
-    ${level===1
-     ?'المستوى المجاني'
-     :'تكلفة الترقية لم تُحدد بعد'}
+    ${lvl===1
+     ?'التعدين الأساسي نشط'
+     :'معاينة — لم تُفعّل الترقية'}
    </div>
   `;
 
   card.querySelector('.level-action')
    .addEventListener('click',()=>{
     $('upgradeMessage').textContent=
-     level===1
-     ?'✅ المستوى الأول هو المنجم الأساسي الحالي.'
-     :'🔒 المستوى '+level+
-      ' للمعاينة فقط. سرعة '+speed+
-      ' EN96/ثانية مقترحة، وغير مفعّلة على الخادم. لا يوجد خصم أو شراء.';
+     lvl===1
+     ?'✅ المستوى الأول هو التعدين الأساسي الحالي.'
+     :'🔒 المستوى '+lvl+
+      ' للمعاينة فقط. السرعة '+
+      rate+
+      ' EN96/ثانية مقترحة، ولا تتم أي عملية شراء أو تغيير رصيد.';
    });
 
   grid.appendChild(card);
@@ -1815,7 +1841,7 @@ function previousLevels(){
  renderLevels();
 }
 
-/* LOGIN */
+/* TELEGRAM LOGIN */
 
 async function login(){
  if(!tg?.initData){
@@ -1829,6 +1855,7 @@ async function login(){
 
   memberId=String(u.telegram_id||'');
   loggedIn=true;
+
   setupInvite();
   restoreQueue();
 
@@ -1863,3 +1890,4 @@ login();
 </script>
 </body>
 </html>
+
