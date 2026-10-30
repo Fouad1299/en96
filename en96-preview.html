@@ -1,0 +1,632 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#030711">
+<title>EN96 Royal Mining Preview</title>
+
+<style>
+:root {
+  --gold:#f8d88c;
+  --gold-dark:#8e5c1b;
+  --ice:#7ce7ff;
+  --green:#57f4b9;
+  --bg:#030711;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  color:white;
+  background:
+    radial-gradient(circle at top,#164678,#061226 45%,#020408);
+  font-family:Tahoma,Arial,sans-serif;
+}
+button {font:inherit;cursor:pointer}
+button:focus-visible {
+  outline:3px solid var(--ice);
+}
+.shell {
+  max-width:480px;
+  min-height:100vh;
+  margin:auto;
+  padding-bottom:80px;
+  border-left:1px solid #7d572b;
+  border-right:1px solid #7d572b;
+}
+.header {
+  padding:13px;
+  background:#03050cef;
+  border-bottom:2px solid #c39853;
+  text-align:center;
+}
+.header h1 {
+  color:var(--gold);
+  font-size:23px;
+  margin:0;
+  letter-spacing:1px;
+}
+.header small {
+  color:var(--ice);
+  letter-spacing:3px;
+  font-size:10px;
+}
+.hero {
+  position:relative;
+  margin:12px;
+  border-radius:23px;
+  overflow:hidden;
+  border:3px solid #eac274;
+  background:radial-gradient(circle,#236eaf,#061426);
+  box-shadow:0 0 25px #329bff66;
+}
+.hero img {
+  width:100%;
+  height:auto;
+  max-height:520px;
+  object-fit:contain;
+  display:block;
+}
+.hero:after {
+  content:"";
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  height:95px;
+  background:linear-gradient(transparent,#02050be8);
+  pointer-events:none;
+}
+.hero-caption {
+  position:absolute;
+  z-index:2;
+  bottom:16px;
+  left:8px;
+  right:8px;
+  text-align:center;
+  color:#ffe8b8;
+  font-size:18px;
+  font-weight:900;
+  text-shadow:0 3px 9px black;
+}
+.hero-caption small {
+  display:block;
+  color:#c2efff;
+  margin-top:4px;
+  font-size:11px;
+}
+.image-error {
+  display:none;
+  padding:17px;
+  color:#ffce95;
+  text-align:center;
+  font-size:12px;
+}
+.section {
+  margin:14px 12px;
+}
+.section-title {
+  text-align:center;
+  color:var(--gold);
+  font-size:21px;
+  margin:15px 0;
+  text-shadow:0 0 10px #c38b3c88;
+}
+.summary {
+  border:1px solid #e5b96e;
+  border-radius:17px;
+  background:linear-gradient(135deg,#1b2235,#080a11);
+  padding:14px;
+  text-align:center;
+  box-shadow:inset 0 0 18px #0008;
+}
+.summary .label {
+  font-size:12px;
+  color:#accce8;
+}
+.summary .number {
+  color:#ffe29a;
+  font-size:28px;
+  font-weight:900;
+  margin:9px 0;
+  direction:ltr;
+}
+.summary .chip {
+  display:inline-block;
+  border:1px solid #68d8ff;
+  background:#082d48;
+  padding:7px 12px;
+  color:#a7edff;
+  border-radius:30px;
+  font-size:12px;
+}
+.featured {
+  position:relative;
+  overflow:hidden;
+  margin-top:13px;
+  border-radius:22px;
+  border:3px solid #f2c56c;
+  background:
+    radial-gradient(circle at center,#194c85 0%,#09101d 63%,#030406);
+  box-shadow:
+    0 0 20px #e6aa4770,
+    inset 0 0 35px #02040b;
+}
+.featured-top {
+  position:relative;
+  z-index:2;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px;
+  gap:8px;
+}
+.level-pill {
+  padding:7px 13px;
+  background:#080808;
+  color:#ffe2a1;
+  border:1px solid #d9b16b;
+  border-radius:12px;
+  font-weight:bold;
+}
+.featured-name {
+  font-size:12px;
+  color:var(--ice);
+  font-weight:bold;
+}
+.featured-art {
+  position:relative;
+  min-height:220px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+.featured-art img {
+  display:block;
+  max-width:100%;
+  width:100%;
+  max-height:300px;
+  height:auto;
+  object-fit:contain;
+  filter:drop-shadow(0 0 16px #50cfff6d);
+  animation:machine-float 4s ease-in-out infinite;
+}
+@keyframes machine-float {
+  50% {transform:translateY(-5px)}
+}
+.glow {
+  position:absolute;
+  inset:20px;
+  border:1px solid #3dcfff35;
+  border-radius:50%;
+  box-shadow:0 0 50px #2288ff44;
+  animation:pulse 2.5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes pulse {
+  50% {opacity:.35;transform:scale(.93)}
+}
+.spark {
+  position:absolute;
+  width:5px;
+  height:5px;
+  background:#ffe1a0;
+  border-radius:50%;
+  box-shadow:0 0 10px #ffe4b0;
+  animation:spark-rise 2.8s linear infinite;
+}
+.spark.one {left:15%;bottom:10%;animation-delay:0s}
+.spark.two {left:80%;bottom:15%;animation-delay:.7s}
+.spark.three {left:40%;bottom:7%;animation-delay:1.5s}
+@keyframes spark-rise {
+  0% {transform:translateY(0);opacity:0}
+  25% {opacity:1}
+  100% {transform:translateY(-140px);opacity:0}
+}
+.featured-panel {
+  position:relative;
+  z-index:3;
+  margin:10px;
+  padding:12px;
+  background:#040812ea;
+  border:1px solid #c59d55;
+  border-radius:14px;
+}
+.data-row {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin:11px 0;
+  font-size:13px;
+}
+.data-row strong {
+  color:var(--gold);
+  direction:ltr;
+}
+.button {
+  width:100%;
+  border-radius:13px;
+  padding:12px 8px;
+  font-weight:900;
+  border:1px solid #ffe4ab;
+  margin:7px 0;
+  color:#241500;
+  background:linear-gradient(#fff0ba,#c99438);
+}
+.button.blue {
+  background:linear-gradient(#1f8bd0,#064372);
+  color:#e1f8ff;
+  border-color:#a1ecff;
+}
+.button.dark {
+  color:#ffda93;
+  background:#111017;
+  border-color:#ab8849;
+}
+.notice {
+  color:#add8ee;
+  background:#071a2a;
+  border:1px solid #39688e;
+  border-radius:12px;
+  padding:11px;
+  font-size:12px;
+  line-height:1.7;
+  text-align:center;
+  margin-top:12px;
+}
+.level-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+  direction:ltr;
+}
+.miner-card {
+  min-width:0;
+  position:relative;
+  padding:8px;
+  border:2px solid #dcb36e;
+  border-radius:19px;
+  overflow:hidden;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 32%,#273b57,#06070c 72%);
+  box-shadow:0 0 15px #f0b84f38;
+}
+.miner-card.is-current {
+  border-color:#53f0bd;
+  box-shadow:0 0 15px #53f0bd66;
+}
+.miner-card img {
+  display:block;
+  width:100%;
+  height:137px;
+  object-fit:contain;
+  border-radius:9px;
+}
+.miner-card .level {
+  position:absolute;
+  left:10px;
+  top:10px;
+  z-index:3;
+  border:1px solid #b79253;
+  border-radius:8px;
+  background:#07090ce9;
+  color:#ffe2a6;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:bold;
+}
+.miner-card .price {
+  margin:6px auto;
+  padding:8px 2px;
+  border:1px solid #ce9f49;
+  border-radius:12px;
+  background:#080809;
+  color:#ffe099;
+  font-weight:bold;
+  font-size:13px;
+}
+.miner-card .speed {
+  padding:8px 2px;
+  color:var(--ice);
+  font-size:11px;
+  direction:ltr;
+}
+.miner-card button {
+  width:100%;
+  min-height:39px;
+  color:#291704;
+  background:linear-gradient(#ffe7a3,#ca9437);
+  border:1px solid #ffe4a7;
+  border-radius:10px;
+  font-weight:bold;
+  font-size:11px;
+}
+.miner-card.is-current button {
+  background:linear-gradient(#8cfed2,#21b487);
+}
+.pager {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:17px 0;
+}
+.pager button {
+  flex:1;
+  padding:11px 5px;
+  border:1px solid #bb9153;
+  background:#100c09;
+  border-radius:11px;
+  color:#ffe3ab;
+  font-weight:bold;
+}
+.pager span {
+  min-width:65px;
+  text-align:center;
+  color:var(--gold);
+  direction:ltr;
+}
+.preview-note {
+  padding:12px;
+  margin:14px 12px;
+  text-align:center;
+  font-size:12px;
+  line-height:1.8;
+  color:#b8ccda;
+  border:1px solid #3a5b78;
+  border-radius:12px;
+}
+@media(prefers-reduced-motion:reduce) {
+  .featured-art img,.glow,.spark {
+    animation:none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="shell">
+
+<header class="header">
+  <h1>❄ EN96 MINING ❄</h1>
+  <small>ICE BEAR KINGDOM</small>
+</header>
+
+<section class="hero">
+  <img id="royalImage" alt="EN96 Royal Bear Couple">
+  <div class="image-error" id="royalError">
+    تعذر عرض خلفية الملك والملكة.
+    تحقق من اسم الصورة في GitHub.
+  </div>
+  <div class="hero-caption">
+    👑 مملكة الدب الجليدي
+    <small>THE ROYAL ICE KINGDOM</small>
+  </div>
+</section>
+
+<div class="section">
+
+  <div class="summary">
+    <div class="label">⚡ قوة المنجم الأساسية</div>
+    <div class="number">0.0010000 EN96/s</div>
+    <div class="chip">👑 المستوى 1 من 96</div>
+  </div>
+
+  <h2 class="section-title">
+    ⚙️ آلة التعدين الملكية
+  </h2>
+
+  <div class="featured">
+
+    <div class="featured-top">
+      <span class="level-pill">Lvl 1</span>
+      <span class="featured-name">EN96 ROYAL MINER</span>
+    </div>
+
+    <div class="featured-art">
+      <div class="glow"></div>
+      <img id="mainMachine" alt="EN96 Gold Mining Machine">
+      <span class="spark one"></span>
+      <span class="spark two"></span>
+      <span class="spark three"></span>
+    </div>
+
+    <div class="featured-panel">
+      <div class="data-row">
+        <span>⚡ قوة التعدين</span>
+        <strong>0.0010000 EN96/s</strong>
+      </div>
+
+      <div class="data-row">
+        <span>⏳ مكافأة 24 ساعة</span>
+        <strong>86.4000000 EN96</strong>
+      </div>
+
+      <div class="data-row">
+        <span>💎 المستوى الأساسي</span>
+        <strong>مجاني</strong>
+      </div>
+
+      <button class="button"
+              onclick="showMessage('هذه معاينة. شراء القوة غير مفعل.')">
+        ⚡ UPGRADE MINING POWER
+      </button>
+
+      <button class="button blue"
+              onclick="showMessage('سيتم ربط محفظة Stellar بعد تجهيز إثبات الملكية.')">
+        💎 CONNECT WALLET
+      </button>
+    </div>
+
+  </div>
+
+  <h2 class="section-title">
+    👑 المستويات الملكية 1–96
+  </h2>
+
+  <div class="level-grid" id="levelGrid"></div>
+
+  <div class="pager">
+    <button id="previous" type="button">❮ السابق</button>
+    <span id="pageNumber">1 / 12</span>
+    <button id="next" type="button">التالي ❯</button>
+  </div>
+
+  <div class="notice" id="message">
+    اختر أي مستوى لمعاينة سرعته.
+    لا توجد مدفوعات حقيقية في هذه الصفحة.
+  </div>
+
+</div>
+
+<div class="preview-note">
+  🐻 EN96 Ice Bear Kingdom
+  <p>
+    هذا نموذج مستقل للتصميم فقط.
+    التعدين الافتراضي والأرصدة والهدايا
+    في البوت الأصلي لن تتغير.
+  </p>
+</div>
+
+</div>
+
+<script>
+"use strict";
+
+const RAW =
+ "https://raw.githubusercontent.com/Fouad1299/en96/main/assets/";
+
+const MACHINE =
+ RAW + "en96-miner-machine%20(2).png";
+
+const COUPLE =
+ RAW + "en96-royal-couple%20(1).jpg";
+
+const $ = id => document.getElementById(id);
+
+let page=0;
+const TOTAL=96;
+const PER_PAGE=8;
+
+const BASE_RATES=[
+ 0.001,
+ 0.0011,
+ 0.00125,
+ 0.0015,
+ 0.00175,
+ 0.002,
+ 0.0025,
+ 0.003
+];
+
+function rate(level){
+ if(level<=8){
+  return BASE_RATES[level-1];
+ }
+ return 0.003+(level-8)*0.00025;
+}
+
+function showMessage(message){
+ $("message").textContent=message;
+}
+
+function loadImages(){
+
+ const royal=$("royalImage");
+ royal.src=COUPLE;
+ royal.onerror=()=>{
+  royal.style.display="none";
+  $("royalError").style.display="block";
+ };
+
+ const miner=$("mainMachine");
+ miner.src=MACHINE;
+ miner.onerror=()=>{
+  miner.style.display="none";
+  showMessage(
+   "تعذر عرض صورة الآلة من GitHub."
+  );
+ };
+
+}
+
+function renderLevels(){
+
+ const grid=$("levelGrid");
+ grid.replaceChildren();
+
+ const start=page*PER_PAGE+1;
+ const end=Math.min(TOTAL,start+PER_PAGE-1);
+
+ for(let level=start;level<=end;level++){
+
+  const card=document.createElement("article");
+  card.className="miner-card";
+
+  if(level===1){
+   card.classList.add("is-current");
+  }
+
+  const tag=document.createElement("div");
+  tag.className="level";
+  tag.textContent="Lvl "+level;
+
+  const img=document.createElement("img");
+  img.src=MACHINE;
+  img.alt="EN96 mining level "+level;
+  img.loading="lazy";
+
+  const price=document.createElement("div");
+  price.className="price";
+  price.textContent=level===1
+   ?"0 EN96"
+   :"السعر لم يُحدد";
+
+  const speed=document.createElement("div");
+  speed.className="speed";
+  speed.textContent=rate(level).toFixed(7)+" EN96/s";
+
+  const button=document.createElement("button");
+  button.type="button";
+  button.textContent=level===1
+   ?"✓ المستوى الأساسي"
+   :"🔒 معاينة المستوى";
+
+  button.addEventListener("click",()=>{
+   showMessage(
+    "👑 المستوى "+level+
+    " — السرعة المقترحة "+
+    rate(level).toFixed(7)+
+    " EN96/ثانية. هذه معاينة فقط."
+   );
+  });
+
+  card.append(tag,img,price,speed,button);
+  grid.appendChild(card);
+ }
+
+ $("pageNumber").textContent=
+  (page+1)+" / "+Math.ceil(TOTAL/PER_PAGE);
+}
+
+$("next").addEventListener("click",()=>{
+ page=(page+1)%12;
+ renderLevels();
+});
+
+$("previous").addEventListener("click",()=>{
+ page=(page+11)%12;
+ renderLevels();
+});
+
+loadImages();
+renderLevels();
+</script>
+
+</body>
+</html>
