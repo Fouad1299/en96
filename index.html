@@ -4,23 +4,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#060a13">
-<title>EN96 | Ice Bear Kingdom</title>
+<meta name="theme-color" content="#050811">
+<title>EN96 Ice Bear Kingdom</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
- --gold:#f4cc70;
- --ice:#9feaff;
- --green:#45efad;
- --muted:#aec5d5;
+ --gold:#ffda80;
+ --ice:#8ee9ff;
+ --green:#56e9ad;
+ --muted:#b7c9d9;
 }
 *{box-sizing:border-box}
 body{
  margin:0;
- padding-bottom:110px;
  min-height:100vh;
- background:linear-gradient(160deg,#05080e,#10283b 45%,#020408);
- color:#f5fbff;
+ padding-bottom:105px;
+ background:linear-gradient(160deg,#071626,#02060d 75%);
+ color:#fff;
  font-family:Tahoma,Arial,sans-serif;
 }
 button,input{font:inherit}
@@ -30,13 +30,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 header{
  position:sticky;
  top:0;
- z-index:10;
- background:#03070ef5;
- border-bottom:1px solid #b58a3c;
- padding:12px;
+ z-index:20;
  display:flex;
  align-items:center;
  justify-content:space-between;
+ padding:11px;
+ background:#02050cef;
+ border-bottom:1px solid #bc9043;
 }
 .brand{text-align:center}
 .brand b{color:var(--gold)}
@@ -45,78 +45,73 @@ header{
  color:var(--ice);
  font-size:10px;
 }
-main{
- max-width:500px;
- margin:auto;
- padding:12px;
+.head-btn{
+ background:#161208;
+ color:var(--gold);
+ border:1px solid #b28c47;
+ border-radius:10px;
+ padding:9px;
 }
+main{max-width:520px;margin:auto;padding:11px}
 .page{display:none}
 .page.active{display:block}
 h2{text-align:center;color:var(--gold)}
 h3{color:var(--gold)}
 p{line-height:1.7}
-.muted{color:var(--muted);font-size:13px}
+.muted{color:var(--muted);font-size:12px}
 .card{
- background:linear-gradient(145deg,#0e304d,#06111e);
- border:1px solid #376685;
- border-radius:17px;
- padding:15px;
- margin:13px 0;
+ background:linear-gradient(145deg,#10273c,#060d16);
+ border:1px solid #365f7a;
+ border-radius:15px;
+ padding:13px;
+ margin:11px 0;
 }
 .note{
- background:#07192b;
- border:1px solid #376587;
- border-radius:12px;
- padding:12px;
- margin:12px 0;
- font-size:13px;
+ padding:11px;
+ margin:10px 0;
+ background:#081827;
+ border:1px solid #385a78;
+ border-radius:10px;
+ font-size:12px;
  line-height:1.8;
  overflow-wrap:anywhere;
 }
 .gold-btn,.dark-btn{
  display:block;
  width:100%;
- border-radius:12px;
- padding:13px;
- text-align:center;
+ padding:12px;
+ margin:8px 0;
+ border-radius:11px;
  font-weight:bold;
  text-decoration:none;
- margin:9px 0;
+ text-align:center;
 }
 .gold-btn{
- background:linear-gradient(120deg,#ffe8a0,#bd8939);
- border:1px solid #ffebbb;
- color:#201606;
+ color:#241606;
+ border:1px solid #ffe7ac;
+ background:linear-gradient(#ffe6a4,#c89132);
 }
 .dark-btn{
- background:#14120c;
- border:1px solid #b38c45;
  color:var(--gold);
-}
-.head-btn{
- background:#171208;
- border:1px solid #af873c;
- border-radius:10px;
- color:var(--gold);
- padding:8px;
+ background:#15120d;
+ border:1px solid #a78145;
 }
 input{
  width:100%;
- padding:13px;
- background:#eaf8ff;
- color:#14283a;
- border:1px solid #74a1b5;
- border-radius:11px;
+ background:#edf9ff;
+ color:#102338;
+ border:1px solid #80a5ba;
+ padding:11px;
+ border-radius:10px;
  direction:ltr;
 }
 .banner{
  position:relative;
- height:clamp(250px,74vw,370px);
+ height:260px;
  overflow:hidden;
- border:1px solid #d0a054;
+ background:#071524;
+ border:1px solid #d0a45f;
  border-radius:17px;
- background:#080e18;
- box-shadow:0 12px 32px #0008;
 }
 .banner img{
  width:100%;
@@ -126,83 +121,58 @@ input{
 }
 .banner strong{
  position:absolute;
- bottom:0;
  left:0;
  right:0;
- padding:46px 12px 18px;
+ bottom:0;
+ padding:38px 10px 14px;
+ background:linear-gradient(transparent,#000e);
  text-align:center;
- background:linear-gradient(transparent,#020409ef);
- color:#ffe2a4;
- text-shadow:0 2px 8px #000;
- font-size:21px;
-}
-#menu .banner{height:210px}
-#welcome .card{
- border-color:#b78a44;
- background:linear-gradient(160deg,#151915,#06121d);
+ font-size:19px;
+ color:var(--gold);
 }
 .grid{
  display:grid;
  grid-template-columns:1fr 1fr;
- gap:10px;
+ gap:9px;
 }
 .tile{
- background:#15120b;
- border:1px solid #b38b44;
- color:#ffe3a8;
- border-radius:15px;
- padding:17px 7px;
+ padding:15px 5px;
+ color:#ffe3aa;
+ border:1px solid #af843d;
+ border-radius:13px;
+ background:#171109;
 }
 .tile span{
  display:block;
- font-size:29px;
+ font-size:27px;
  margin-bottom:6px;
-}
-.stats{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:7px;
-}
-.stat{
- text-align:center;
- border:1px solid #447a9b;
- border-radius:12px;
- padding:10px 3px;
- background:#081c31;
- font-size:11px;
-}
-.stat b{
- display:block;
- color:var(--gold);
- font-size:17px;
 }
 .ring{
  --pct:0%;
- width:min(300px,82vw);
+ width:min(295px,82vw);
  aspect-ratio:1;
- margin:18px auto;
- padding:10px;
- border-radius:50%;
+ margin:17px auto;
+ padding:9px;
  background:conic-gradient(
-  #f6cf73 var(--pct),
-  #174867 var(--pct)
+  #ffda7d var(--pct),
+  #154666 var(--pct)
  );
- box-shadow:0 0 30px #10aaff75;
+ border-radius:50%;
+ box-shadow:0 0 24px #00aaff66;
 }
 .bear-button{
- display:block;
  position:relative;
+ display:block;
  width:100%;
  height:100%;
  padding:0;
- border:5px solid #70d7fc;
+ border:4px solid #75dcff;
  border-radius:50%;
+ background:#08253b;
  overflow:hidden;
- background:#0a2d4a;
  touch-action:manipulation;
  user-select:none;
  -webkit-tap-highlight-color:transparent;
- box-shadow:0 0 25px #19baff66;
 }
 .bear-button img{
  width:100%;
@@ -210,87 +180,97 @@ input{
  object-fit:cover;
  pointer-events:none;
 }
-.bear-button:active{transform:scale(.96)}
+.bear-button:active{transform:scale(.97)}
 .bear-label{
  position:absolute;
- bottom:7%;
- left:6%;
- right:6%;
- border-radius:20px;
- color:#ffe2a1;
- padding:8px;
+ bottom:8%;
+ left:7%;
+ right:7%;
  background:#000b;
- border:1px solid #bd9145;
- pointer-events:none;
+ color:var(--gold);
+ border:1px solid #d8a957;
+ border-radius:30px;
+ padding:7px;
  font-weight:bold;
+ pointer-events:none;
 }
 .tap-float{
  position:absolute;
  left:50%;
- top:42%;
- font-size:20px;
+ top:40%;
+ color:#72ffba;
+ font-size:19px;
  font-weight:bold;
- color:#70ffc0;
  pointer-events:none;
- animation:fly .5s forwards;
- z-index:5;
+ animation:fly .55s forwards;
 }
 @keyframes fly{
  from{opacity:1;transform:translate(-50%,0)}
- to{opacity:0;transform:translate(-50%,-90px)}
+ to{opacity:0;transform:translate(-50%,-85px)}
 }
+.tap-panel{
+ text-align:center;
+ background:linear-gradient(#231807,#08090c);
+ border:1px solid #bb9146;
+ border-radius:15px;
+ padding:13px;
+ margin:13px 0;
+}
+.tap-panel strong{
+ display:block;
+ color:var(--gold);
+ font-size:26px;
+ direction:ltr;
+ margin:5px 0;
+}
+.tap-panel .tap-money{color:var(--green)}
+.tap-pending{font-size:12px;color:#ffd37d}
 .clock{
  text-align:center;
- font-size:29px;
+ font-size:26px;
  font-weight:bold;
- background:#07192e;
- border:1px solid #467d9e;
- border-radius:13px;
- padding:12px;
+ padding:11px;
+ background:#081a2e;
+ border:1px solid #4b7798;
+ border-radius:11px;
 }
 .progress{
- height:11px;
- background:#173b55;
+ height:10px;
+ background:#163247;
  border-radius:20px;
  overflow:hidden;
  margin:12px 0;
 }
 .progress div{
- width:0%;
  height:100%;
- background:linear-gradient(90deg,#18b9ff,#ffe5a0);
+ width:0%;
+ background:linear-gradient(90deg,#008dff,#65e4ff,#ffe29a);
 }
 .reward{
- text-align:center;
- font-weight:bold;
- font-size:24px;
+ font-size:23px;
  color:var(--gold);
+ font-weight:bold;
+ text-align:center;
  overflow-wrap:anywhere;
 }
-.tap-panel{
- background:linear-gradient(140deg,#241a0b,#070909);
- border:1px solid #c69847;
- border-radius:17px;
- padding:15px;
- margin:14px 0;
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:6px;
+}
+.stat{
+ padding:10px 3px;
  text-align:center;
+ font-size:11px;
+ background:#081a2c;
+ border:1px solid #3d7394;
+ border-radius:10px;
 }
-.tap-panel strong{
+.stat b{
  display:block;
- color:#ffe4a4;
- font-size:29px;
- margin:7px 0;
- direction:ltr;
+ font-size:17px;
+ color:var(--gold);
 }
-.tap-money{color:var(--green)!important}
-.tap-pending{color:#ffcd76;font-size:12px}
-.video-nav{
- display:flex;
- gap:8px;
- align-items:center;
- justify-content:space-between;
-}
-.video-nav button{flex:1;max-width:36%}
 .coin{
  width:110px;
  height:110px;
@@ -300,48 +280,308 @@ input{
  margin:12px auto;
  border:2px solid var(--gold);
 }
-#rewards .card{
- padding:11px;
- margin:9px 0;
- border-color:#97743c;
+.video-nav{
+ display:flex;
+ align-items:center;
+ gap:8px;
 }
-#rewards h2{font-size:22px;margin:10px}
+.video-nav button{flex:1}
+#rewards .card{padding:10px}
 #rewards h3{font-size:16px;margin:7px 0}
-#rewards p{font-size:12px;margin:7px 0}
+#rewards p{font-size:12px}
 #rewards .gold-btn,
 #rewards .dark-btn{
- padding:9px 10px;
- margin:6px 0;
+ padding:9px;
  font-size:13px;
 }
-#rewards input{padding:10px;font-size:15px}
-#rewards .note{
- padding:9px;
- font-size:12px;
- margin:7px 0;
+#rewards input{padding:10px}
+#rewards .note{font-size:12px;padding:9px}
+
+/* =========================================
+   EN96 ROYAL MINING MACHINES — 96 LEVELS
+   ========================================= */
+
+.royal-hero{
+ position:relative;
+ height:265px;
+ border:2px solid #cda252;
+ border-radius:19px;
+ overflow:hidden;
+ background:
+  radial-gradient(circle at 50% 20%,#164f8a,#061024 75%);
+ box-shadow:0 0 22px #b8863344;
 }
-#videoTitle{font-size:14px}
+.royal-hero img{
+ position:absolute;
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ object-position:center;
+ opacity:.92;
+}
+.royal-hero:after{
+ content:"";
+ position:absolute;
+ inset:0;
+ background:linear-gradient(
+  transparent 40%,#02050ff0 100%
+ );
+ pointer-events:none;
+}
+.royal-title{
+ position:absolute;
+ z-index:2;
+ left:0;
+ right:0;
+ bottom:12px;
+ text-align:center;
+ color:var(--gold);
+ font-size:21px;
+ font-weight:bold;
+ text-shadow:0 3px 9px #000;
+}
+.royal-sub{
+ text-align:center;
+ color:#98dfff;
+ font-size:12px;
+ margin:9px 0;
+}
+.level-summary{
+ background:linear-gradient(130deg,#101b2c,#100c07);
+ border:1px solid #c79b4e;
+ border-radius:14px;
+ padding:13px;
+ margin:12px 0;
+ text-align:center;
+}
+.level-summary b{color:var(--gold)}
+.level-summary strong{
+ display:block;
+ font-size:24px;
+ color:#fff0c9;
+}
+.level-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;
+ direction:ltr;
+}
+.level-card{
+ position:relative;
+ min-width:0;
+ direction:ltr;
+ padding:8px;
+ text-align:center;
+ overflow:hidden;
+ background:radial-gradient(
+  circle at 50% 35%,#3a2910,#090909 68%
+ );
+ border:2px solid #d0a34e;
+ border-radius:23px;
+ box-shadow:
+  inset 0 0 18px #000,
+  0 0 12px #c8913333;
+}
+.level-card.current{
+ border-color:#49f6af;
+ box-shadow:0 0 14px #30f4a466;
+}
+.level-tag{
+ position:absolute;
+ z-index:3;
+ top:9px;
+ left:9px;
+ padding:5px 9px;
+ border:1px solid #74603e;
+ background:#0c0c0c;
+ color:#fff;
+ border-radius:9px;
+ font-size:12px;
+ font-weight:bold;
+}
+.machine-scene{
+ height:142px;
+ position:relative;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ perspective:450px;
+ overflow:hidden;
+ background:radial-gradient(
+  ellipse at 50% 75%,
+  var(--machine-glow,#c18b36) 0%,
+  transparent 61%
+ );
+}
+.machine-scene:before{
+ content:"";
+ position:absolute;
+ inset:0;
+ background:
+  linear-gradient(145deg,transparent 40%,#accfff1b 41%,transparent 47%),
+  linear-gradient(30deg,transparent 40%,#b9eaff20 41%,transparent 49%);
+}
+.machine{
+ width:126px;
+ height:79px;
+ position:relative;
+ border:3px solid #b99049;
+ border-radius:10px;
+ background:
+  linear-gradient(140deg,#7b622f,#17191c 24%,#08090d 70%,#634820);
+ transform:rotateY(-16deg) rotateX(7deg);
+ box-shadow:
+  10px 15px 14px #000d,
+  0 0 22px var(--machine-glow,#e9b34d);
+ animation:machineFloat 3s ease-in-out infinite;
+}
+.machine:before{
+ content:"";
+ position:absolute;
+ top:-12px;
+ left:8px;
+ right:8px;
+ height:9px;
+ border-radius:5px;
+ background:linear-gradient(#ffe2a0,#5e4527);
+}
+.machine:after{
+ content:"👑";
+ position:absolute;
+ color:#ffd66f;
+ font-size:16px;
+ bottom:7px;
+ left:50%;
+ transform:translateX(-50%);
+}
+.machine-fan{
+ position:absolute;
+ top:12px;
+ width:43px;
+ height:43px;
+ border:3px solid #a78a58;
+ border-radius:50%;
+ background:
+  radial-gradient(circle,#ffdfa2 0 4px,#273543 5px 8px,transparent 9px),
+  repeating-conic-gradient(#c0964e 0deg 20deg,#111820 21deg 48deg);
+ animation:fanSpin .75s linear infinite;
+ box-shadow:0 0 10px #dda84a66;
+}
+.machine-fan.one{left:7px}
+.machine-fan.two{
+ right:7px;
+ animation-duration:.9s;
+}
+.machine-light{
+ position:absolute;
+ left:13px;
+ right:13px;
+ bottom:3px;
+ height:3px;
+ background:#73e9ff;
+ box-shadow:0 0 9px #40cfff;
+}
+@keyframes fanSpin{
+ to{transform:rotate(360deg)}
+}
+@keyframes machineFloat{
+ 50%{
+  transform:rotateY(-7deg)
+            rotateX(5deg)
+            translateY(-6px);
+ }
+}
+.level-price{
+ display:inline-block;
+ min-width:70%;
+ padding:5px 8px;
+ border:2px solid #bf9246;
+ border-radius:13px;
+ background:#090807;
+ color:#ffdc8c;
+ font-size:19px;
+ font-weight:900;
+}
+.level-speed{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:4px;
+ font-size:11px;
+ margin:10px 0;
+ color:#c7c7c7;
+}
+.level-speed b{
+ color:#ffcf70;
+ font-size:11px;
+}
+.level-action{
+ display:block;
+ width:100%;
+ padding:10px 3px;
+ border-radius:13px;
+ border:1px solid #ffe2a1;
+ background:linear-gradient(#ffe69e,#bd8127);
+ color:#1c1206;
+ font-size:11px;
+ font-weight:bold;
+}
+.level-card.current .level-action{
+ color:#07321c;
+ background:linear-gradient(#93ffcc,#2cae78);
+}
+.level-bottom{
+ margin:8px 0 1px;
+ color:#8fe9ff;
+ font-size:10px;
+}
+.level-pages{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:8px;
+ margin:13px 0;
+}
+.level-pages button{
+ flex:1;
+ padding:12px 5px;
+ background:#11100e;
+ color:var(--gold);
+ border:1px solid #b58b43;
+ border-radius:11px;
+ font-weight:bold;
+}
+.level-pages span{
+ flex:1;
+ text-align:center;
+ color:var(--gold);
+ font-weight:bold;
+}
+@media(prefers-reduced-motion:reduce){
+ .machine,.machine-fan{animation:none}
+}
+
+/* BOTTOM NAV */
 nav{
  position:fixed;
  bottom:0;
  left:0;
  right:0;
- max-width:500px;
+ max-width:520px;
  margin:auto;
  display:grid;
  grid-template-columns:repeat(5,1fr);
- gap:2px;
- background:#090807f7;
- border-top:1px solid #af843d;
+ padding:10px 2px;
+ border-top:1px solid #b28b43;
  border-radius:15px 15px 0 0;
- padding:10px 3px;
- direction:ltr;
+ background:#070708f8;
  z-index:20;
+ direction:ltr;
 }
 nav button{
+ color:#e8d4b0;
  background:none;
  border:0;
- color:#ebd8b4;
  font-size:10px;
 }
 .nav-circle{
@@ -350,18 +590,14 @@ nav button{
  width:42px;
  height:42px;
  margin:auto auto 5px;
- border:2px solid #a17c39;
+ background:#21180b;
+ border:2px solid #a48246;
  border-radius:50%;
- background:#20180c;
  font-size:20px;
 }
 nav button.active .nav-circle{
- border-color:#ffdc87;
- box-shadow:0 0 12px #ffd47b77;
-}
-@media(max-width:360px){
- .banner{height:245px}
- #rewards h3{font-size:15px}
+ border-color:#ffdf95;
+ box-shadow:0 0 12px #ffd47a88;
 }
 </style>
 </head>
@@ -370,35 +606,42 @@ nav button.active .nav-circle{
 <header>
 <button class="head-btn" onclick="page('menu')">⌂</button>
 <div class="brand">
-<b>❄ EN96 MINING ❄</b>
-<small>ICE BEAR KINGDOM</small>
+ <b>❄ EN96 MINING ❄</b>
+ <small>ICE BEAR KINGDOM</small>
 </div>
-<button class="head-btn" id="soundBtn" onclick="toggleSound()">🔇</button>
+<button class="head-btn" id="soundBtn"
+ onclick="toggleSound()">🔇</button>
 </header>
 
 <main>
 
 <section class="page active" id="welcome">
  <div class="banner">
-  <img src="/en96-welcome.jpg" alt="EN96"
-       onerror="imageFallback(this)">
+  <img src="/en96-welcome.jpg"
+       onerror="imageFallback(this)"
+       alt="EN96">
   <strong>🐻 EN96 ICE BEAR KINGDOM 👑</strong>
  </div>
  <div class="card">
   <h2>👑 دخول مملكة EN96</h2>
-  <p class="muted">سجّل الدخول باستخدام حساب Telegram.</p>
-  <div class="note" id="loginStatus">جارٍ التحقق...</div>
+  <p class="muted">
+   سجّل الدخول باستخدام حساب Telegram.
+  </p>
+  <div class="note" id="loginStatus">
+   جارٍ التحقق...
+  </div>
   <a class="gold-btn"
-     href="https://t.me/EN96_IceDragon_2026_Bot">
-    🐻 فتح بوت EN96
+   href="https://t.me/EN96_IceDragon_2026_Bot">
+   🐻 فتح بوت EN96
   </a>
  </div>
 </section>
 
 <section class="page" id="menu">
  <div class="banner">
-  <img src="/en96-welcome.jpg" alt="EN96"
-       onerror="imageFallback(this)">
+  <img src="/en96-welcome.jpg"
+       onerror="imageFallback(this)"
+       alt="EN96">
   <strong>🐻 EN96 ICE BEAR</strong>
  </div>
  <h2>مملكة التعدين الجليدي</h2>
@@ -427,16 +670,16 @@ nav button.active .nav-circle{
 <section class="page" id="mining">
  <h2>⛏️ منجم الدب الجليدي</h2>
  <p class="muted" style="text-align:center">
-  🐾 اضغط على وجه الدب لجمع مكافآت TAP أثناء التعدين.
+  🐾 اضغط على وجه الدب لجمع مكافآت TAP.
  </p>
 
  <div class="ring" id="miningRing">
   <button class="bear-button" id="mineBear"
-          onclick="tapBear()" disabled>
+   onclick="tapBear()" disabled>
    <img src="/assets/en96-bear-face.webp"
-        alt="EN96 ICE BEAR"
-        onerror="imageFallback(this)">
-   <span class="bear-label">🐾 اضغط للتعدين</span>
+        onerror="imageFallback(this)"
+        alt="EN96 Bear">
+   <span class="bear-label">🐾 TAP EN96</span>
   </button>
  </div>
 
@@ -444,15 +687,18 @@ nav button.active .nav-circle{
   <small>النقرات المؤكدة + قيد المعالجة</small>
   <strong id="mineTapCount">0 / 3,650</strong>
   <p class="tap-pending" id="mineTapPending"></p>
+
   <p>🐾 مكافآت النقر المؤكدة</p>
   <strong class="tap-money" id="mineTapEarned">
    +0.0000000 EN96
   </strong>
+
   <p class="muted">الطاقة المتبقية</p>
   <strong id="tapEnergyNumber">3650 / 3650</strong>
   <div class="progress">
    <div id="tapEnergyBar" style="width:100%"></div>
   </div>
+
   <p class="muted">⏳ تجديد طاقة النقر بعد</p>
   <div class="clock" id="tapTimer">--:--:--</div>
   <div class="note" id="tapMsg">
@@ -467,16 +713,17 @@ nav button.active .nav-circle{
   ⏳ الوقت المتبقي للتعدين
  </h3>
  <div class="clock" id="timer">24:00:00</div>
- <div class="progress">
-  <div id="progressBar"></div>
- </div>
+ <div class="progress"><div id="progressBar"></div></div>
+
  <div class="card">
   <p class="muted" style="text-align:center">
    مكافأة التعدين الافتراضية التقديرية
   </p>
-  <div class="reward" id="reward">0.0000000 EN96</div>
+  <div class="reward" id="reward">
+   0.0000000 EN96
+  </div>
   <button class="gold-btn" id="startMining"
-          onclick="startMining()">
+   onclick="startMining()">
    ⛏️ بدء / متابعة التعدين
   </button>
   <button class="dark-btn" onclick="loadMining()">
@@ -493,18 +740,16 @@ nav button.active .nav-circle{
   <div class="stat"><b>24</b> ساعة</div>
  </div>
  <div class="note">
-  التعدين افتراضي، وليس قوة تعدين حقيقية.
-  تُعتمد المكافآت في Supabase وفق شروط المشروع.
+  التعدين افتراضي وليس قوة تعدين حقيقية.
+  المكافآت المعتمدة محفوظة في Supabase.
  </div>
 </section>
 
 <section class="page" id="wallet">
  <h2>💎 محفظة EN96</h2>
  <div class="card">
-  <img class="coin"
-       src="/en96-coin.webp"
-       alt="EN96"
-       onerror="imageFallback(this)">
+  <img class="coin" src="/en96-coin.webp"
+       onerror="imageFallback(this)" alt="EN96">
   <p>الرصيد المتاح</p>
   <div class="reward" id="available">—</div>
   <p>الرصيد المحجوز</p>
@@ -526,7 +771,7 @@ nav button.active .nav-circle{
  </div>
  <div class="note">
   💸 الحد الأدنى للسحب 500 EN96.
-  الطلبات تتم مراجعتها يدويًا.
+  الطلبات تُراجع يدويًا.
  </div>
 </section>
 
@@ -535,13 +780,13 @@ nav button.active .nav-circle{
  <div class="card">
   <h3>📺 فيديوهات EN96</h3>
   <button class="gold-btn" onclick="loadVideos()">
-   📺 فتح الفيديوهات
+   فتح الفيديوهات
   </button>
   <p id="videoStatus">اضغط لعرض الفيديوهات.</p>
   <h3 id="videoTitle"></h3>
   <p id="videoReward"></p>
   <button class="gold-btn" id="watchVideoBtn"
-          onclick="watchVideo()" disabled>
+   onclick="watchVideo()" disabled>
    ▶ مشاهدة على YouTube
   </button>
   <div class="video-nav">
@@ -554,10 +799,11 @@ nav button.active .nav-circle{
    </button>
   </div>
  </div>
+
  <div class="card">
   <h3>🎁 استلام الهدية</h3>
   <input id="giftCode" maxlength="100"
-         placeholder="أدخل كود الفيديو">
+   placeholder="أدخل كود الفيديو">
   <button class="gold-btn" onclick="redeemGift()">
    🎁 استلام الهدية
   </button>
@@ -576,7 +822,7 @@ nav button.active .nav-circle{
    الأصدقاء المباشرين وفق شروط النظام.
   </p>
   <input id="referralLink" readonly
-         placeholder="رابط الدعوة">
+   placeholder="رابط الدعوة">
   <button class="gold-btn" onclick="copyInvite()">
    📋 نسخ رابط الدعوة
   </button>
@@ -592,26 +838,60 @@ nav button.active .nav-circle{
  </button>
 </section>
 
+<!-- 96 MINING LEVELS -->
+
 <section class="page" id="upgrades">
- <h2>⚡ ترقية المنجم</h2>
- <div class="card">
-  ✅ المستوى 1 — 0.001 EN96/ثانية
+
+ <div class="royal-hero">
+  <img id="royalCouple"
+   src="/assets/en96-royal-couple.jpg"
+   onerror="royalFallback(this)"
+   alt="EN96 King and Queen">
+  <div class="royal-title">
+   👑 EN96 — مملكة آلات التعدين
+  </div>
  </div>
- <div class="card">🔒 المستوى 2 — قريبًا</div>
- <div class="card">🔒 المستوى 3 — قريبًا</div>
- <div class="note">
-  الترقيات غير مفعلة ولا تخصم رصيدًا.
+
+ <p class="royal-sub">
+  ❄ الدب الملك وزوجته — 96 مستوى تعدين ❄
+ </p>
+
+ <div class="level-summary">
+  <b>⚡ قوة التعدين الحالية</b>
+  <strong>0.0010000 EN96/ثانية</strong>
+  <small class="muted">
+   المستوى الأساسي — الترقيات للمعاينة حاليًا
+  </small>
+ </div>
+
+ <h3 style="text-align:center">
+  ⛏️ آلات التعدين الملكية
+ </h3>
+
+ <div class="level-grid" id="levelsGrid"></div>
+
+ <div class="level-pages">
+  <button onclick="previousLevels()">❮ السابق</button>
+  <span id="levelPageLabel">1 / 12</span>
+  <button onclick="nextLevels()">التالي ❯</button>
+ </div>
+
+ <div class="note" id="upgradeMessage">
+  🔒 المستويات من 2 إلى 96 للمعاينة فقط.
+  لا توجد عمليات شراء أو خصم EN96 الآن.
  </div>
 </section>
 
 <section class="page" id="info">
  <h2>ℹ️ معلومات EN96</h2>
  <div class="card">
-  <p>🐻 مملكة الدب الجليدي EN96.</p>
-  <p>⛏️ التعدين الافتراضي: 0.001 EN96/ثانية.</p>
+  <p>🐻 EN96 Ice Bear Kingdom</p>
+  <p>⛏️ التعدين افتراضي.</p>
+  <p>⚡ السرعة الأساسية: 0.001 EN96/ثانية.</p>
   <p>⏳ الجلسة: 24 ساعة.</p>
   <p>🐾 النقر: 3,650 نقرة لكل دورة.</p>
-  <p>🎁 المكافأة القصوى للنقر: 15 EN96.</p>
+  <p>🎁 أقصى مكافأة للنقر: 15 EN96.</p>
+  <p>👑 مخطط لتطوير 96 مستوى للمنجم.</p>
   <p>💎 الأرصدة المعتمدة محفوظة في Supabase.</p>
  </div>
 </section>
@@ -640,6 +920,7 @@ nav button.active .nav-circle{
 const tg=window.Telegram?.WebApp;
 const $=id=>document.getElementById(id);
 const BOT='EN96_IceDragon_2026_Bot';
+
 const RATE=.001;
 const DURATION=86400;
 const TAP_LIMIT=3650;
@@ -671,21 +952,28 @@ try{
  tg?.expand();
 }catch(e){}
 
-/* IMAGE FALLBACK */
+/* IMAGE FALLBACKS */
 
 function imageFallback(img){
- const candidates=[
+ const paths=[
   '/assets/en96-welcome.jpg',
   '/assets/en96-bear-face.webp',
   '/en96-coin.webp'
  ];
- const n=Number(img.dataset.fallback||0);
- if(n<candidates.length){
-  img.dataset.fallback=n+1;
-  img.src=candidates[n];
+
+ const step=Number(img.dataset.fallback||0);
+
+ if(step<paths.length){
+  img.dataset.fallback=step+1;
+  img.src=paths[step];
  }else{
   img.style.display='none';
  }
+}
+
+function royalFallback(img){
+ img.onerror=null;
+ img.src='/en96-welcome.jpg';
 }
 
 /* SOUND */
@@ -697,19 +985,25 @@ function toggleSound(){
 
 function sound(){
  if(!audioOn)return;
+
  const now=performance.now();
  if(now-lastSoundAt<180)return;
  lastSoundAt=now;
 
  try{
-  const C=window.AudioContext||window.webkitAudioContext;
+  const C=window.AudioContext||
+          window.webkitAudioContext;
+
   if(!C)return;
   if(!audioContext)audioContext=new C();
+
   if(audioContext.state==='suspended'){
    audioContext.resume();
   }
+
   const o=audioContext.createOscillator();
   const g=audioContext.createGain();
+
   o.frequency.value=620;
   g.gain.value=.018;
   o.connect(g);
@@ -727,6 +1021,7 @@ function number(x){
 
 function clock(sec){
  sec=Math.max(0,Math.floor(sec));
+
  return [
   Math.floor(sec/3600),
   Math.floor(sec%3600/60),
@@ -746,24 +1041,34 @@ function page(name){
  });
 
  document.querySelectorAll('nav button').forEach(el=>{
-  el.classList.toggle('active',el.dataset.nav===name);
+  el.classList.toggle(
+   'active',el.dataset.nav===name
+  );
  });
 
  window.scrollTo(0,0);
+
  if(!loggedIn)return;
 
  if(name==='mining'){
   loadMining();
   loadTapStatus();
  }
+
  if(name==='wallet')loadWallet();
+
+ if(name==='upgrades'){
+  renderLevels();
+ }
 }
 
-/* AUTHENTICATED API */
+/* API */
 
 async function api(path,body){
  if(!tg?.initData){
-  throw Error('افتح التطبيق من داخل بوت Telegram.');
+  throw Error(
+   'افتح التطبيق من داخل بوت Telegram.'
+  );
  }
 
  const options={
@@ -780,6 +1085,7 @@ async function api(path,body){
  }
 
  let response;
+
  try{
   response=await fetch(path,options);
  }catch(e){
@@ -787,6 +1093,7 @@ async function api(path,body){
  }
 
  let data;
+
  try{
   data=await response.json();
  }catch(e){
@@ -811,10 +1118,14 @@ function showMining(){
 
  if(miningState&&
     ['active','ready'].includes(miningState.status)){
-  elapsed=Math.min(DURATION,Math.max(
-   0,Number(miningState.elapsed_seconds||0)+
-   (performance.now()-miningSync)/1000
-  ));
+  elapsed=Math.min(
+   DURATION,
+   Math.max(
+    0,
+    Number(miningState.elapsed_seconds||0)+
+    (performance.now()-miningSync)/1000
+   )
+  );
  }
 
  $('timer').textContent=clock(DURATION-elapsed);
@@ -823,12 +1134,15 @@ function showMining(){
 
  const pct=elapsed/DURATION*100;
  $('progressBar').style.width=pct+'%';
- $('miningRing').style.setProperty('--pct',pct+'%');
+ $('miningRing').style.setProperty(
+  '--pct',pct+'%'
+ );
 }
 
 async function loadMining(){
  try{
   const r=await api('/api/mining/status');
+
   miningState=r;
   miningSync=performance.now();
   showMining();
@@ -839,6 +1153,7 @@ async function loadMining(){
    :r.status==='not_started'
    ?'🐻 ابدأ جلسة التعدين الأولى.'
    :'✅ التعدين الافتراضي نشط.';
+
  }catch(e){
   $('mineMsg').textContent=e.message;
  }
@@ -853,8 +1168,10 @@ async function startMining(){
   miningState=r.mining;
   miningSync=performance.now();
   showMining();
+
   $('mineMsg').textContent=
    '✅ تم تحديث جلسة التعدين.';
+
  }catch(e){
   $('mineMsg').textContent=e.message;
  }finally{
@@ -867,19 +1184,25 @@ async function startMining(){
 async function loadWallet(){
  try{
   const r=await api('/api/me');
+
   $('available').textContent=
    number(r.available)+' EN96';
+
   $('reserved').textContent=
    number(r.reserved)+' EN96';
+
   $('telegramId').textContent=r.telegram_id;
-  $('stellar').value=r.stellar_public_address||'';
+  $('stellar').value=
+   r.stellar_public_address||'';
+
  }catch(e){
   $('walletMsg').textContent=e.message;
  }
 }
 
 async function saveStellar(){
- const address=$('stellar').value.trim().toUpperCase();
+ const address=$('stellar').value
+  .trim().toUpperCase();
 
  if(!/^G[A-Z2-7]{55}$/.test(address)){
   $('walletMsg').textContent=
@@ -896,7 +1219,7 @@ async function saveStellar(){
  }
 }
 
-/* TAP QUEUE */
+/* TAP SYSTEM */
 
 function tapStorageKey(){
  return 'en96_tap_queue_v3_'+memberId;
@@ -904,6 +1227,7 @@ function tapStorageKey(){
 
 function saveQueue(){
  if(!memberId)return;
+
  try{
   localStorage.setItem(
    tapStorageKey(),
@@ -922,17 +1246,23 @@ function restoreQueue(){
   const raw=JSON.parse(
    localStorage.getItem(tapStorageKey())||'null'
   );
-  const items=Array.isArray(raw)?raw:raw?.items;
+
+  const items=Array.isArray(raw)
+   ?raw
+   :raw?.items;
+
   const saved=raw?.saved;
 
   if(saved&&Date.now()-saved>36*3600000)return;
 
   if(Array.isArray(items)){
    tapQueue=items.filter(x=>
-    x&&typeof x.id==='string'&&
+    x&&
+    typeof x.id==='string'&&
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x.id)
    ).slice(0,MAX_PENDING);
   }
+
  }catch(e){
   tapQueue=[];
  }
@@ -965,9 +1295,12 @@ function renderTap(){
  const confirmed=Math.max(
   0,Number(tapState.taps||0)
  );
+
  const shown=Math.min(
-  TAP_LIMIT,confirmed+tapQueue.length
+  TAP_LIMIT,
+  confirmed+tapQueue.length
  );
+
  const left=Math.max(0,TAP_LIMIT-shown);
 
  $('mineTapCount').textContent=
@@ -984,11 +1317,13 @@ function renderTap(){
 
  $('mineTapPending').textContent=
   tapQueue.length
-  ?'⏳ '+tapQueue.length+' نقرة قيد الحفظ؛ انتظر تأكيدها'
-  :'✅ كل النقرات محفوظة';
+  ?'⏳ '+tapQueue.length+' نقرة تنتظر اعتماد Supabase'
+  :'✅ جميع النقرات مؤكدة';
 
  $('mineBear').disabled=
-  !loggedIn||left<=0||tapStopped||
+  !loggedIn||
+  left<=0||
+  tapStopped||
   tapQueue.length>=MAX_PENDING;
 
  updateTapClock();
@@ -1000,9 +1335,10 @@ function updateTapClock(){
   return;
  }
 
- const left=Math.max(0,Math.ceil(
-  (tapReset-Date.now())/1000
- ));
+ const left=Math.max(
+  0,
+  Math.ceil((tapReset-Date.now())/1000)
+ );
 
  $('tapTimer').textContent=clock(left);
 
@@ -1016,7 +1352,9 @@ function applyTap(r){
  tapState={...(tapState||{}),...r};
 
  if(Object.prototype.hasOwnProperty.call(r,'reset_at')){
-  tapReset=r.reset_at?Date.parse(r.reset_at):null;
+  tapReset=r.reset_at
+   ?Date.parse(r.reset_at)
+   :null;
  }
 
  renderTap();
@@ -1026,6 +1364,7 @@ async function loadTapStatus(){
  if(!loggedIn||tapLoading)return;
 
  tapLoading=true;
+
  try{
   const r=await api('/api/tap/status');
   applyTap(r);
@@ -1035,13 +1374,14 @@ async function loadTapStatus(){
   scheduleTap(100);
  }catch(e){
   $('tapMsg').textContent='⚠️ '+e.message;
-  if(!tapState)$('mineBear').disabled=true;
+
+  if(!tapState){
+   $('mineBear').disabled=true;
+  }
  }finally{
   tapLoading=false;
  }
 }
-
-/* TAP EFFECTS */
 
 function tapEffect(){
  const el=$('mineBear');
@@ -1062,8 +1402,6 @@ function tapEffect(){
  );
 }
 
-/* TAP BUTTON */
-
 function tapBear(){
  if(!loggedIn||!tapState||tapStopped)return;
 
@@ -1078,7 +1416,7 @@ function tapBear(){
 
  if(tapQueue.length>=MAX_PENDING){
   $('tapMsg').textContent=
-   '⏳ وصلت إلى حد الانتظار المؤقت؛ دع الخادم يؤكد النقرات.';
+   '⏳ جارٍ حفظ النقرات السابقة.';
   return;
  }
 
@@ -1107,10 +1445,10 @@ function tapBear(){
  scheduleTap(0);
 }
 
-/* SERVER CONFIRMATION */
-
 function scheduleTap(delay){
- if(retryTimer!==null)clearTimeout(retryTimer);
+ if(retryTimer!==null){
+  clearTimeout(retryTimer);
+ }
 
  retryTimer=setTimeout(()=>{
   retryTimer=null;
@@ -1119,8 +1457,12 @@ function scheduleTap(delay){
 }
 
 async function flushTap(){
- if(tapBusy||tapStopped||!loggedIn||
-    !tapQueue.length)return;
+ if(
+  tapBusy||
+  tapStopped||
+  !loggedIn||
+  !tapQueue.length
+ )return;
 
  tapBusy=true;
  const item=tapQueue[0];
@@ -1152,11 +1494,13 @@ async function flushTap(){
  }catch(e){
   const msg=String(e.message||'');
 
-  if(e.status===429||
-     msg.includes('النقر سريع')){
+  if(
+   e.status===429||
+   msg.includes('النقر سريع')
+  ){
    retry=1500;
    $('tapMsg').textContent=
-    '⚡ النقر أسرع من الخادم؛ جارٍ حفظ النقرات بالتتابع.';
+    '⏳ جارٍ اعتماد النقرات وفق سرعة الخادم.';
 
   }else if(
    msg.includes('اكتملت 3650')||
@@ -1178,7 +1522,7 @@ async function flushTap(){
   }else{
    retry=2000;
    $('tapMsg').textContent=
-    '⚠️ لم تؤكد النقرة. ستتم المحاولة بنفس المعرّف.';
+    '⚠️ لم تؤكد النقرة. سنعيد المحاولة بنفس المعرّف.';
   }
 
  }finally{
@@ -1191,7 +1535,7 @@ async function flushTap(){
  }
 }
 
-/* VIDEOS */
+/* VIDEO GIFTS */
 
 async function loadVideos(){
  $('videoStatus').textContent=
@@ -1203,11 +1547,11 @@ async function loadVideos(){
   videoItems=(r.videos||[]).filter(v=>{
    try{
     const u=new URL(v.video_url);
-    return u.protocol==='https:'&&
-     (
-      /(^|\.)youtube\.com$/.test(u.hostname)||
-      u.hostname==='youtu.be'
-     );
+
+    return u.protocol==='https:'&&(
+     /(^|\.)youtube\.com$/.test(u.hostname)||
+     u.hostname==='youtu.be'
+    );
    }catch(e){
     return false;
    }
@@ -1279,12 +1623,11 @@ function watchVideo(){
  }catch(e){}
 }
 
-/* GIFTS */
-
 async function redeemGift(){
  const code=$('giftCode').value.trim();
+
  if(!code){
-  $('giftMsg').textContent='أدخل كود الهدية أولًا.';
+  $('giftMsg').textContent='أدخل كود الهدية.';
   return;
  }
 
@@ -1306,7 +1649,7 @@ async function redeemGift(){
  }
 }
 
-/* REFERRAL */
+/* TRIBE */
 
 function inviteLink(){
  return memberId
@@ -1320,8 +1663,13 @@ function setupInvite(){
 
 async function copyInvite(){
  try{
-  await navigator.clipboard.writeText(inviteLink());
-  $('inviteMsg').textContent='✅ تم نسخ الرابط.';
+  await navigator.clipboard.writeText(
+   inviteLink()
+  );
+
+  $('inviteMsg').textContent=
+   '✅ تم نسخ الرابط.';
+
  }catch(e){
   $('referralLink').select();
   document.execCommand('copy');
@@ -1350,6 +1698,123 @@ function openTribeBot(){
  }
 }
 
+/* =====================================
+   REAL INTERACTIVE 96-LEVEL DISPLAY
+   No payment or Supabase writes
+   ===================================== */
+
+const LEVEL_COUNT=96;
+const LEVELS_PER_PAGE=8;
+let levelPage=0;
+
+function previewRate(level){
+ return .001*(1+(level-1)*.025);
+}
+
+function previewPrice(level){
+ if(level===1)return 0;
+ return 10*Math.pow(1.15,level-2);
+}
+
+function renderLevels(){
+ const grid=$('levelsGrid');
+ if(!grid)return;
+
+ grid.replaceChildren();
+
+ const colors=[
+  '#159dff',
+  '#20eb80',
+  '#f5ae36',
+  '#bd5bff',
+  '#ff4545',
+  '#54d7ff',
+  '#f8bc4f',
+  '#d459ff'
+ ];
+
+ const first=levelPage*LEVELS_PER_PAGE+1;
+ const last=Math.min(
+  LEVEL_COUNT,
+  first+LEVELS_PER_PAGE-1
+ );
+
+ for(let level=first;level<=last;level++){
+  const index=(level-1)%colors.length;
+
+  const card=document.createElement('article');
+  card.className=
+   'level-card'+(level===1?' current':'');
+
+  card.style.setProperty(
+   '--machine-glow',
+   colors[index]+'77'
+  );
+
+  const speed=previewRate(level).toFixed(7);
+
+  const priceText=level===1
+   ?'0 EN96'
+   :'—';
+
+  card.innerHTML=`
+   <span class="level-tag">Lvl ${level}</span>
+
+   <div class="machine-scene">
+    <div class="machine">
+     <div class="machine-fan one"></div>
+     <div class="machine-fan two"></div>
+     <div class="machine-light"></div>
+    </div>
+   </div>
+
+   <div class="level-price">${priceText}</div>
+
+   <div class="level-speed">
+    <span>Speed</span>
+    <b>${speed} EN96/s</b>
+   </div>
+
+   <button class="level-action">
+    ${level===1
+     ?'✓ المستوى الحالي'
+     :'🔒 ترقية المستوى'}
+   </button>
+
+   <div class="level-bottom">
+    ${level===1
+     ?'المستوى المجاني'
+     :'تكلفة الترقية لم تُحدد بعد'}
+   </div>
+  `;
+
+  card.querySelector('.level-action')
+   .addEventListener('click',()=>{
+    $('upgradeMessage').textContent=
+     level===1
+     ?'✅ المستوى الأول هو المنجم الأساسي الحالي.'
+     :'🔒 المستوى '+level+
+      ' للمعاينة فقط. سرعة '+speed+
+      ' EN96/ثانية مقترحة، وغير مفعّلة على الخادم. لا يوجد خصم أو شراء.';
+   });
+
+  grid.appendChild(card);
+ }
+
+ $('levelPageLabel').textContent=
+  (levelPage+1)+' / 12';
+}
+
+function nextLevels(){
+ levelPage=(levelPage+1)%12;
+ renderLevels();
+}
+
+function previousLevels(){
+ levelPage=(levelPage+11)%12;
+ renderLevels();
+}
+
 /* LOGIN */
 
 async function login(){
@@ -1361,6 +1826,7 @@ async function login(){
 
  try{
   const u=await api('/api/me');
+
   memberId=String(u.telegram_id||'');
   loggedIn=true;
   setupInvite();
@@ -1382,13 +1848,17 @@ async function login(){
 setInterval(showMining,1000);
 setInterval(updateTapClock,1000);
 
-document.addEventListener('visibilitychange',()=>{
- if(!document.hidden&&loggedIn){
-  loadMining();
-  loadTapStatus();
+document.addEventListener(
+ 'visibilitychange',
+ ()=>{
+  if(!document.hidden&&loggedIn){
+   loadMining();
+   loadTapStatus();
+  }
  }
-});
+);
 
+renderLevels();
 login();
 </script>
 </body>
