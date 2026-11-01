@@ -1,562 +1,1010 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#190a08">
-<title>EN96 Royal Mining</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#210909">
+<title>EN96 Mining | Ice Bear Kingdom</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
-*{box-sizing:border-box}
-:root{
- --gold:#ffce48;
- --deep:#240b0c;
- --cream:#fff7e6;
+* {
+  box-sizing: border-box;
 }
-body{
- margin:0;
- color:white;
- font-family:Arial,sans-serif;
- background:#1a0808;
+
+:root {
+  --gold: #ffd34d;
+  --gold2: #ff9e0c;
+  --dark: #260c0b;
 }
-.app{
- min-height:100dvh;
- max-width:520px;
- margin:auto;
- padding-bottom:100px;
- background:
- radial-gradient(ellipse at 50% 45%,#ff7840 0%,transparent 56%),
- linear-gradient(180deg,#110708 0%,#48130f 28%,#a92d27 60%,#f05a35 100%);
+
+html {
+  scroll-behavior: smooth;
 }
-.top{
- padding:20px 18px 10px;
- display:flex;
- justify-content:center;
- align-items:center;
- gap:10px;
- font-size:15px;
- font-weight:700;
+
+body {
+  margin: 0;
+  background: #180707;
+  color: white;
+  font-family: Arial, Tahoma, sans-serif;
 }
-.top span{color:var(--gold)}
-.actions{
- display:flex;
- gap:10px;
- align-items:center;
- padding:12px 16px;
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.gold-btn{
- border:1px solid #ffe18c;
- background:linear-gradient(180deg,#ffe17b,#ffb21e);
- color:#4b2106;
- border-radius:35px;
- font-weight:900;
- cursor:pointer;
- box-shadow:0 5px 0 #8a360d,0 6px 15px #ff9a2680;
+
+.app {
+  max-width: 520px;
+  min-height: 100dvh;
+  margin: auto;
+  padding-bottom: 110px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse at 50% 42%,
+      #ff893e 0%,
+      #b73322 35%,
+      transparent 65%
+    ),
+    linear-gradient(
+      180deg,
+      #110608 0%,
+      #3a0d0d 23%,
+      #a52e24 64%,
+      #ed6039 100%
+    );
 }
-.actions .gold-btn{
- padding:13px 6px;
- flex:1;
- font-size:16px;
+
+.header {
+  padding: 17px 12px;
+  text-align: center;
+  background: #140a0b;
+  border-bottom: 1px solid #66371c;
 }
-.info-btn{
- border:2px solid white;
- background:#361212;
- color:white;
- border-radius:50%;
- width:40px;
- height:40px;
- font-size:22px;
+
+.header strong {
+  display: block;
+  color: #ffda72;
+  font-size: 19px;
 }
-.heading{
- text-align:center;
- margin-top:12px;
- font-size:18px;
- letter-spacing:1px;
- font-weight:700;
+
+.header small {
+  display: block;
+  color: #edccba;
+  margin-top: 5px;
 }
-.pool{
- font-size:clamp(26px,9vw,46px);
- font-weight:900;
- text-align:center;
- margin:12px 0;
- text-shadow:0 3px 10px #a83113;
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 22px 16px 8px;
 }
-.stats{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:16px;
- margin:18px 16px;
- text-align:center;
+
+.gold-button {
+  border: 1px solid #ffef9d;
+  border-radius: 30px;
+  background:
+    linear-gradient(
+      180deg,
+      #fff097 0%,
+      #ffd041 43%,
+      #ffad14 100%
+    );
+  color: #4c2300;
+  font-size: 17px;
+  font-weight: 900;
+  padding: 13px 12px;
+  box-shadow:
+    0 5px 0 #9f450b,
+    0 7px 22px #ffb12570;
 }
-.stat-value{
- font-size:clamp(15px,5vw,24px);
- font-weight:900;
+
+.actions .gold-button {
+  flex: 1;
 }
-.yellow{color:#ffcf43}
-.blue{color:#22d4f5}
-.bar{
- height:15px;
- border-radius:20px;
- margin:12px 0;
- background:#431313;
- overflow:hidden;
+
+.info-button {
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  border: 2px solid white;
+  border-radius: 50%;
+  color: white;
+  background: #361411;
+  font-size: 23px;
 }
-.bar>div{
- height:100%;
- width:100%;
- border-radius:20px;
+
+.mining-title {
+  margin-top: 23px;
+  text-align: center;
+  font-size: 19px;
+  letter-spacing: 1px;
+  font-weight: bold;
 }
-.yellowbar{background:linear-gradient(90deg,#ffb31f,#ffed60)}
-.bluebar{background:linear-gradient(90deg,#00cce8,#009cff)}
-.small{
- font-size:11px;
- color:#ffe6d7;
+
+.main-title {
+  text-align: center;
+  font-size: clamp(27px, 8vw, 46px);
+  font-weight: 900;
+  color: #fff1bf;
+  margin: 11px 0 19px;
+  text-shadow:
+    0 2px 0 #7a350e,
+    0 5px 16px #ff8a23;
 }
-.coin-wrap{
- position:relative;
- text-align:center;
- margin:20px auto 24px;
- width:76%;
- max-width:330px;
- aspect-ratio:1;
- display:grid;
- place-items:center;
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 0 17px;
+  direction: ltr;
 }
-.coin-glow{
- position:absolute;
- inset:5%;
- border-radius:50%;
- background:#ffbd30;
- filter:blur(38px);
- opacity:.62;
- animation:pulse 3s infinite;
+
+.stat {
+  min-width: 0;
+  text-align: center;
 }
-.coin{
- position:relative;
- width:100%;
- height:100%;
- border-radius:50%;
- border:9px ridge #ffe07b;
- background:
- radial-gradient(circle at 50% 28%,#ffe49a,#d8810f 60%,#512009);
- box-shadow:
- 0 0 0 4px #8a3b0b,
- 0 0 30px #ffd54d,
- inset 0 0 20px #ffe69b;
- display:flex;
- flex-direction:column;
- justify-content:center;
- align-items:center;
- overflow:hidden;
+
+.stat-number {
+  font-size: clamp(17px, 5vw, 29px);
+  font-weight: 900;
 }
-.coin img{
- width:100%;
- height:100%;
- object-fit:cover;
+
+.gold-text {
+  color: #ffd34d;
 }
-.coin-fallback{
- font-size:90px;
- display:none;
+
+.blue-text {
+  color: #12d4fa;
 }
-.coin-label{
- position:absolute;
- bottom:12%;
- font-size:29px;
- font-weight:900;
- color:#fff3b1;
- text-shadow:0 2px 6px #492000;
+
+.progress {
+  height: 15px;
+  background: #391414;
+  margin: 13px 0 9px;
+  border-radius: 30px;
+  overflow: hidden;
 }
-@keyframes pulse{
- 50%{opacity:.85;transform:scale(1.05)}
+
+.progress-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 30px;
 }
-.start{
- display:block;
- width:88%;
- margin:0 auto 26px;
- padding:19px;
- font-size:24px;
+
+.progress-fill.gold {
+  background: linear-gradient(90deg, #ffae19, #fff178);
 }
-.content{
- padding:0 18px;
+
+.progress-fill.blue {
+  background: linear-gradient(90deg, #00dce8, #0098ed);
 }
-.section-title{
- display:flex;
- justify-content:space-between;
- align-items:center;
- font-size:18px;
- font-weight:800;
- margin-bottom:14px;
+
+.stat-label {
+  color: #ffe0d1;
+  font-size: 11px;
+  line-height: 1.5;
 }
-.section-title a{
- font-size:13px;
- color:#ffe277;
- text-decoration:none;
+
+.coin-area {
+  position: relative;
+  width: min(82vw, 365px);
+  aspect-ratio: 1;
+  margin: 30px auto 5px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
 }
-.panel{
- background:#411512d9;
- border:1px solid #ffbc53;
- border-radius:20px;
- padding:17px;
- box-shadow:0 8px 20px #30090055;
+
+.coin-halo {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  background: #ffba25;
+  filter: blur(40px);
+  opacity: .75;
+  z-index: -1;
+  animation: glow 3s ease-in-out infinite;
 }
-.panel p{
- line-height:1.7;
- color:#ffe2d1;
- font-size:14px;
+
+@keyframes glow {
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
-.mini-action{
- display:block;
- background:linear-gradient(#ffdc72,#f9a71c);
- color:#482308;
- border:0;
- border-radius:14px;
- padding:14px;
- font-size:15px;
- font-weight:bold;
- text-align:center;
- text-decoration:none;
- width:100%;
- margin-top:12px;
- cursor:pointer;
+
+.coin-button {
+  position: relative;
+  width: 94%;
+  height: 94%;
+  padding: 0;
+  border: 9px ridge #ffd966;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle, #ffca47, #b5680e);
+  box-shadow:
+    0 0 0 3px #8a3908,
+    0 0 34px #ffb719,
+    inset 0 0 22px #ffefac;
+  touch-action: manipulation;
+  user-select: none;
+  transition: transform .09s ease;
 }
-.screen{display:none}
-.screen.active{display:block}
-.page-title{
- text-align:center;
- font-size:24px;
- padding:20px 10px;
+
+.coin-button.pressed {
+  transform: scale(.95);
 }
-.grid-options{
- display:grid;
- gap:12px;
+
+.coin-button img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.option{
- background:#4c1716db;
- padding:19px;
- border:1px solid #d78b45;
- border-radius:16px;
- text-align:left;
- color:white;
- font-size:16px;
- width:100%;
- cursor:pointer;
+
+.coin-fallback {
+  display: none;
+  font-size: 75px;
 }
-.note{
- font-size:12px;
- line-height:1.7;
- color:#ffe6d0;
- padding:10px 2px;
+
+.tap-hint {
+  text-align: center;
+  color: #fff6db;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 0 2px 7px #74260e;
 }
-.nav{
- position:fixed;
- bottom:0;
- left:50%;
- transform:translateX(-50%);
- width:100%;
- max-width:520px;
- padding:9px 8px max(10px,env(safe-area-inset-bottom));
- display:flex;
- gap:3px;
- background:#421714f2;
- border-top:2px solid #b36a26;
- border-radius:20px 20px 0 0;
- z-index:20;
+
+.tap-count {
+  margin: 12px auto 15px;
+  text-align: center;
+  color: #ffdb74;
+  font-size: 17px;
+  font-weight: 800;
 }
-.nav button{
- flex:1;
- min-width:0;
- border:0;
- border-radius:13px;
- padding:9px 2px;
- background:transparent;
- color:white;
- font-size:11px;
- cursor:pointer;
+
+.tap-count small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #fff1dc;
+  font-weight: normal;
 }
-.nav button b{
- display:block;
- font-size:22px;
- margin-bottom:5px;
+
+.spark {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  font-size: 23px;
+  font-weight: 900;
+  color: #ffec7c;
+  text-shadow: 0 0 12px #ffad00;
+  animation: float-up .75s ease-out forwards;
 }
-.nav button.active{
- background:linear-gradient(#ffe477,#ffc126);
- color:#582500;
- font-weight:900;
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(.8);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -150%) scale(1.4);
+  }
 }
-.hidden{display:none!important}
+
+.start-button {
+  display: block;
+  width: 88%;
+  padding: 20px 10px;
+  margin: 22px auto 27px;
+  font-size: 25px;
+}
+
+.content {
+  padding: 0 18px;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 17px 0 15px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.view-all {
+  background: none;
+  border: 0;
+  font-size: 13px;
+  color: #ffdf6b;
+}
+
+.panel {
+  border: 1px solid #ffbf54;
+  border-radius: 19px;
+  background: #481715df;
+  padding: 19px;
+  box-shadow: 0 8px 20px #2e070755;
+}
+
+.panel h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.panel p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #ffeadb;
+}
+
+.panel-button {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin-top: 13px;
+  border: 1px solid #ffedab;
+  border-radius: 14px;
+  background: linear-gradient(#ffe27b, #ffa915);
+  color: #4c2307;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+.page-title {
+  text-align: center;
+  margin: 30px 0;
+  color: #ffdf8d;
+  font-size: 25px;
+}
+
+.options {
+  display: grid;
+  gap: 12px;
+}
+
+.option {
+  border: 1px solid #f8b858;
+  border-radius: 16px;
+  background: #461715;
+  color: white;
+  text-align: right;
+  padding: 20px;
+  font-size: 17px;
+}
+
+.notice {
+  font-size: 12px;
+  color: #ffe6d4;
+  line-height: 1.8;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  width: 100%;
+  max-width: 520px;
+  padding: 9px 7px max(11px, env(safe-area-inset-bottom));
+  background: #3c1312f5;
+  border-top: 2px solid #b46d2c;
+  border-radius: 20px 20px 0 0;
+  direction: ltr;
+  z-index: 50;
+}
+
+.bottom-nav button {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 2px;
+  background: transparent;
+  border: 0;
+  border-radius: 13px;
+  color: white;
+  font-size: 11px;
+}
+
+.bottom-nav button b {
+  display: block;
+  font-size: 23px;
+  margin-bottom: 4px;
+}
+
+.bottom-nav button.active {
+  background: linear-gradient(#ffe477, #ffbd20);
+  color: #572100;
+  font-weight: 900;
+}
 </style>
 </head>
-<body>
-<div class="app">
 
-<header class="top">
-👑 <span>EN96</span>
-Mining | Ice Bear Kingdom
+<body>
+
+<main class="app">
+
+<header class="header">
+  <strong>👑 EN96 Mining | Ice Bear Kingdom</strong>
+  <small>Telegram WebApp</small>
 </header>
 
-<div id="home" class="screen active">
+<!-- HOME -->
 
-<div class="actions">
-<button class="gold-btn" onclick="showPage('wallet')">🪙 Invest</button>
-<button class="info-btn" onclick="showInfo()">ⓘ</button>
-<button class="gold-btn" onclick="showBoost()">🚀 Boost</button>
-</div>
+<section id="home" class="screen active">
 
-<div class="heading">🌿 MINING POOL 🌿</div>
+  <div class="actions">
+    <button class="gold-button"
+      onclick="showInvest()">
+      🪙 Invest
+    </button>
 
-<div class="pool" id="poolText">
-EN96 MINING
-</div>
+    <button class="info-button"
+      onclick="showInfo()">
+      ⓘ
+    </button>
 
-<div class="stats">
- <div>
-  <div class="stat-value yellow">💰 86.4</div>
-  <div class="bar"><div class="yellowbar"></div></div>
-  <div class="small">EN96 per 24-hour session</div>
- </div>
- <div>
-  <div class="stat-value blue">⚡ 0.001</div>
-  <div class="bar"><div class="bluebar"></div></div>
-  <div class="small">EN96 per second</div>
- </div>
-</div>
+    <button class="gold-button"
+      onclick="showBoost()">
+      🚀 Boost
+    </button>
+  </div>
 
-<div class="coin-wrap">
- <div class="coin-glow"></div>
- <div class="coin">
-  <img
-   id="coinImage"
-   src="https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png"
-   alt="EN96 Golden Bear"
-   onerror="this.style.display='none';document.querySelector('.coin-fallback').style.display='block'"
-  >
-  <div class="coin-fallback">🐻👑</div>
- </div>
-</div>
+  <div class="mining-title">
+    🌿 MINING POOL 🌿
+  </div>
 
-<button class="gold-btn start" onclick="startMining()">
-⛏️ Start Mining
-</button>
+  <h1 class="main-title">
+    EN96 MINING
+  </h1>
 
-<div class="content">
- <div class="section-title">
-  <span>Mining & Rewards</span>
-  <a href="#" onclick="showPage('earn');return false">View All →</a>
- </div>
- <div class="panel">
-  <strong>🐻 EN96 Virtual Mining</strong>
-  <p>
-   Mine virtually for 24 hours at the
-   default rate of 0.001 EN96/s.
-   Rewards are recorded by the existing
-   EN96 bot and Supabase system.
-  </p>
-  <button class="mini-action" onclick="openBot()">
-   Open EN96 Bot
+  <div class="stats">
+
+    <div class="stat">
+      <div class="stat-number gold-text">
+        💰 86.4
+      </div>
+
+      <div class="progress">
+        <div class="progress-fill gold"></div>
+      </div>
+
+      <div class="stat-label">
+        EN96 per 24-hour session
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-number blue-text">
+        ⚡ 0.001
+      </div>
+
+      <div class="progress">
+        <div class="progress-fill blue"></div>
+      </div>
+
+      <div class="stat-label">
+        EN96 per second
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INTERACTIVE BEAR COIN -->
+
+  <div class="coin-area" id="coinArea">
+    <div class="coin-halo"></div>
+
+    <button
+      id="coinButton"
+      class="coin-button"
+      aria-label="انقر على وجه الدب"
+      onclick="tapBear(event)"
+    >
+      <img
+        id="bearImage"
+        src="https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png"
+        alt="EN96 Royal Golden Bear Coin"
+        onerror="this.style.display='none';document.getElementById('fallbackBear').style.display='block'"
+      >
+
+      <div id="fallbackBear" class="coin-fallback">
+        🐻👑
+      </div>
+    </button>
+  </div>
+
+  <div class="tap-hint">
+    👆 انقر على وجه الدب الذهبي
+  </div>
+
+  <div class="tap-count">
+    ✨ عدد النقرات: <span id="tapCount">0</span>
+
+    <small>
+      عداد تجريبي — لا يضيف EN96 إلى المحفظة
+    </small>
+  </div>
+
+  <button class="gold-button start-button"
+    onclick="startMining()">
+    ⛏️ Start Mining
   </button>
- </div>
-</div>
 
-</div>
+  <div class="content">
 
-<div id="earn" class="screen">
- <h2 class="page-title">🏆 Earn EN96</h2>
- <div class="content grid-options">
-  <button class="option" onclick="startMining()">⛏️ Start Virtual Mining</button>
-  <button class="option" onclick="showGifts()">🎁 Video Gift Codes</button>
-  <button class="option" onclick="openTikTok()">🎵 Follow TikTok EN96</button>
-  <button class="option" onclick="showBoost()">⚡ Upgrade Mine</button>
-  <p class="note">
-   Gift claims and rewards are verified
-   by the existing Telegram bot.
-  </p>
- </div>
-</div>
+    <div class="section-heading">
+      <span>Mining & Rewards</span>
 
-<div id="events" class="screen">
- <h2 class="page-title">🏆 EN96 Events</h2>
- <div class="content">
-  <div class="panel">
-   <strong>🎁 Community Events</strong>
-   <p>
-    Follow EN96 for future campaigns,
-    videos and announcements.
-    No active event is announced here yet.
-   </p>
-   <button class="mini-action" onclick="openTikTok()">
-    EN96 TikTok
-   </button>
+      <button class="view-all"
+        onclick="showPage('earn')">
+        View All ←
+      </button>
+    </div>
+
+    <div class="panel">
+
+      <h3>🐻 EN96 Virtual Mining</h3>
+
+      <p>
+        التعدين الافتراضي في EN96 يستمر
+        24 ساعة للجلسة، بمعدل افتراضي
+        0.001 EN96 في الثانية.
+      </p>
+
+      <p>
+        تُدار مكافآت التعدين الحالية بواسطة
+        البوت ونظام Supabase.
+      </p>
+
+      <button class="panel-button"
+        onclick="openBot()">
+        📲 Open EN96 Bot
+      </button>
+
+    </div>
+
   </div>
- </div>
-</div>
 
-<div id="invite" class="screen">
- <h2 class="page-title">👥 Invite Friends</h2>
- <div class="content">
-  <div class="panel">
-   <strong>🐻 Join the EN96 Tribe</strong>
-   <p>
-    Invite your friends using your
-    personal referral link.
-   </p>
-   <button class="mini-action" onclick="inviteFriends()">
-    🔗 Copy My Invite Link
-   </button>
-   <p id="inviteStatus" class="note"></p>
+</section>
+
+<!-- EARN -->
+
+<section id="earn" class="screen">
+
+  <h2 class="page-title">
+    💰 Earn EN96
+  </h2>
+
+  <div class="content options">
+
+    <button class="option"
+      onclick="startMining()">
+      ⛏️ بدء التعدين
+    </button>
+
+    <button class="option"
+      onclick="showGifts()">
+      🎁 أكواد الهدايا
+    </button>
+
+    <button class="option"
+      onclick="openTikTok()">
+      🎵 TikTok EN96
+    </button>
+
+    <button class="option"
+      onclick="showBoost()">
+      ⚡ ترقية التعدين
+    </button>
+
+    <div class="panel">
+      <h3>🐻 نظام المكافآت</h3>
+
+      <p>
+        يمكنك مشاهدة فيديوهات المشروع
+        والحصول على أكواد الهدايا
+        واستبدالها في بوت Telegram.
+      </p>
+    </div>
+
   </div>
- </div>
-</div>
 
-<div id="wallet" class="screen">
- <h2 class="page-title">💰 EN96 Wallet</h2>
- <div class="content">
-  <div class="panel">
-   <strong>Your EN96 Account</strong>
-   <p>
-    Your verified available and reserved
-    balances are displayed in the bot.
-   </p>
-   <button class="mini-action" onclick="openBot()">
-    💎 Open My Wallet in Bot
-   </button>
-   <p class="note">
-    Minimum manual withdrawal:
-    500 EN96.
-    App rewards are not automatically
-    blockchain transfers.
-   </p>
+</section>
+
+<!-- EVENTS -->
+
+<section id="events" class="screen">
+
+  <h2 class="page-title">
+    🏆 EN96 Events
+  </h2>
+
+  <div class="content">
+
+    <div class="panel">
+      <h3>👑 فعاليات المملكة</h3>
+
+      <p>
+        سيظهر هنا جدول فعاليات
+        مجتمع EN96 في المستقبل.
+      </p>
+
+      <button class="panel-button"
+        onclick="openTikTok()">
+        🎵 تابع أخبار EN96
+      </button>
+    </div>
+
   </div>
- </div>
-</div>
 
-<nav class="nav">
- <button id="nav-home" class="active" onclick="showPage('home')">
-  <b>⌂</b>Home
- </button>
- <button id="nav-earn" onclick="showPage('earn')">
-  <b>💰</b>Earn
- </button>
- <button id="nav-events" onclick="showPage('events')">
-  <b>🏆</b>Events
- </button>
- <button id="nav-invite" onclick="showPage('invite')">
-  <b>👥</b>Invite
- </button>
- <button id="nav-wallet" onclick="showPage('wallet')">
-  <b>▣</b>Wallet
- </button>
+</section>
+
+<!-- INVITE -->
+
+<section id="invite" class="screen">
+
+  <h2 class="page-title">
+    👥 Invite Friends
+  </h2>
+
+  <div class="content">
+
+    <div class="panel">
+      <h3>🐻 قبيلة EN96</h3>
+
+      <p>
+        شارك رابط دعوتك مع أصدقائك
+        وانضموا إلى مجتمع EN96.
+      </p>
+
+      <button class="panel-button"
+        onclick="copyInvite()">
+        🔗 نسخ رابط الدعوة
+      </button>
+
+      <p id="inviteStatus" class="notice"></p>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- WALLET -->
+
+<section id="wallet" class="screen">
+
+  <h2 class="page-title">
+    💎 EN96 Wallet
+  </h2>
+
+  <div class="content">
+
+    <div class="panel">
+
+      <h3>💰 محفظة EN96</h3>
+
+      <p>
+        لعرض رصيدك المتاح والمحجوز،
+        افتح محفظتك داخل البوت الحالي.
+      </p>
+
+      <p>
+        الحد الأدنى للسحب:
+        500 EN96.
+      </p>
+
+      <p class="notice">
+        أرصدة التطبيق افتراضية حتى
+        تنفيذ تحويل فعلي على Stellar.
+        عمليات السحب تُراجع يدويًا.
+      </p>
+
+      <button class="panel-button"
+        onclick="openBot()">
+        💰 فتح البوت والمحفظة
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- BOTTOM NAVIGATION -->
+
+<nav class="bottom-nav">
+
+  <button id="nav-home"
+    class="active"
+    onclick="showPage('home')">
+    <b>🏠</b>
+    Home
+  </button>
+
+  <button id="nav-earn"
+    onclick="showPage('earn')">
+    <b>💰</b>
+    Earn
+  </button>
+
+  <button id="nav-events"
+    onclick="showPage('events')">
+    <b>🏆</b>
+    Events
+  </button>
+
+  <button id="nav-invite"
+    onclick="showPage('invite')">
+    <b>👥</b>
+    Invite
+  </button>
+
+  <button id="nav-wallet"
+    onclick="showPage('wallet')">
+    <b>💳</b>
+    Wallet
+  </button>
+
 </nav>
 
-</div>
+</main>
 
 <script>
-const BOT = "https://t.me/EN96_IceDragon_2026_Bot";
-const TIKTOK = "https://www.tiktok.com/@en96mining";
 
-const tg = window.Telegram && window.Telegram.WebApp;
+const BOT_URL =
+  "https://t.me/EN96_IceDragon_2026_Bot";
 
-if(tg){
- try {
-  tg.ready();
-  tg.expand();
- } catch(e) {
-  console.log("Telegram initialization:",e);
- }
+const TIKTOK_URL =
+  "https://www.tiktok.com/@en96mining";
+
+const tg =
+  window.Telegram &&
+  window.Telegram.WebApp;
+
+if (tg) {
+  try {
+    tg.ready();
+    tg.expand();
+  } catch (error) {
+    console.log(error);
+  }
 }
 
-function showPage(page){
- document.querySelectorAll(".screen").forEach(el=>{
-  el.classList.remove("active");
- });
- document.querySelectorAll(".nav button").forEach(el=>{
-  el.classList.remove("active");
- });
- document.getElementById(page).classList.add("active");
- document.getElementById("nav-"+page).classList.add("active");
- window.scrollTo(0,0);
+/*
+  Tap counter is visual only.
+  No coins are credited here.
+*/
+
+let taps = 0;
+let lastTapTime = 0;
+
+function tapBear(event) {
+
+  const now = performance.now();
+
+  // Keep tapping smooth and controlled.
+  if (now - lastTapTime < 120) {
+    return;
+  }
+
+  lastTapTime = now;
+  taps++;
+
+  document.getElementById(
+    "tapCount"
+  ).textContent = taps.toLocaleString();
+
+  const button =
+    document.getElementById("coinButton");
+
+  const area =
+    document.getElementById("coinArea");
+
+  button.classList.add("pressed");
+
+  setTimeout(function() {
+    button.classList.remove("pressed");
+  }, 100);
+
+  const rect = area.getBoundingClientRect();
+
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  const spark = document.createElement("div");
+
+  spark.className = "spark";
+  spark.textContent = "✨ TAP";
+
+  spark.style.left = x + "px";
+  spark.style.top = y + "px";
+
+  area.appendChild(spark);
+
+  setTimeout(function() {
+    spark.remove();
+  }, 750);
+
+  if (
+    tg &&
+    tg.HapticFeedback &&
+    taps % 3 === 0
+  ) {
+    try {
+      tg.HapticFeedback.impactOccurred(
+        "light"
+      );
+    } catch(error) {}
+  }
 }
 
-function openLink(url){
- if(tg && tg.openTelegramLink &&
-    url.startsWith("https://t.me/")){
-  tg.openTelegramLink(url);
- }else if(tg && tg.openLink){
-  tg.openLink(url);
- }else{
-  window.open(url,"_blank","noopener,noreferrer");
- }
+function showPage(page) {
+
+  document.querySelectorAll(
+    ".screen"
+  ).forEach(function(el) {
+    el.classList.remove("active");
+  });
+
+  document.querySelectorAll(
+    ".bottom-nav button"
+  ).forEach(function(el) {
+    el.classList.remove("active");
+  });
+
+  document.getElementById(
+    page
+  ).classList.add("active");
+
+  document.getElementById(
+    "nav-" + page
+  ).classList.add("active");
+
+  window.scrollTo(0, 0);
 }
 
-function openBot(){
- openLink(BOT);
+function openLink(url) {
+
+  if (
+    tg &&
+    tg.openTelegramLink &&
+    url.startsWith("https://t.me/")
+  ) {
+    tg.openTelegramLink(url);
+    return;
+  }
+
+  if (tg && tg.openLink) {
+    tg.openLink(url);
+    return;
+  }
+
+  window.location.href = url;
 }
 
-function openTikTok(){
- openLink(TIKTOK);
+function openBot() {
+  openLink(BOT_URL);
 }
 
-function startMining(){
- alert(
-  "⛏️ Start Mining\n\n"+
-  "Virtual mining is handled by the "+
-  "existing EN96 Telegram bot.\n"+
-  "Open the bot and press بدء التعدين."
- );
- openBot();
+function openTikTok() {
+  openLink(TIKTOK_URL);
 }
 
-function showGifts(){
- alert(
-  "🎁 EN96 Gifts\n\n"+
-  "Open the Telegram bot and press "+
-  "استلام الهدية to redeem a valid code."
- );
- openBot();
+function startMining() {
+
+  alert(
+    "⛏️ EN96 Mining\n\n" +
+    "التعدين محفوظ في نظام البوت الحالي.\n" +
+    "اضغط بدء التعدين بعد فتح Telegram."
+  );
+
+  openBot();
 }
 
-function showBoost(){
- alert(
-  "⚡ Boost\n\n"+
-  "Mining upgrades are not activated yet. "+
-  "No payment will be collected."
- );
+function showGifts() {
+
+  alert(
+    "🎁 EN96 Gifts\n\n" +
+    "افتح البوت واختر استلام الهدية.\n" +
+    "ثم أرسل كود الفيديو الصحيح."
+  );
+
+  openBot();
 }
 
-function showInfo(){
- alert(
-  "EN96 Ice Bear Kingdom\n\n"+
-  "Stellar Mainnet asset: EN96\n"+
-  "Virtual mining rate: 0.001 EN96/s\n"+
-  "Mining session: 24 hours\n"+
-  "Full session: 86.4 EN96\n\n"+
-  "Virtual mining is not real "+
-  "blockchain mining."
- );
+function showBoost() {
+
+  alert(
+    "⚡ EN96 Boost\n\n" +
+    "واجهة الترقية جاهزة للتطوير.\n" +
+    "لم يتم تفعيل الشراء أو الدفع."
+  );
 }
 
-async function inviteFriends(){
- let id=null;
- if(tg && tg.initDataUnsafe &&
-    tg.initDataUnsafe.user){
-  id=tg.initDataUnsafe.user.id;
- }
+function showInvest() {
 
- let link=id
-  ? BOT+"?start=ref_"+id
-  : BOT;
-
- try{
-  await navigator.clipboard.writeText(link);
-  document.getElementById("inviteStatus").textContent=
-   id
-   ? "Your invitation link was copied."
-   : "Bot link copied. Open the bot for your personal referral link.";
- }catch(e){
-  document.getElementById("inviteStatus").textContent=
-   "Invitation link: "+link;
- }
+  alert(
+    "🪙 EN96 Invest\n\n" +
+    "هذا القسم غير مفعّل ماليًا بعد.\n" +
+    "لن يتم خصم أي رصيد."
+  );
 }
+
+function showInfo() {
+
+  alert(
+    "EN96 Ice Bear Kingdom\n\n" +
+    "🐻 Virtual Mining\n" +
+    "⚡ 0.001 EN96 / second\n" +
+    "⏱️ 24-hour session\n" +
+    "💎 86.4 EN96 / full session\n\n" +
+    "النقرات تجريبية في هذه النسخة.\n" +
+    "التعدين ليس تعدين بلوكشين حقيقي."
+  );
+}
+
+async function copyInvite() {
+
+  let id = null;
+
+  if (
+    tg &&
+    tg.initDataUnsafe &&
+    tg.initDataUnsafe.user
+  ) {
+    id = tg.initDataUnsafe.user.id;
+  }
+
+  const link = id
+    ? BOT_URL + "?start=ref_" + id
+    : BOT_URL;
+
+  const output =
+    document.getElementById(
+      "inviteStatus"
+    );
+
+  try {
+
+    await navigator.clipboard.writeText(
+      link
+    );
+
+    output.textContent = id
+      ? "✅ تم نسخ رابط دعوتك."
+      : "✅ تم نسخ رابط البوت. افتح البوت للحصول على رابط دعوتك الشخصي.";
+
+  } catch (error) {
+
+    output.textContent = link;
+  }
+}
+
 </script>
+
 </body>
 </html>
