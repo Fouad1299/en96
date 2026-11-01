@@ -1,0 +1,562 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#190a08">
+<title>EN96 Royal Mining</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{
+ --gold:#ffce48;
+ --deep:#240b0c;
+ --cream:#fff7e6;
+}
+body{
+ margin:0;
+ color:white;
+ font-family:Arial,sans-serif;
+ background:#1a0808;
+}
+.app{
+ min-height:100dvh;
+ max-width:520px;
+ margin:auto;
+ padding-bottom:100px;
+ background:
+ radial-gradient(ellipse at 50% 45%,#ff7840 0%,transparent 56%),
+ linear-gradient(180deg,#110708 0%,#48130f 28%,#a92d27 60%,#f05a35 100%);
+}
+.top{
+ padding:20px 18px 10px;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ gap:10px;
+ font-size:15px;
+ font-weight:700;
+}
+.top span{color:var(--gold)}
+.actions{
+ display:flex;
+ gap:10px;
+ align-items:center;
+ padding:12px 16px;
+}
+.gold-btn{
+ border:1px solid #ffe18c;
+ background:linear-gradient(180deg,#ffe17b,#ffb21e);
+ color:#4b2106;
+ border-radius:35px;
+ font-weight:900;
+ cursor:pointer;
+ box-shadow:0 5px 0 #8a360d,0 6px 15px #ff9a2680;
+}
+.actions .gold-btn{
+ padding:13px 6px;
+ flex:1;
+ font-size:16px;
+}
+.info-btn{
+ border:2px solid white;
+ background:#361212;
+ color:white;
+ border-radius:50%;
+ width:40px;
+ height:40px;
+ font-size:22px;
+}
+.heading{
+ text-align:center;
+ margin-top:12px;
+ font-size:18px;
+ letter-spacing:1px;
+ font-weight:700;
+}
+.pool{
+ font-size:clamp(26px,9vw,46px);
+ font-weight:900;
+ text-align:center;
+ margin:12px 0;
+ text-shadow:0 3px 10px #a83113;
+}
+.stats{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:16px;
+ margin:18px 16px;
+ text-align:center;
+}
+.stat-value{
+ font-size:clamp(15px,5vw,24px);
+ font-weight:900;
+}
+.yellow{color:#ffcf43}
+.blue{color:#22d4f5}
+.bar{
+ height:15px;
+ border-radius:20px;
+ margin:12px 0;
+ background:#431313;
+ overflow:hidden;
+}
+.bar>div{
+ height:100%;
+ width:100%;
+ border-radius:20px;
+}
+.yellowbar{background:linear-gradient(90deg,#ffb31f,#ffed60)}
+.bluebar{background:linear-gradient(90deg,#00cce8,#009cff)}
+.small{
+ font-size:11px;
+ color:#ffe6d7;
+}
+.coin-wrap{
+ position:relative;
+ text-align:center;
+ margin:20px auto 24px;
+ width:76%;
+ max-width:330px;
+ aspect-ratio:1;
+ display:grid;
+ place-items:center;
+}
+.coin-glow{
+ position:absolute;
+ inset:5%;
+ border-radius:50%;
+ background:#ffbd30;
+ filter:blur(38px);
+ opacity:.62;
+ animation:pulse 3s infinite;
+}
+.coin{
+ position:relative;
+ width:100%;
+ height:100%;
+ border-radius:50%;
+ border:9px ridge #ffe07b;
+ background:
+ radial-gradient(circle at 50% 28%,#ffe49a,#d8810f 60%,#512009);
+ box-shadow:
+ 0 0 0 4px #8a3b0b,
+ 0 0 30px #ffd54d,
+ inset 0 0 20px #ffe69b;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ overflow:hidden;
+}
+.coin img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+}
+.coin-fallback{
+ font-size:90px;
+ display:none;
+}
+.coin-label{
+ position:absolute;
+ bottom:12%;
+ font-size:29px;
+ font-weight:900;
+ color:#fff3b1;
+ text-shadow:0 2px 6px #492000;
+}
+@keyframes pulse{
+ 50%{opacity:.85;transform:scale(1.05)}
+}
+.start{
+ display:block;
+ width:88%;
+ margin:0 auto 26px;
+ padding:19px;
+ font-size:24px;
+}
+.content{
+ padding:0 18px;
+}
+.section-title{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ font-size:18px;
+ font-weight:800;
+ margin-bottom:14px;
+}
+.section-title a{
+ font-size:13px;
+ color:#ffe277;
+ text-decoration:none;
+}
+.panel{
+ background:#411512d9;
+ border:1px solid #ffbc53;
+ border-radius:20px;
+ padding:17px;
+ box-shadow:0 8px 20px #30090055;
+}
+.panel p{
+ line-height:1.7;
+ color:#ffe2d1;
+ font-size:14px;
+}
+.mini-action{
+ display:block;
+ background:linear-gradient(#ffdc72,#f9a71c);
+ color:#482308;
+ border:0;
+ border-radius:14px;
+ padding:14px;
+ font-size:15px;
+ font-weight:bold;
+ text-align:center;
+ text-decoration:none;
+ width:100%;
+ margin-top:12px;
+ cursor:pointer;
+}
+.screen{display:none}
+.screen.active{display:block}
+.page-title{
+ text-align:center;
+ font-size:24px;
+ padding:20px 10px;
+}
+.grid-options{
+ display:grid;
+ gap:12px;
+}
+.option{
+ background:#4c1716db;
+ padding:19px;
+ border:1px solid #d78b45;
+ border-radius:16px;
+ text-align:left;
+ color:white;
+ font-size:16px;
+ width:100%;
+ cursor:pointer;
+}
+.note{
+ font-size:12px;
+ line-height:1.7;
+ color:#ffe6d0;
+ padding:10px 2px;
+}
+.nav{
+ position:fixed;
+ bottom:0;
+ left:50%;
+ transform:translateX(-50%);
+ width:100%;
+ max-width:520px;
+ padding:9px 8px max(10px,env(safe-area-inset-bottom));
+ display:flex;
+ gap:3px;
+ background:#421714f2;
+ border-top:2px solid #b36a26;
+ border-radius:20px 20px 0 0;
+ z-index:20;
+}
+.nav button{
+ flex:1;
+ min-width:0;
+ border:0;
+ border-radius:13px;
+ padding:9px 2px;
+ background:transparent;
+ color:white;
+ font-size:11px;
+ cursor:pointer;
+}
+.nav button b{
+ display:block;
+ font-size:22px;
+ margin-bottom:5px;
+}
+.nav button.active{
+ background:linear-gradient(#ffe477,#ffc126);
+ color:#582500;
+ font-weight:900;
+}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="top">
+👑 <span>EN96</span>
+Mining | Ice Bear Kingdom
+</header>
+
+<div id="home" class="screen active">
+
+<div class="actions">
+<button class="gold-btn" onclick="showPage('wallet')">🪙 Invest</button>
+<button class="info-btn" onclick="showInfo()">ⓘ</button>
+<button class="gold-btn" onclick="showBoost()">🚀 Boost</button>
+</div>
+
+<div class="heading">🌿 MINING POOL 🌿</div>
+
+<div class="pool" id="poolText">
+EN96 MINING
+</div>
+
+<div class="stats">
+ <div>
+  <div class="stat-value yellow">💰 86.4</div>
+  <div class="bar"><div class="yellowbar"></div></div>
+  <div class="small">EN96 per 24-hour session</div>
+ </div>
+ <div>
+  <div class="stat-value blue">⚡ 0.001</div>
+  <div class="bar"><div class="bluebar"></div></div>
+  <div class="small">EN96 per second</div>
+ </div>
+</div>
+
+<div class="coin-wrap">
+ <div class="coin-glow"></div>
+ <div class="coin">
+  <img
+   id="coinImage"
+   src="https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png"
+   alt="EN96 Golden Bear"
+   onerror="this.style.display='none';document.querySelector('.coin-fallback').style.display='block'"
+  >
+  <div class="coin-fallback">🐻👑</div>
+ </div>
+</div>
+
+<button class="gold-btn start" onclick="startMining()">
+⛏️ Start Mining
+</button>
+
+<div class="content">
+ <div class="section-title">
+  <span>Mining & Rewards</span>
+  <a href="#" onclick="showPage('earn');return false">View All →</a>
+ </div>
+ <div class="panel">
+  <strong>🐻 EN96 Virtual Mining</strong>
+  <p>
+   Mine virtually for 24 hours at the
+   default rate of 0.001 EN96/s.
+   Rewards are recorded by the existing
+   EN96 bot and Supabase system.
+  </p>
+  <button class="mini-action" onclick="openBot()">
+   Open EN96 Bot
+  </button>
+ </div>
+</div>
+
+</div>
+
+<div id="earn" class="screen">
+ <h2 class="page-title">🏆 Earn EN96</h2>
+ <div class="content grid-options">
+  <button class="option" onclick="startMining()">⛏️ Start Virtual Mining</button>
+  <button class="option" onclick="showGifts()">🎁 Video Gift Codes</button>
+  <button class="option" onclick="openTikTok()">🎵 Follow TikTok EN96</button>
+  <button class="option" onclick="showBoost()">⚡ Upgrade Mine</button>
+  <p class="note">
+   Gift claims and rewards are verified
+   by the existing Telegram bot.
+  </p>
+ </div>
+</div>
+
+<div id="events" class="screen">
+ <h2 class="page-title">🏆 EN96 Events</h2>
+ <div class="content">
+  <div class="panel">
+   <strong>🎁 Community Events</strong>
+   <p>
+    Follow EN96 for future campaigns,
+    videos and announcements.
+    No active event is announced here yet.
+   </p>
+   <button class="mini-action" onclick="openTikTok()">
+    EN96 TikTok
+   </button>
+  </div>
+ </div>
+</div>
+
+<div id="invite" class="screen">
+ <h2 class="page-title">👥 Invite Friends</h2>
+ <div class="content">
+  <div class="panel">
+   <strong>🐻 Join the EN96 Tribe</strong>
+   <p>
+    Invite your friends using your
+    personal referral link.
+   </p>
+   <button class="mini-action" onclick="inviteFriends()">
+    🔗 Copy My Invite Link
+   </button>
+   <p id="inviteStatus" class="note"></p>
+  </div>
+ </div>
+</div>
+
+<div id="wallet" class="screen">
+ <h2 class="page-title">💰 EN96 Wallet</h2>
+ <div class="content">
+  <div class="panel">
+   <strong>Your EN96 Account</strong>
+   <p>
+    Your verified available and reserved
+    balances are displayed in the bot.
+   </p>
+   <button class="mini-action" onclick="openBot()">
+    💎 Open My Wallet in Bot
+   </button>
+   <p class="note">
+    Minimum manual withdrawal:
+    500 EN96.
+    App rewards are not automatically
+    blockchain transfers.
+   </p>
+  </div>
+ </div>
+</div>
+
+<nav class="nav">
+ <button id="nav-home" class="active" onclick="showPage('home')">
+  <b>⌂</b>Home
+ </button>
+ <button id="nav-earn" onclick="showPage('earn')">
+  <b>💰</b>Earn
+ </button>
+ <button id="nav-events" onclick="showPage('events')">
+  <b>🏆</b>Events
+ </button>
+ <button id="nav-invite" onclick="showPage('invite')">
+  <b>👥</b>Invite
+ </button>
+ <button id="nav-wallet" onclick="showPage('wallet')">
+  <b>▣</b>Wallet
+ </button>
+</nav>
+
+</div>
+
+<script>
+const BOT = "https://t.me/EN96_IceDragon_2026_Bot";
+const TIKTOK = "https://www.tiktok.com/@en96mining";
+
+const tg = window.Telegram && window.Telegram.WebApp;
+
+if(tg){
+ try {
+  tg.ready();
+  tg.expand();
+ } catch(e) {
+  console.log("Telegram initialization:",e);
+ }
+}
+
+function showPage(page){
+ document.querySelectorAll(".screen").forEach(el=>{
+  el.classList.remove("active");
+ });
+ document.querySelectorAll(".nav button").forEach(el=>{
+  el.classList.remove("active");
+ });
+ document.getElementById(page).classList.add("active");
+ document.getElementById("nav-"+page).classList.add("active");
+ window.scrollTo(0,0);
+}
+
+function openLink(url){
+ if(tg && tg.openTelegramLink &&
+    url.startsWith("https://t.me/")){
+  tg.openTelegramLink(url);
+ }else if(tg && tg.openLink){
+  tg.openLink(url);
+ }else{
+  window.open(url,"_blank","noopener,noreferrer");
+ }
+}
+
+function openBot(){
+ openLink(BOT);
+}
+
+function openTikTok(){
+ openLink(TIKTOK);
+}
+
+function startMining(){
+ alert(
+  "⛏️ Start Mining\n\n"+
+  "Virtual mining is handled by the "+
+  "existing EN96 Telegram bot.\n"+
+  "Open the bot and press بدء التعدين."
+ );
+ openBot();
+}
+
+function showGifts(){
+ alert(
+  "🎁 EN96 Gifts\n\n"+
+  "Open the Telegram bot and press "+
+  "استلام الهدية to redeem a valid code."
+ );
+ openBot();
+}
+
+function showBoost(){
+ alert(
+  "⚡ Boost\n\n"+
+  "Mining upgrades are not activated yet. "+
+  "No payment will be collected."
+ );
+}
+
+function showInfo(){
+ alert(
+  "EN96 Ice Bear Kingdom\n\n"+
+  "Stellar Mainnet asset: EN96\n"+
+  "Virtual mining rate: 0.001 EN96/s\n"+
+  "Mining session: 24 hours\n"+
+  "Full session: 86.4 EN96\n\n"+
+  "Virtual mining is not real "+
+  "blockchain mining."
+ );
+}
+
+async function inviteFriends(){
+ let id=null;
+ if(tg && tg.initDataUnsafe &&
+    tg.initDataUnsafe.user){
+  id=tg.initDataUnsafe.user.id;
+ }
+
+ let link=id
+  ? BOT+"?start=ref_"+id
+  : BOT;
+
+ try{
+  await navigator.clipboard.writeText(link);
+  document.getElementById("inviteStatus").textContent=
+   id
+   ? "Your invitation link was copied."
+   : "Bot link copied. Open the bot for your personal referral link.";
+ }catch(e){
+  document.getElementById("inviteStatus").textContent=
+   "Invitation link: "+link;
+ }
+}
+</script>
+</body>
+</html>
