@@ -27,9 +27,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("EN96")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-
 SUPABASE_KEY = (
     os.getenv("SUPABASE_SECRET_KEY")
     or os.getenv("SUPABASE_KEY")
@@ -53,6 +51,10 @@ BOT_USERNAME = "EN96_IceDragon_2026_Bot"
 
 TIKTOK_URL = (
     "https://www.tiktok.com/@en96mining"
+)
+
+YOUTUBE_URL = (
+    "https://www.youtube.com/@EN96_Gold_Miner_bo"
 )
 
 MINING_RATE = 0.001
@@ -123,6 +125,7 @@ def profile_for(user_id):
         .limit(1)
         .execute()
     )
+
     return result.data[0] if result.data else None
 
 
@@ -164,6 +167,10 @@ def menu(user_id=None):
 
     kb.row(
         KeyboardButton("🎵 TikTok EN96"),
+        KeyboardButton("▶️ YouTube EN96")
+    )
+
+    kb.row(
         KeyboardButton("🌐 فتح تطبيق EN96")
     )
 
@@ -199,27 +206,68 @@ def admin_menu():
 
 
 # =====================================
-# TIKTOK
+# YOUTUBE / TIKTOK
 # =====================================
 
-def show_tiktok(chat_id):
+def show_social(chat_id):
     kb = InlineKeyboardMarkup()
 
-    kb.add(
+    kb.row(
         InlineKeyboardButton(
-            "🎵 فتح TikTok الرسمي EN96",
+            "▶️ YouTube EN96",
+            url=YOUTUBE_URL
+        ),
+        InlineKeyboardButton(
+            "🎵 TikTok EN96",
             url=TIKTOK_URL
         )
     )
 
     bot.send_message(
         chat_id,
-        "🐻👑 TikTok الرسمي لمشروع EN96\n\n"
-        "🎬 شاهد فيديوهات الدب الملك.\n"
-        "🎁 ابحث عن أكواد الهدايا.\n"
-        "💎 استبدل الأكواد داخل البوت.\n\n"
-        "حسابنا: @en96mining\n\n"
-        "المكافآت تخضع لقواعد المشروع.",
+        "🐻👑 مجتمع EN96 الرسمي\n\n"
+        "▶️ شاهد فيديوهات YouTube.\n"
+        "🎵 تابع فيديوهات TikTok.\n"
+        "🎁 ابحث عن أكواد الهدايا.\n\n"
+        "يمكنك إدخال الأكواد الصحيحة "
+        "داخل بوت EN96.\n\n"
+        "⚠️ المكافآت تخضع لقواعد المشروع.",
+        reply_markup=kb
+    )
+
+
+def show_tiktok(chat_id):
+    kb = InlineKeyboardMarkup()
+
+    kb.add(
+        InlineKeyboardButton(
+            "🎵 فتح TikTok الرسمي",
+            url=TIKTOK_URL
+        )
+    )
+
+    bot.send_message(
+        chat_id,
+        "🎵 TikTok الرسمي لمشروع EN96\n\n"
+        "@en96mining",
+        reply_markup=kb
+    )
+
+
+def show_youtube(chat_id):
+    kb = InlineKeyboardMarkup()
+
+    kb.add(
+        InlineKeyboardButton(
+            "▶️ فتح قناة YouTube",
+            url=YOUTUBE_URL
+        )
+    )
+
+    bot.send_message(
+        chat_id,
+        "▶️ قناة YouTube الرسمية لـ EN96\n\n"
+        "@EN96_Gold_Miner_bo",
         reply_markup=kb
     )
 
@@ -229,13 +277,6 @@ def show_tiktok(chat_id):
 # =====================================
 
 def app_button(chat_id):
-    if not ROYAL_APP_URL.startswith("https://"):
-        bot.send_message(
-            chat_id,
-            "رابط تطبيق EN96 غير صحيح."
-        )
-        return
-
     kb = InlineKeyboardMarkup()
 
     kb.add(
@@ -255,8 +296,8 @@ def app_button(chat_id):
         "💰 المحفظة والمكافآت.\n"
         "🎁 الهدايا والقبيلة.\n\n"
         "اضغط الزر للدخول.\n\n"
-        "⚠️ النقر داخل الواجهة تجريبي "
-        "ولا يضيف عملات إلى الرصيد حاليًا.",
+        "⚠️ النقر على الدب داخل الواجهة "
+        "تجريبي ولا يضيف عملات حاليًا.",
         reply_markup=kb
     )
 
@@ -399,7 +440,10 @@ def mining_counter(
         try:
             while not stop_event.is_set():
                 elapsed = min(
-                    max(0, int(time.time() - started)),
+                    max(
+                        0,
+                        int(time.time() - started)
+                    ),
                     MINING_DURATION
                 )
 
@@ -430,7 +474,10 @@ def mining_counter(
                         reply_markup=mining_keyboard()
                     )
                 except Exception as exc:
-                    if "message is not modified" not in str(exc).lower():
+                    if (
+                        "message is not modified"
+                        not in str(exc).lower()
+                    ):
                         log.warning(
                             "Mining counter update: %s",
                             exc
@@ -442,7 +489,8 @@ def mining_counter(
                             db.rpc(
                                 "en96_mining_action",
                                 {
-                                    "p_telegram_id": str(user_id)
+                                    "p_telegram_id":
+                                    str(user_id)
                                 }
                             ).execute()
                         )
@@ -453,8 +501,8 @@ def mining_counter(
                             bot.send_message(
                                 chat_id,
                                 "✅ أكدت Supabase إضافة "
-                                f"{data.get('reward', 86.4)} EN96.\n"
-                                "بدأت جلسة جديدة."
+                                f"{data.get('reward', 86.4)} "
+                                "EN96.\nبدأت جلسة جديدة."
                             )
 
                             started = time.time()
@@ -465,7 +513,8 @@ def mining_counter(
                                 1,
                                 int(
                                     data.get(
-                                        "remaining_seconds", 1
+                                        "remaining_seconds",
+                                        1
                                     )
                                 )
                             )
@@ -596,10 +645,12 @@ def mining(chat_id, user_id):
 def mining_refresh(call):
     try:
         bot.answer_callback_query(call.id)
+
         mining(
             call.message.chat.id,
             call.from_user.id
         )
+
     except Exception:
         log.exception("Mining refresh error")
 
@@ -636,7 +687,10 @@ def record_referral(message):
     referrer = payload[4:]
     new_user = str(message.from_user.id)
 
-    if not referrer.isascii() or not referrer.isdigit():
+    if (
+        not referrer.isascii()
+        or not referrer.isdigit()
+    ):
         return
 
     if referrer == new_user:
@@ -741,7 +795,7 @@ def tribe(chat_id, user_id):
 
 
 # =====================================
-# GIFTS
+# VIDEO GIFTS
 # =====================================
 
 def redeem_gift(message):
@@ -765,7 +819,8 @@ def redeem_gift(message):
             bot.send_message(
                 message.chat.id,
                 "🎁 تم استلام "
-                f"{data.get('reward', 1)} EN96 بنجاح!"
+                f"{data.get('reward', 1)} "
+                "EN96 بنجاح!"
             )
             return
 
@@ -776,8 +831,10 @@ def redeem_gift(message):
         )
 
         errors = {
-            "invalid_input": "الكود غير صالح.",
-            "profile_not_found": "أرسل /start أولًا.",
+            "invalid_input":
+                "الكود غير صالح.",
+            "profile_not_found":
+                "أرسل /start أولًا.",
             "invalid_or_inactive_code":
                 "الكود غير موجود أو غير مفعل.",
             "already_claimed":
@@ -926,7 +983,10 @@ def admin_reward(message):
 
     item = PENDING.get(uid, {})
 
-    if not item.get("code") or not item.get("video_url"):
+    if (
+        not item.get("code")
+        or not item.get("video_url")
+    ):
         WAITING_ADMIN_REWARD.discard(uid)
         bot.send_message(
             message.chat.id,
@@ -1127,6 +1187,7 @@ def admin_stars_balance(
 
 @bot.message_handler(commands=["start", "menu"])
 def start(message):
+
     if message.chat.type != "private":
         bot.reply_to(
             message,
@@ -1135,19 +1196,60 @@ def start(message):
         return
 
     uid = message.from_user.id
+    chat_id = message.chat.id
 
     if not register_member(uid):
         bot.send_message(
-            message.chat.id,
+            chat_id,
             "⚠️ تعذر تأكيد حسابك.\n"
             "حاول لاحقًا."
         )
         return
 
-    record_referral(message)
+    # Check Telegram deep-link payload
+    parts = (
+        (message.text or "")
+        .strip()
+        .split(maxsplit=1)
+    )
 
+    command = (
+        parts[0].split("@")[0]
+        if parts else ""
+    )
+
+    payload = (
+        parts[1].strip()
+        if len(parts) == 2
+        else ""
+    )
+
+    # =================================
+    # NEW: START MINING FROM ROYAL APP
+    # =================================
+
+    if (
+        command == "/start"
+        and payload == "mining"
+    ):
+        log.info(
+            "EN96 mining deep link: %s",
+            uid
+        )
+
+        mining(chat_id, uid)
+        return
+
+    # Keep referrals working
+    if (
+        command == "/start"
+        and payload.startswith("ref_")
+    ):
+        record_referral(message)
+
+    # Normal welcome menu
     send_menu(
-        message.chat.id,
+        chat_id,
         user_id=uid
     )
 
@@ -1188,6 +1290,11 @@ def stars_command(message):
 @bot.message_handler(commands=["tiktok"])
 def tiktok_command(message):
     show_tiktok(message.chat.id)
+
+
+@bot.message_handler(commands=["youtube"])
+def youtube_command(message):
+    show_youtube(message.chat.id)
 
 
 @bot.message_handler(commands=["admin"])
@@ -1316,6 +1423,9 @@ def menu_handler(message):
 
     elif text == "🎵 TikTok EN96":
         show_tiktok(chat_id)
+
+    elif text == "▶️ YouTube EN96":
+        show_youtube(chat_id)
 
     elif text == "📺 مشاهدة الفيديوهات":
         show_videos(chat_id)
