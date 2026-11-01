@@ -3,7 +3,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#210909">
 <title>EN96 Mining | Ice Bear Kingdom</title>
 
@@ -38,10 +38,11 @@ button {
 }
 
 .app {
+  width: 100%;
   max-width: 520px;
   min-height: 100dvh;
   margin: auto;
-  padding-bottom: 110px;
+  padding-bottom: 105px;
   overflow: hidden;
   background:
     radial-gradient(
@@ -88,13 +89,12 @@ button {
 .gold-button {
   border: 1px solid #ffef9d;
   border-radius: 30px;
-  background:
-    linear-gradient(
-      180deg,
-      #fff097 0%,
-      #ffd041 43%,
-      #ffad14 100%
-    );
+  background: linear-gradient(
+    180deg,
+    #fff097 0%,
+    #ffd041 43%,
+    #ffad14 100%
+  );
   color: #4c2300;
   font-size: 17px;
   font-weight: 900;
@@ -179,11 +179,19 @@ button {
 }
 
 .progress-fill.gold {
-  background: linear-gradient(90deg, #ffae19, #fff178);
+  background: linear-gradient(
+    90deg,
+    #ffae19,
+    #fff178
+  );
 }
 
 .progress-fill.blue {
-  background: linear-gradient(90deg, #00dce8, #0098ed);
+  background: linear-gradient(
+    90deg,
+    #00dce8,
+    #0098ed
+  );
 }
 
 .stat-label {
@@ -192,11 +200,29 @@ button {
   line-height: 1.5;
 }
 
+/* Mining button under 86.4 */
+
+.mining-under {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 5px;
+  font-size: 13px;
+  border-radius: 15px;
+}
+
+.session-label {
+  color: #ffe6c9;
+  font-size: 12px;
+  margin-top: 17px;
+}
+
+/* Bear coin */
+
 .coin-area {
   position: relative;
   width: min(82vw, 365px);
   aspect-ratio: 1;
-  margin: 30px auto 5px;
+  margin: 28px auto 5px;
   display: grid;
   place-items: center;
   isolation: isolate;
@@ -230,8 +256,11 @@ button {
   overflow: hidden;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle, #ffca47, #b5680e);
+  background: radial-gradient(
+    circle,
+    #ffca47,
+    #b5680e
+  );
   box-shadow:
     0 0 0 3px #8a3908,
     0 0 34px #ffb719,
@@ -297,7 +326,6 @@ button {
     opacity: 1;
     transform: translate(-50%, -50%) scale(.8);
   }
-
   100% {
     opacity: 0;
     transform: translate(-50%, -150%) scale(1.4);
@@ -309,7 +337,7 @@ button {
   width: 88%;
   padding: 20px 10px;
   margin: 22px auto 27px;
-  font-size: 25px;
+  font-size: 24px;
 }
 
 .content {
@@ -337,6 +365,7 @@ button {
   border-radius: 19px;
   background: #481715df;
   padding: 19px;
+  margin-bottom: 15px;
   box-shadow: 0 8px 20px #2e070755;
 }
 
@@ -358,12 +387,43 @@ button {
   margin-top: 13px;
   border: 1px solid #ffedab;
   border-radius: 14px;
-  background: linear-gradient(#ffe27b, #ffa915);
+  background: linear-gradient(
+    #ffe27b,
+    #ffa915
+  );
   color: #4c2307;
   text-align: center;
   text-decoration: none;
   font-size: 16px;
   font-weight: 900;
+}
+
+/* Video buttons */
+
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 13px 0;
+}
+
+.video-button {
+  display: block;
+  width: 100%;
+  padding: 20px 8px;
+  border: 1px solid #ffce73;
+  border-radius: 16px;
+  background: #371110;
+  color: #fff;
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.video-button span {
+  display: block;
+  font-size: 30px;
+  margin-bottom: 8px;
 }
 
 .screen {
@@ -402,6 +462,8 @@ button {
   line-height: 1.8;
 }
 
+/* Bottom navigation */
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -410,7 +472,9 @@ button {
   display: flex;
   width: 100%;
   max-width: 520px;
-  padding: 9px 7px max(11px, env(safe-area-inset-bottom));
+  padding:
+    9px 7px
+    max(11px, env(safe-area-inset-bottom));
   background: #3c1312f5;
   border-top: 2px solid #b46d2c;
   border-radius: 20px 20px 0 0;
@@ -436,7 +500,10 @@ button {
 }
 
 .bottom-nav button.active {
-  background: linear-gradient(#ffe477, #ffbd20);
+  background: linear-gradient(
+    #ffe477,
+    #ffbd20
+  );
   color: #572100;
   font-weight: 900;
 }
@@ -448,7 +515,9 @@ button {
 <main class="app">
 
 <header class="header">
-  <strong>👑 EN96 Mining | Ice Bear Kingdom</strong>
+  <strong>
+    👑 EN96 Mining | Ice Bear Kingdom
+  </strong>
   <small>Telegram WebApp</small>
 </header>
 
@@ -457,20 +526,25 @@ button {
 <section id="home" class="screen active">
 
   <div class="actions">
-    <button class="gold-button"
+
+    <button
+      class="gold-button"
       onclick="showInvest()">
       🪙 Invest
     </button>
 
-    <button class="info-button"
+    <button
+      class="info-button"
       onclick="showInfo()">
       ⓘ
     </button>
 
-    <button class="gold-button"
+    <button
+      class="gold-button"
       onclick="showBoost()">
       🚀 Boost
     </button>
+
   </div>
 
   <div class="mining-title">
@@ -481,9 +555,12 @@ button {
     EN96 MINING
   </h1>
 
+  <!-- Mining statistics -->
+
   <div class="stats">
 
     <div class="stat">
+
       <div class="stat-number gold-text">
         💰 86.4
       </div>
@@ -495,9 +572,18 @@ button {
       <div class="stat-label">
         EN96 per 24-hour session
       </div>
+
+      <!-- New mining button -->
+      <button
+        class="gold-button mining-under"
+        onclick="startMining()">
+        ⛏️ تشغيل التعدين
+      </button>
+
     </div>
 
     <div class="stat">
+
       <div class="stat-number blue-text">
         ⚡ 0.001
       </div>
@@ -509,32 +595,39 @@ button {
       <div class="stat-label">
         EN96 per second
       </div>
+
+      <div class="session-label">
+        ⏱️ جلسة التعدين 24 ساعة
+      </div>
+
     </div>
 
   </div>
 
-  <!-- INTERACTIVE BEAR COIN -->
+  <!-- EN96 BEAR -->
 
   <div class="coin-area" id="coinArea">
+
     <div class="coin-halo"></div>
 
     <button
       id="coinButton"
       class="coin-button"
       aria-label="انقر على وجه الدب"
-      onclick="tapBear(event)"
-    >
+      onclick="tapBear(event)">
+
       <img
         id="bearImage"
         src="https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png"
-        alt="EN96 Royal Golden Bear Coin"
-        onerror="this.style.display='none';document.getElementById('fallbackBear').style.display='block'"
-      >
+        alt="EN96 Golden Bear"
+        onerror="this.style.display='none';document.getElementById('fallbackBear').style.display='block'">
 
-      <div id="fallbackBear" class="coin-fallback">
+      <span id="fallbackBear" class="coin-fallback">
         🐻👑
-      </div>
+      </span>
+
     </button>
+
   </div>
 
   <div class="tap-hint">
@@ -542,14 +635,15 @@ button {
   </div>
 
   <div class="tap-count">
-    ✨ عدد النقرات: <span id="tapCount">0</span>
-
+    ✨ عدد النقرات:
+    <span id="tapCount">0</span>
     <small>
       عداد تجريبي — لا يضيف EN96 إلى المحفظة
     </small>
   </div>
 
-  <button class="gold-button start-button"
+  <button
+    class="gold-button start-button"
     onclick="startMining()">
     ⛏️ Start Mining
   </button>
@@ -557,11 +651,12 @@ button {
   <div class="content">
 
     <div class="section-heading">
-      <span>Mining & Rewards</span>
+      <span>التعدين والمكافآت</span>
 
-      <button class="view-all"
+      <button
+        class="view-all"
         onclick="showPage('earn')">
-        View All ←
+        عرض الكل ←
       </button>
     </div>
 
@@ -571,18 +666,57 @@ button {
 
       <p>
         التعدين الافتراضي في EN96 يستمر
-        24 ساعة للجلسة، بمعدل افتراضي
+        لمدة 24 ساعة، بمعدل
         0.001 EN96 في الثانية.
       </p>
 
       <p>
-        تُدار مكافآت التعدين الحالية بواسطة
-        البوت ونظام Supabase.
+        يتم تسجيل المكافآت بواسطة
+        بوت EN96 وقاعدة Supabase.
       </p>
 
-      <button class="panel-button"
-        onclick="openBot()">
-        📲 Open EN96 Bot
+      <button
+        class="panel-button"
+        onclick="startMining()">
+        ⛏️ بدء التعدين عبر Telegram
+      </button>
+
+    </div>
+
+    <!-- YouTube and TikTok -->
+
+    <div class="panel">
+
+      <h3>🎬 فيديوهات EN96</h3>
+
+      <p>
+        شاهد فيديوهات المشروع،
+        وابحث عن أكواد الهدايا،
+        ثم استبدلها داخل البوت.
+      </p>
+
+      <div class="video-grid">
+
+        <button
+          class="video-button"
+          onclick="openYouTube()">
+          <span>▶️</span>
+          YouTube
+        </button>
+
+        <button
+          class="video-button"
+          onclick="openTikTok()">
+          <span>🎵</span>
+          TikTok
+        </button>
+
+      </div>
+
+      <button
+        class="panel-button"
+        onclick="showGifts()">
+        🎁 أكواد هدايا الفيديوهات
       </button>
 
     </div>
@@ -601,34 +735,53 @@ button {
 
   <div class="content options">
 
-    <button class="option"
+    <button
+      class="option"
       onclick="startMining()">
-      ⛏️ بدء التعدين
+      ⛏️ تشغيل التعدين
     </button>
 
-    <button class="option"
+    <button
+      class="option"
       onclick="showGifts()">
       🎁 أكواد الهدايا
     </button>
 
-    <button class="option"
-      onclick="openTikTok()">
-      🎵 TikTok EN96
-    </button>
+    <div class="video-grid">
 
-    <button class="option"
+      <button
+        class="video-button"
+        onclick="openYouTube()">
+        <span>▶️</span>
+        YouTube
+      </button>
+
+      <button
+        class="video-button"
+        onclick="openTikTok()">
+        <span>🎵</span>
+        TikTok
+      </button>
+
+    </div>
+
+    <button
+      class="option"
       onclick="showBoost()">
       ⚡ ترقية التعدين
     </button>
 
     <div class="panel">
+
       <h3>🐻 نظام المكافآت</h3>
 
       <p>
-        يمكنك مشاهدة فيديوهات المشروع
-        والحصول على أكواد الهدايا
-        واستبدالها في بوت Telegram.
+        يمكن مشاهدة فيديوهات
+        المشروع للحصول على
+        أكواد الهدايا المتاحة،
+        ثم إدخال الكود في بوت Telegram.
       </p>
+
     </div>
 
   </div>
@@ -646,17 +799,22 @@ button {
   <div class="content">
 
     <div class="panel">
+
       <h3>👑 فعاليات المملكة</h3>
 
       <p>
-        سيظهر هنا جدول فعاليات
-        مجتمع EN96 في المستقبل.
+        هذا القسم مخصص
+        لفعاليات مجتمع EN96.
+        لا توجد فعاليات مفعلة
+        في هذه الواجهة حاليًا.
       </p>
 
-      <button class="panel-button"
-        onclick="openTikTok()">
-        🎵 تابع أخبار EN96
+      <button
+        class="panel-button"
+        onclick="showGifts()">
+        🎁 فيديوهات المكافآت
       </button>
+
     </div>
 
   </div>
@@ -674,19 +832,23 @@ button {
   <div class="content">
 
     <div class="panel">
+
       <h3>🐻 قبيلة EN96</h3>
 
       <p>
-        شارك رابط دعوتك مع أصدقائك
-        وانضموا إلى مجتمع EN96.
+        ادعُ أصدقاءك للانضمام
+        إلى مجتمع EN96،
+        واستعمل رابط الدعوة الشخصي.
       </p>
 
-      <button class="panel-button"
+      <button
+        class="panel-button"
         onclick="copyInvite()">
         🔗 نسخ رابط الدعوة
       </button>
 
       <p id="inviteStatus" class="notice"></p>
+
     </div>
 
   </div>
@@ -708,8 +870,9 @@ button {
       <h3>💰 محفظة EN96</h3>
 
       <p>
-        لعرض رصيدك المتاح والمحجوز،
-        افتح محفظتك داخل البوت الحالي.
+        لعرض رصيدك المتاح
+        والمحجوز، افتح محفظة
+        EN96 من قائمة البوت.
       </p>
 
       <p>
@@ -718,14 +881,16 @@ button {
       </p>
 
       <p class="notice">
-        أرصدة التطبيق افتراضية حتى
-        تنفيذ تحويل فعلي على Stellar.
-        عمليات السحب تُراجع يدويًا.
+        المكافآت داخل التطبيق
+        ليست تحويلات على Stellar
+        حتى تُنفّذ معاملة فعلية.
+        السحب يخضع للمراجعة اليدوية.
       </p>
 
-      <button class="panel-button"
+      <button
+        class="panel-button"
         onclick="openBot()">
-        💰 فتح البوت والمحفظة
+        💰 فتح المحفظة في البوت
       </button>
 
     </div>
@@ -738,32 +903,37 @@ button {
 
 <nav class="bottom-nav">
 
-  <button id="nav-home"
+  <button
+    id="nav-home"
     class="active"
     onclick="showPage('home')">
     <b>🏠</b>
     Home
   </button>
 
-  <button id="nav-earn"
+  <button
+    id="nav-earn"
     onclick="showPage('earn')">
     <b>💰</b>
     Earn
   </button>
 
-  <button id="nav-events"
+  <button
+    id="nav-events"
     onclick="showPage('events')">
     <b>🏆</b>
     Events
   </button>
 
-  <button id="nav-invite"
+  <button
+    id="nav-invite"
     onclick="showPage('invite')">
     <b>👥</b>
     Invite
   </button>
 
-  <button id="nav-wallet"
+  <button
+    id="nav-wallet"
     onclick="showPage('wallet')">
     <b>💳</b>
     Wallet
@@ -775,11 +945,20 @@ button {
 
 <script>
 
+// =====================================
+// EN96 LINKS
+// =====================================
+
 const BOT_URL =
   "https://t.me/EN96_IceDragon_2026_Bot";
 
 const TIKTOK_URL =
   "https://www.tiktok.com/@en96mining";
+
+// Temporary YouTube search URL.
+// Replace with your official channel URL later.
+const YOUTUBE_URL =
+  "https://www.youtube.com/results?search_query=EN96+Mining";
 
 const tg =
   window.Telegram &&
@@ -794,10 +973,137 @@ if (tg) {
   }
 }
 
-/*
-  Tap counter is visual only.
-  No coins are credited here.
-*/
+// =====================================
+// NAVIGATION
+// =====================================
+
+function showPage(page) {
+
+  document.querySelectorAll(
+    ".screen"
+  ).forEach(function(el) {
+    el.classList.remove("active");
+  });
+
+  document.querySelectorAll(
+    ".bottom-nav button"
+  ).forEach(function(el) {
+    el.classList.remove("active");
+  });
+
+  document.getElementById(page)
+    .classList.add("active");
+
+  document.getElementById(
+    "nav-" + page
+  ).classList.add("active");
+
+  window.scrollTo(0, 0);
+}
+
+// =====================================
+// OPEN EXTERNAL LINKS
+// =====================================
+
+function openLink(url) {
+
+  if (
+    tg &&
+    tg.openTelegramLink &&
+    url.startsWith("https://t.me/")
+  ) {
+    tg.openTelegramLink(url);
+    return;
+  }
+
+  if (tg && tg.openLink) {
+    tg.openLink(url);
+    return;
+  }
+
+  window.location.href = url;
+}
+
+function openBot() {
+  openLink(BOT_URL);
+}
+
+function openYouTube() {
+  openLink(YOUTUBE_URL);
+}
+
+function openTikTok() {
+  openLink(TIKTOK_URL);
+}
+
+// =====================================
+// MINING
+// =====================================
+
+function startMining() {
+
+  const miningLink =
+    BOT_URL + "?start=mining";
+
+  // Opens the Telegram bot using a
+  // mining deep link.
+  // bot.py must handle start=mining.
+  openLink(miningLink);
+}
+
+// =====================================
+// GIFTS
+// =====================================
+
+function showGifts() {
+
+  alert(
+    "🎁 EN96 Gifts\n\n" +
+    "افتح بوت EN96، واختر " +
+    "مشاهدة الفيديوهات أو استلام الهدية.\n" +
+    "ثم أدخل كود الهدية الصحيح."
+  );
+
+  openBot();
+}
+
+// =====================================
+// BOOST / INVEST / INFO
+// =====================================
+
+function showBoost() {
+
+  alert(
+    "⚡ EN96 Boost\n\n" +
+    "ترقيات التعدين لم تُفعّل بعد.\n" +
+    "لن يتم خصم أي رصيد."
+  );
+}
+
+function showInvest() {
+
+  alert(
+    "🪙 EN96 Invest\n\n" +
+    "الشراء والدفع غير مفعّلين حاليًا."
+  );
+}
+
+function showInfo() {
+
+  alert(
+    "EN96 Ice Bear Kingdom\n\n" +
+    "⛏️ التعدين افتراضي.\n" +
+    "⚡ 0.001 EN96 في الثانية.\n" +
+    "⏱️ الجلسة: 24 ساعة.\n" +
+    "💎 86.4 EN96 لكل جلسة كاملة.\n\n" +
+    "النقر على الدب تجريبي حاليًا.\n" +
+    "هذا ليس تعدين بلوكشين حقيقيًا."
+  );
+}
+
+// =====================================
+// BEAR TAP - VISUAL ONLY
+// =====================================
 
 let taps = 0;
 let lastTapTime = 0;
@@ -806,7 +1112,6 @@ function tapBear(event) {
 
   const now = performance.now();
 
-  // Keep tapping smooth and controlled.
   if (now - lastTapTime < 120) {
     return;
   }
@@ -858,114 +1163,13 @@ function tapBear(event) {
       tg.HapticFeedback.impactOccurred(
         "light"
       );
-    } catch(error) {}
+    } catch (error) {}
   }
 }
 
-function showPage(page) {
-
-  document.querySelectorAll(
-    ".screen"
-  ).forEach(function(el) {
-    el.classList.remove("active");
-  });
-
-  document.querySelectorAll(
-    ".bottom-nav button"
-  ).forEach(function(el) {
-    el.classList.remove("active");
-  });
-
-  document.getElementById(
-    page
-  ).classList.add("active");
-
-  document.getElementById(
-    "nav-" + page
-  ).classList.add("active");
-
-  window.scrollTo(0, 0);
-}
-
-function openLink(url) {
-
-  if (
-    tg &&
-    tg.openTelegramLink &&
-    url.startsWith("https://t.me/")
-  ) {
-    tg.openTelegramLink(url);
-    return;
-  }
-
-  if (tg && tg.openLink) {
-    tg.openLink(url);
-    return;
-  }
-
-  window.location.href = url;
-}
-
-function openBot() {
-  openLink(BOT_URL);
-}
-
-function openTikTok() {
-  openLink(TIKTOK_URL);
-}
-
-function startMining() {
-
-  alert(
-    "⛏️ EN96 Mining\n\n" +
-    "التعدين محفوظ في نظام البوت الحالي.\n" +
-    "اضغط بدء التعدين بعد فتح Telegram."
-  );
-
-  openBot();
-}
-
-function showGifts() {
-
-  alert(
-    "🎁 EN96 Gifts\n\n" +
-    "افتح البوت واختر استلام الهدية.\n" +
-    "ثم أرسل كود الفيديو الصحيح."
-  );
-
-  openBot();
-}
-
-function showBoost() {
-
-  alert(
-    "⚡ EN96 Boost\n\n" +
-    "واجهة الترقية جاهزة للتطوير.\n" +
-    "لم يتم تفعيل الشراء أو الدفع."
-  );
-}
-
-function showInvest() {
-
-  alert(
-    "🪙 EN96 Invest\n\n" +
-    "هذا القسم غير مفعّل ماليًا بعد.\n" +
-    "لن يتم خصم أي رصيد."
-  );
-}
-
-function showInfo() {
-
-  alert(
-    "EN96 Ice Bear Kingdom\n\n" +
-    "🐻 Virtual Mining\n" +
-    "⚡ 0.001 EN96 / second\n" +
-    "⏱️ 24-hour session\n" +
-    "💎 86.4 EN96 / full session\n\n" +
-    "النقرات تجريبية في هذه النسخة.\n" +
-    "التعدين ليس تعدين بلوكشين حقيقي."
-  );
-}
+// =====================================
+// INVITE FRIENDS
+// =====================================
 
 async function copyInvite() {
 
@@ -996,7 +1200,7 @@ async function copyInvite() {
 
     output.textContent = id
       ? "✅ تم نسخ رابط دعوتك."
-      : "✅ تم نسخ رابط البوت. افتح البوت للحصول على رابط دعوتك الشخصي.";
+      : "✅ تم نسخ رابط البوت. افتحه للحصول على رابط دعوتك الشخصي.";
 
   } catch (error) {
 
