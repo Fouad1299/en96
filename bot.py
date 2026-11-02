@@ -1,4 +1,3 @@
-
 import os
 import json
 import time
@@ -107,6 +106,7 @@ WITHDRAWAL_LOCK = threading.RLock()
 
 # Administrative cancellation confirmation
 ADMIN_CANCEL_CONFIRM = {}
+ADMIN_PROCESS_CONFIRM = {}
 
 
 # ==========================================
@@ -1169,6 +1169,13 @@ def admin_withdrawals(chat_id, user_id):
 
             kb.add(
                 InlineKeyboardButton(
+                    "👑 بدء معالجة السحب",
+                    callback_data="admin_proc:" + request_id
+                )
+            )
+
+            kb.add(
+                InlineKeyboardButton(
                     "🔍 فحص محفظة المستلم",
                     callback_data=(
                         "admin_check:" + request_id
@@ -1272,6 +1279,82 @@ def admin_check_withdrawal(
         bot.send_message(
             chat_id,
             "تعذر فحص المحفظة."
+        )
+
+
+def admin_begin_processing_prompt(chat_id, user_id, request_id):
+    """Prepare a protected admin-only confirmation (no DB changes)."""
+    if not is_admin(user_id) or str(chat_id) != str(user_id):
+        return
+    try:
+        rows = (
+            db.table("withdrawal_requests")
+            .select("id,amount,status,stellar_public_address")
+            .eq("id", request_id)
+            .limit(1)
+            .execute()
+            .data or []
+        )
+        if not rows or rows[0]["status"] != "pending":
+            bot.send_message(chat_id, "⚠️ الطلب غير موجود أو لم يعد معلّقًا.")
+            return
+        order = rows[0]
+        ADMIN_PROCESS_CONFIRM[str(user_id)] = str(order["id"])
+        kb = InlineKeyboardMarkup()
+        kb.row(
+            InlineKeyboardButton(
+                "✅ تأكيد بدء المعالجة",
+                callback_data="admin_proc_yes:" + str(order["id"])
+            ),
+            InlineKeyboardButton(
+                "❌ تراجع",
+                callback_data="admin_proc_no"
+            )
+        )
+        bot.send_message(
+            chat_id,
+            "👑 مراجعة بدء معالجة السحب\n\n"
+            f"🆔 الطلب: {order['id']}\n"
+            f"💎 المبلغ: {en96_number(order['amount'])} EN96\n\n"
+            f"🔗 العنوان:\n{order['stellar_public_address']}\n\n"
+            "سيُحوّل الطلب إلى processing ويظل الرصيد محجوزًا.\n"
+            "لن تُرسل عملات Stellar بهذا الزر.\n"
+            "⚠️ لا تضغط التأكيد أثناء التجربة الحالية.",
+            reply_markup=kb
+        )
+    except Exception:
+        log.exception("Admin begin processing prompt error")
+        bot.send_message(chat_id, "تعذر فتح تأكيد المعالجة.")
+
+
+def admin_begin_processing_execute(chat_id, user_id, request_id):
+    """Change pending -> processing via existing atomic service-role RPC."""
+    if not is_admin(user_id) or str(chat_id) != str(user_id):
+        return
+    if ADMIN_PROCESS_CONFIRM.pop(str(user_id), None) != request_id:
+        bot.send_message(chat_id, "انتهت صلاحية زر التأكيد؛ افتح الطلب مجددًا.")
+        return
+    try:
+        result = db.rpc(
+            "en96_begin_withdrawal_processing",
+            {"p_request_id": request_id}
+        ).execute()
+        if result.data != "processing":
+            raise RuntimeError("Unexpected processing RPC response")
+        bot.send_message(
+            chat_id,
+            "✅ بدأت معالجة طلب السحب.\n\n"
+            f"🆔 {request_id}\n"
+            "🔒 الحالة: processing\n"
+            "💎 الرصيد ما زال محجوزًا.\n"
+            "🪙 لم تُرسل أي عملات.\n\n"
+            "⚠️ لا ترسل عملات قبل تجهيز تحقق المعاملة والتسوية."
+        )
+    except Exception:
+        log.exception("Admin begin processing execute error")
+        bot.send_message(
+            chat_id,
+            "⚠️ تعذر تأكيد نتيجة المعالجة. تحقق من Supabase قبل إعادة المحاولة."
         )
 
 
@@ -2440,6 +2523,20 @@ def callback_handler(call):
 
         elif data == "withdraw_confirm":
             confirm_withdrawal(chat_id, uid)
+
+        elif data.startswith("admin_proc:") and is_admin(uid):
+            admin_begin_processing_prompt(
+                chat_id, uid, data.split(":", 1)[1]
+            )
+
+        elif data.startswith("admin_proc_yes:") and is_admin(uid):
+            admin_begin_processing_execute(
+                chat_id, uid, data.split(":", 1)[1]
+            )
+
+        elif data == "admin_proc_no" and is_admin(uid):
+            ADMIN_PROCESS_CONFIRM.pop(str(uid), None)
+            bot.send_message(chat_id, "✅ تراجعت. لم يتغير الطلب.")
 
         elif (
             data.startswith("admin_check:")
