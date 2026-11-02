@@ -1,404 +1,429 @@
 
 /*
- EN96 ICE BEAR KINGDOM
- Stellar WalletConnect
+ EN96 Ice Bear Kingdom
+ Stellar WalletConnect - Mobile First
 
- Stage 1: Wallet connection only.
- No payments, no balance changes,
- no ownership verification yet.
+ No seed phrases, private keys or payments.
+ Connection does not prove wallet ownership.
+ Mining and Telegram registration stay independent.
 */
 
 (function () {
   "use strict";
 
-  const PROJECT_ID =
-    "3e9fa0461e993b4dbc10fb444a3ca46f";
+  const CONFIG = Object.freeze({
+    projectId: "3e9fa0461e993b4dbc10fb444a3ca46f",
+    projectName: "EN96 Ice Bear Kingdom",
+    network: "stellar:pubnet",
+    assetCode: "EN96",
+    issuer:
+      "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB",
+    website: "https://fouad1299.github.io/en96/",
+    apiBase: "https://en96.onrender.com"
+  });
 
-  const NETWORK = "stellar:pubnet";
+  let client = null;
+  let session = null;
+  let address = null;
+  let connecting = false;
 
-  const BASE_URL =
-    "https://fouad1299.github.io/en96/";
-
-  let signClient = null;
-  let activeSession = null;
-  let activeAddress = null;
-  let busy = false;
-
-  function element(tag, className, text) {
-    const el = document.createElement(tag);
-    if (className) el.className = className;
-    if (text !== undefined) el.textContent = text;
-    return el;
+  function make(tag, className, value) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (value !== undefined) node.textContent = value;
+    return node;
   }
 
-  function setStatus(message) {
-    const status = document.getElementById(
-      "en96WalletConnectionStatus"
-    );
+  function status(message) {
+    const node = document.getElementById("en96WCStatus");
+    if (node) node.textContent = message;
+  }
 
-    if (status) status.textContent = message;
+  function closeModal() {
+    document.getElementById("en96WCOverlay")?.remove();
   }
 
   function styles() {
-    if (document.getElementById("en96WCStyles")) {
-      return;
-    }
+    if (document.getElementById("en96WCStyle")) return;
 
-    const sheet = element("style");
-    sheet.id = "en96WCStyles";
+    const sheet = make("style");
+    sheet.id = "en96WCStyle";
 
     sheet.textContent = `
-      .en96-wc-button {
+      .en96-wc-main {
         width:100%;
+        margin:16px 0;
         padding:17px;
-        margin:15px 0;
-        border:1px solid #fff2ad;
-        border-radius:17px;
-        color:#4b2100;
-        background:linear-gradient(
-          135deg,#fff1a0,#ffcc3f,#ff9c13
-        );
-        font-weight:900;
+        border:1px solid #ffefb0;
+        border-radius:18px;
+        color:#4b2300;
         font-size:18px;
+        font-weight:900;
+        background:linear-gradient(
+          135deg,#fff3a1,#ffcb3d,#ffa31c
+        );
         cursor:pointer;
       }
-
       .en96-wc-status {
-        background:#27100d;
-        color:#ffe3ac;
-        padding:13px;
-        border:1px solid #a77a43;
-        border-radius:12px;
+        margin:12px 0 18px;
+        padding:14px;
+        background:#29100e;
+        border:1px solid #aa8149;
+        border-radius:13px;
+        color:#ffe3ad;
         font-size:12px;
         line-height:1.8;
-        margin-bottom:15px;
         overflow-wrap:anywhere;
+        white-space:pre-line;
       }
-
       .en96-wc-overlay {
         position:fixed;
         inset:0;
         z-index:99999;
         display:flex;
-        justify-content:center;
         align-items:center;
-        padding:16px;
-        background:rgba(0,0,0,.85);
+        justify-content:center;
+        padding:14px;
+        background:rgba(0,0,0,.82);
       }
-
       .en96-wc-modal {
         width:100%;
         max-width:460px;
-        max-height:87dvh;
-        overflow:auto;
-        border:2px solid #edbc55;
-        border-radius:23px;
+        max-height:88dvh;
+        overflow-y:auto;
+        padding:19px;
+        border:2px solid #e8b850;
+        border-radius:24px;
         background:linear-gradient(
-          145deg,#502015,#210c0b
+          155deg,#572115,#260b0b
         );
-        padding:18px;
-        color:white;
         text-align:center;
         direction:rtl;
+        color:#fff;
       }
-
       .en96-wc-modal h2 {
-        color:#ffdf8d;
-        margin:4px 0 13px;
+        color:#ffe39b;
+        font-size:22px;
+        margin:4px 0 14px;
       }
-
       .en96-wc-modal p {
+        color:#ffe4cb;
         font-size:12px;
         line-height:1.8;
-        color:#ffe2cc;
       }
-
-      .en96-wc-choice {
+      .en96-wc-action {
         display:block;
         width:100%;
-        padding:17px;
+        padding:15px;
         margin-top:12px;
-        background:#37140e;
-        color:#ffedcd;
-        border:1px solid #c89551;
-        border-radius:15px;
+        background:#3c180f;
+        border:1px solid #bc9251;
+        border-radius:14px;
+        color:#fff2d2;
         font-size:15px;
-        font-weight:800;
+        font-weight:bold;
+        text-decoration:none;
         cursor:pointer;
       }
-
-      .en96-wc-choice:disabled {
-        opacity:.5;
+      .en96-wc-action.primary {
+        background:linear-gradient(
+          135deg,#ffe98c,#ffb627
+        );
+        color:#402008;
+        border-color:#ffeaa3;
       }
-
+      .en96-wc-action:disabled {
+        opacity:.5;
+        cursor:not-allowed;
+      }
       .en96-wc-qr {
         display:block;
-        width:min(72vw,280px);
+        width:min(70vw,270px);
         max-width:100%;
-        margin:14px auto;
-        padding:12px;
+        margin:15px auto;
+        padding:10px;
         background:white;
         border-radius:14px;
       }
-
-      .en96-wc-close {
-        width:100%;
-        margin-top:15px;
-        padding:13px;
-        color:#ffe3a0;
-        background:#632717;
-        border:1px solid #b27b42;
-        border-radius:13px;
-        cursor:pointer;
-      }
-
       .en96-wc-address {
+        margin-top:10px;
+        padding:12px;
         direction:ltr;
         text-align:left;
         overflow-wrap:anywhere;
-        color:#ffe59e;
-        padding:12px;
-        font-size:12px;
-        border:1px solid #9b713b;
-        border-radius:10px;
-        margin-top:12px;
+        font-size:11px;
+        color:#ffdfa0;
       }
     `;
 
     document.head.appendChild(sheet);
   }
 
-  function closeModal() {
-    document.getElementById(
-      "en96WCOverlay"
-    )?.remove();
+  function button(label, action, primary = false) {
+    const node = make(
+      "button",
+      "en96-wc-action" + (primary ? " primary" : ""),
+      label
+    );
+
+    node.type = "button";
+    node.addEventListener("click", action);
+    return node;
   }
 
-  function openModal() {
+  function dialog(title, description) {
     closeModal();
 
-    const overlay = element(
-      "div",
-      "en96-wc-overlay"
-    );
+    const overlay = make("div", "en96-wc-overlay");
     overlay.id = "en96WCOverlay";
 
-    const modal = element(
-      "div",
-      "en96-wc-modal"
-    );
-
+    const modal = make("div", "en96-wc-modal");
     modal.setAttribute("role", "dialog");
     modal.setAttribute("aria-modal", "true");
 
-    const heading = element(
-      "h2", "", "👑 Connect Wallet"
+    modal.append(
+      make("h2", "", title),
+      make("p", "", description)
     );
-
-    modal.appendChild(heading);
-
-    const intro = element(
-      "p",
-      "",
-      "اختر محفظتك على شبكة Stellar. " +
-      "لن نطلب مفتاحك السري أو إرسال أموال."
-    );
-    modal.appendChild(intro);
-
-    const lobstr = element(
-      "button",
-      "en96-wc-choice",
-      "🪙 LOBSTR — WalletConnect"
-    );
-    lobstr.onclick = connectLOBSTR;
-    modal.appendChild(lobstr);
-
-    const term = element(
-      "button",
-      "en96-wc-choice",
-      "✦ StellarTerm — فتح الموقع"
-    );
-    term.onclick = () => {
-      window.open(
-        "https://stellarterm.com/",
-        "_blank",
-        "noopener,noreferrer"
-      );
-    };
-    modal.appendChild(term);
-
-    const unavailable = element(
-      "p",
-      "",
-      "Binance Web3 وTelegram Wallet: " +
-      "لم يتم تفعيل استقبال EN96 " +
-      "عبرهما على Stellar."
-    );
-    modal.appendChild(unavailable);
-
-    const close = element(
-      "button",
-      "en96-wc-close",
-      "✕ إغلاق"
-    );
-    close.onclick = closeModal;
-    modal.appendChild(close);
 
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    overlay.addEventListener("click", e => {
-      if (e.target === overlay) closeModal();
+    overlay.addEventListener("click", event => {
+      if (event.target === overlay) closeModal();
     });
 
     return modal;
   }
 
+  function closeButton(modal) {
+    modal.appendChild(
+      button("✕ إغلاق", closeModal)
+    );
+  }
+
   async function getClient() {
-    if (signClient) return signClient;
+    if (client) return client;
 
     const sdk = await import(
-      "https://esm.sh/" +
-      "@walletconnect/sign-client@2.26.0" +
-      "?bundle"
+      "https://esm.sh/@walletconnect/sign-client@2.26.0?bundle"
     );
 
-    const SignClient =
-      sdk.default || sdk.SignClient;
+    const SignClient = sdk.default || sdk.SignClient;
 
-    signClient = await SignClient.init({
-      projectId: PROJECT_ID,
+    if (!SignClient?.init) {
+      throw new Error(
+        "تعذر تحميل مكتبة WalletConnect."
+      );
+    }
+
+    client = await SignClient.init({
+      projectId: CONFIG.projectId,
       metadata: {
-        name: "EN96 Ice Bear Kingdom",
-        description:
-          "EN96 Stellar wallet connection",
-        url: BASE_URL,
+        name: CONFIG.projectName,
+        description: "EN96 Stellar wallet connection",
+        url: CONFIG.website,
         icons: [
-          BASE_URL + "en96-coin.webp"
+          CONFIG.website + "en96-coin.webp"
         ]
       }
     });
 
-    signClient.on("session_delete", () => {
-      activeSession = null;
-      activeAddress = null;
-      setStatus("🔒 تم قطع اتصال المحفظة.");
+    client.on("session_delete", () => {
+      session = null;
+      address = null;
+      status("🔒 تم قطع اتصال المحفظة.");
+      showAddress();
     });
 
-    return signClient;
+    return client;
   }
 
-  async function showPairing(uri, modal) {
-    modal.innerHTML = "";
+  function showAddress() {
+    const node = document.getElementById("en96WCAddress");
+
+    if (node) {
+      node.textContent = address
+        ? "Stellar: " + address
+        : "";
+    }
+  }
+
+  function getStellarAddress(currentSession) {
+    const accounts =
+      currentSession?.namespaces?.stellar?.accounts || [];
+
+    const prefix = CONFIG.network + ":";
+
+    const account = accounts.find(
+      value =>
+        typeof value === "string" &&
+        value.startsWith(prefix)
+    );
+
+    const result = account
+      ? account.slice(prefix.length)
+      : "";
+
+    if (!/^G[A-Z2-7]{55}$/.test(result)) {
+      throw new Error(
+        "لم تُرجع المحفظة عنوان Stellar صالحًا."
+      );
+    }
+
+    return result;
+  }
+
+  function openWalletChooser() {
+    const modal = dialog(
+      "👑 Connect Wallet",
+      "اربط LOBSTR من هاتف واحد، أو استخدم QR. " +
+      "لا نطلب مفاتيح سرية ولا أموالًا."
+    );
 
     modal.appendChild(
-      element(
-        "h2", "", "🪙 اتصال LOBSTR"
+      button(
+        "🪙 LOBSTR — اتصال من الهاتف",
+        connectLOBSTR,
+        true
       )
     );
 
     modal.appendChild(
-      element(
+      button(
+        "✦ StellarTerm — فتح الموقع",
+        () => window.open(
+          "https://stellarterm.com/",
+          "_blank",
+          "noopener,noreferrer"
+        )
+      )
+    );
+
+    modal.appendChild(
+      make(
         "p",
         "",
-        "امسح رمز QR من LOBSTR " +
-        "ثم وافق على طلب اتصال EN96 فقط."
+        "Telegram Wallet وBinance Web3 " +
+        "غير مفعّلين لعملة EN96 على Stellar."
       )
     );
 
-    const qrPackage = await import(
-      "https://esm.sh/qrcode@1.5.4?bundle"
+    closeButton(modal);
+  }
+
+  async function preparePairing(uri) {
+    const modal = dialog(
+      "🪙 الاتصال بـ LOBSTR",
+      "من هاتف واحد اضغط فتح LOBSTR مباشرة. " +
+      "إذا لم يفتح التطبيق، جرّب الرابط البديل. " +
+      "يمكن عرض QR على جهاز آخر عند الحاجة."
     );
 
-    const QRCode =
-      qrPackage.default || qrPackage;
+    const encoded = encodeURIComponent(uri);
 
-    const image = element(
-      "img", "en96-wc-qr"
+    // LOBSTR wallet-specific links.
+    // Must be tested on Android / Telegram WebView.
+    const deepLink =
+      "lobstr://wc?uri=" + encoded;
+
+    const universalLink =
+      "https://lobstr.co/uni/wc?uri=" + encoded;
+
+    modal.appendChild(
+      button(
+        "📱 فتح تطبيق LOBSTR مباشرة",
+        () => {
+          status(
+            "⏳ تم طلب فتح LOBSTR. " +
+            "وافق على الاتصال إن ظهر طلب EN96."
+          );
+          window.location.href = deepLink;
+        },
+        true
+      )
     );
-    image.alt = "WalletConnect QR";
 
-    image.src = await QRCode.toDataURL(
-      uri,
-      {
-        width: 300,
-        margin: 2
+    modal.appendChild(
+      button(
+        "🌐 تجربة رابط LOBSTR البديل",
+        () => {
+          window.location.href = universalLink;
+        }
+      )
+    );
+
+    modal.appendChild(
+      make(
+        "p",
+        "",
+        "إذا كان التطبيق لا يدعم هذه الروابط " +
+        "في نسختك، استخدم QR كخيار احتياطي."
+      )
+    );
+
+    const qrHolder = make("div");
+    modal.appendChild(qrHolder);
+
+    const qrButton = button(
+      "▦ عرض رمز QR الاحتياطي",
+      async () => {
+        qrButton.disabled = true;
+
+        try {
+          const qrModule = await import(
+            "https://esm.sh/qrcode@1.5.4?bundle"
+          );
+
+          const QRCode =
+            qrModule.default || qrModule;
+
+          const image = make("img", "en96-wc-qr");
+          image.alt = "WalletConnect pairing QR";
+          image.src = await QRCode.toDataURL(
+            uri,
+            { width: 300, margin: 2 }
+          );
+
+          qrHolder.replaceChildren(image);
+        } catch (error) {
+          qrHolder.textContent =
+            "تعذر عرض QR على هذا المتصفح.";
+        } finally {
+          qrButton.disabled = false;
+        }
       }
     );
 
-    modal.appendChild(image);
-
-    const copy = element(
-      "button",
-      "en96-wc-choice",
-      "📋 نسخ رابط الاتصال للهاتف"
-    );
-
-    copy.onclick = async () => {
-      try {
-        await navigator.clipboard.writeText(uri);
-        copy.textContent =
-          "✅ تم نسخ رابط الاتصال";
-      } catch (error) {
-        copy.textContent =
-          "تعذر النسخ من المتصفح";
-      }
-    };
-
-    modal.appendChild(copy);
+    modal.appendChild(qrButton);
 
     modal.appendChild(
-      element(
+      make(
         "p",
         "",
-        "إذا كنت تستعمل هاتفًا واحدًا، " +
-        "يمكن استعمال رابط الاتصال " +
-        "إذا كانت نسختك من LOBSTR " +
-        "تتيح فتحه. وإلا يلزم عرض " +
-        "رمز QR على جهاز ثانٍ."
+        "بعد الموافقة، ارجع إلى صفحة EN96 " +
+        "داخل Telegram لمعرفة نتيجة الاتصال."
       )
     );
 
-    modal.appendChild(
-      element(
-        "p",
-        "",
-        "⏳ بانتظار موافقة المحفظة..."
-      )
-    );
-
-    const close = element(
-      "button",
-      "en96-wc-close",
-      "إغلاق النافذة"
-    );
-    close.onclick = closeModal;
-    modal.appendChild(close);
+    closeButton(modal);
   }
 
   async function connectLOBSTR() {
-    if (busy) return;
+    if (connecting) return;
 
-    busy = true;
-    setStatus(
-      "⏳ تحضير اتصال WalletConnect..."
-    );
-
-    const modal = document.querySelector(
-      "#en96WCOverlay .en96-wc-modal"
-    );
+    connecting = true;
+    status("⏳ إنشاء طلب الاتصال بـ LOBSTR...");
 
     try {
-      const client = await getClient();
+      const signClient = await getClient();
 
       const { uri, approval } =
-        await client.connect({
+        await signClient.connect({
           requiredNamespaces: {
             stellar: {
-              chains: [NETWORK],
-              methods: [
-                "stellar_signXDR"
-              ],
+              chains: [CONFIG.network],
+              methods: ["stellar_signXDR"],
               events: []
             }
           }
@@ -406,139 +431,160 @@
 
       if (!uri) {
         throw new Error(
-          "لم يتم إنشاء رابط اتصال جديد."
+          "لم يُنشأ رمز اقتران جديد."
         );
       }
 
-      await showPairing(uri, modal);
+      await preparePairing(uri);
 
-      const session = await approval();
+      // Wait for wallet approval; connection remains
+      // pending while user switches to LOBSTR.
+      const approved = await approval();
 
-      const accounts =
-        session?.namespaces?.stellar?.accounts
-        || [];
+      const publicAddress =
+        getStellarAddress(approved);
 
-      const prefix = NETWORK + ":";
-
-      const account = accounts.find(a =>
-        typeof a === "string" &&
-        a.startsWith(prefix)
-      );
-
-      const address = account
-        ? account.slice(prefix.length)
-        : "";
-
-      if (!/^G[A-Z2-7]{55}$/.test(address)) {
-        throw new Error(
-          "لم تُرجع المحفظة عنوان Stellar صالحًا."
-        );
-      }
-
-      activeSession = session;
-      activeAddress = address;
+      session = approved;
+      address = publicAddress;
 
       closeModal();
+      showAddress();
 
-      setStatus(
-        "✅ وافقت المحفظة على الاتصال.\n" +
-        "🔒 إثبات الملكية بالتوقيع " +
-        "لم يكتمل بعد، " +
-        "ولا توجد زيادة في التعدين."
+      status(
+        "✅ تمت الموافقة على اتصال Stellar.\n" +
+        "🔒 لم يتم إثبات ملكية العنوان " +
+        "بتوقيع يتحقق منه الخادم بعد.\n" +
+        "⚡ Boost غير مفعّل."
       );
-
-      const addr = document.getElementById(
-        "en96WCAddress"
-      );
-
-      if (addr) {
-        addr.textContent = address;
-      }
 
     } catch (error) {
-      console.error(
-        "EN96 WalletConnect error:",
-        error
-      );
-
       closeModal();
 
-      setStatus(
-        "⚠️ لم يكتمل اتصال LOBSTR: " +
-        (error.message || "خطأ غير معروف")
+      status(
+        "⚠️ لم يكتمل الاتصال: " +
+        (error?.message || "خطأ غير معروف.")
+      );
+
+      console.error(
+        "EN96 WalletConnect:", error
       );
     } finally {
-      busy = false;
+      connecting = false;
     }
+  }
+
+  async function loadWallet() {
+    const initData =
+      window.Telegram?.WebApp?.initData || "";
+
+    if (!initData) {
+      throw new Error(
+        "افتح EN96 من داخل Telegram."
+      );
+    }
+
+    const response = await fetch(
+      CONFIG.apiBase + "/api/me",
+      {
+        headers: {
+          Authorization: "tma " + initData
+        },
+        cache: "no-store"
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "تعذر تحميل المحفظة."
+      );
+    }
+
+    return {
+      address: data.stellar_public_address || "",
+      available: data.available,
+      reserved: data.reserved,
+      verified: false
+    };
   }
 
   function initialize() {
     styles();
 
-    const wallet =
-      document.getElementById("wallet");
+    const wallet = document.getElementById("wallet");
 
     if (!wallet) return;
 
-    if (document.getElementById(
-      "en96ConnectWallet"
-    )) return;
+    if (
+      document.getElementById("en96ConnectWallet")
+    ) return;
 
-    const button = element(
+    const connectButton = make(
       "button",
-      "en96-wc-button",
+      "en96-wc-main",
       "👑 Connect Wallet"
     );
 
-    button.id = "en96ConnectWallet";
-    button.onclick = openModal;
-
-    const status = element(
-      "div",
-      "en96-wc-status",
-      "🔒 لا توجد محفظة متصلة أو " +
-      "موثقة بالتوقيع حاليًا."
+    connectButton.id = "en96ConnectWallet";
+    connectButton.addEventListener(
+      "click",
+      openWalletChooser
     );
 
-    status.id = "en96WalletConnectionStatus";
+    const info = make(
+      "div",
+      "en96-wc-status",
+      "🔒 ربط المحفظة اختياري.\n" +
+      "يمكنك التسجيل والتعدين دون اتصال LOBSTR."
+    );
 
-    const address = element(
+    info.id = "en96WCStatus";
+
+    const addressBox = make(
       "div",
       "en96-wc-address"
     );
 
-    address.id = "en96WCAddress";
+    addressBox.id = "en96WCAddress";
 
-    const title = wallet.querySelector(
-      ".page-title"
-    );
+    const title =
+      wallet.querySelector(".page-title");
 
     if (title) {
       title.insertAdjacentElement(
-        "afterend", button
+        "afterend",
+        connectButton
       );
     } else {
-      wallet.prepend(button);
+      wallet.prepend(connectButton);
     }
 
-    button.insertAdjacentElement(
-      "afterend", status
+    connectButton.insertAdjacentElement(
+      "afterend",
+      info
     );
 
-    status.insertAdjacentElement(
-      "afterend", address
+    info.insertAdjacentElement(
+      "afterend",
+      addressBox
     );
   }
 
   window.EN96Wallet = Object.freeze({
+    config: CONFIG,
+    loadWallet,
     connectLOBSTR,
-    openModal,
+    openModal: openWalletChooser,
     getState: () => ({
-      connected: Boolean(activeSession),
-      address: activeAddress,
+      connected: Boolean(session),
+      address,
       verified: false,
-      network: NETWORK
-    })
+      network: CONFIG.network
+    }),
+    validStellarAddress: value =>
+      typeof value === "string" &&
+      /^G[A-Z2-7]{55}$/.test(value.trim())
   });
 
   if (document.readyState === "loading") {
