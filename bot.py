@@ -7,6 +7,7 @@ import re
 from decimal import Decimal, InvalidOperation
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from urllib.parse import quote
 
 import telebot
 from telebot.types import (
@@ -107,6 +108,8 @@ WITHDRAWAL_LOCK = threading.RLock()
 # Administrative cancellation confirmation
 ADMIN_CANCEL_CONFIRM = {}
 ADMIN_PROCESS_CONFIRM = {}
+ADMIN_PAY_HASH = {}
+EN96_PAYOUT_SOURCE = "GBWLEH67H6HCH264IWJFL66CJYF34B7WEC4GSZQJZPDM23WVC6UKB7SJ"
 
 
 # ==========================================
@@ -1095,123 +1098,187 @@ def member_withdrawal_history(chat_id, user_id):
 # ==========================================
 
 def admin_withdrawals(chat_id, user_id):
-    if (
-        not is_admin(user_id)
-        or str(chat_id) != str(user_id)
-    ):
-        bot.send_message(
-            chat_id,
-            "🔒 إدارة السحوبات خاصة بالمسؤول."
-        )
+    """Show pending, processing and recently paid requests to admin."""
+    if not is_admin(user_id) or str(chat_id) != str(user_id):
         return
-
     try:
-        rows = (
-            db.table("withdrawal_requests")
-            .select(
-                "id,user_id,amount,status,"
-                "stellar_public_address,created_at"
-            )
-            .eq("status", "pending")
-            .order("created_at")
-            .limit(20)
-            .execute()
-            .data or []
+        headings = (
+            ("pending", "⏳ طلبات تنتظر المراجعة"),
+            ("processing", "🔄 طلبات تنتظر التحويل أو التأكيد"),
+            ("paid", "✅ آخر عمليات السحب المدفوعة"),
         )
-
-        if not rows:
-            bot.send_message(
-                chat_id,
-                "👑 إدارة السحوبات\n\n"
-                "✅ لا توجد طلبات معلقة حاليًا.\n\n"
-                "⚠️ التحقق من المدفوعات "
-                "لم يُفعّل بعد."
-            )
-            return
-
         bot.send_message(
             chat_id,
-            "👑 إدارة سحوبات EN96\n"
-            "━━━━━━━━━━━━━━\n\n"
-            f"📋 الطلبات المعلقة المعروضة: {len(rows)}\n\n"
-            "راجع عنوان G والمبلغ.\n"
-            "لا ترسل العملات دون سجل واضح.\n"
-            "ولا تلغِ طلبًا بدأ تحويله."
+            "👑 لوحة سحوبات EN96\n"
+            "الحد الأدنى: 500 EN96\n"
+            "لا تُرسل العملات مرتين. راجع كل طلب ورقم المعاملة."
         )
-
-        for item in rows:
-            request_id = str(item["id"])
-            profile_id = item.get("user_id")
-
-            telegram_id = "غير معروف"
-
-            try:
-                member = (
-                    db.table("profiles")
-                    .select("telegram_id")
-                    .eq("id", profile_id)
-                    .limit(1)
-                    .execute()
-                    .data or []
-                )
-
-                if member:
-                    telegram_id = str(
-                        member[0].get(
-                            "telegram_id",
-                            "غير معروف"
-                        )
-                    )
-            except Exception:
-                log.exception("Admin member lookup")
-
-            kb = InlineKeyboardMarkup()
-
-            kb.add(
-                InlineKeyboardButton(
-                    "👑 بدء معالجة السحب",
-                    callback_data="admin_proc:" + request_id
-                )
+        for status, heading in headings:
+            rows = (
+                db.table("withdrawal_requests")
+                .select("id,user_id,amount,status,transaction_hash,"
+                        "stellar_public_address,created_at")
+                .eq("status", status)
+                .order("created_at", desc=(status == "paid"))
+                .limit(10)
+                .execute().data or []
             )
-
-            kb.add(
-                InlineKeyboardButton(
-                    "🔍 فحص محفظة المستلم",
-                    callback_data=(
-                        "admin_check:" + request_id
-                    )
+            bot.send_message(chat_id, f"{heading}: {len(rows)}")
+            for item in rows:
+                request_id = str(item["id"])
+                members = (
+                    db.table("profiles").select("telegram_id")
+                    .eq("id", item["user_id"]).limit(1)
+                    .execute().data or []
                 )
-            )
-
-            kb.add(
-                InlineKeyboardButton(
-                    "↩️ طلب إلغاء قبل الدفع",
-                    callback_data=(
-                        "admin_cancel:" + request_id
-                    )
+                telegram_id = str(members[0].get("telegram_id")) if members else "غير معروف"
+                kb = InlineKeyboardMarkup()
+                if status == "pending":
+                    kb.add(InlineKeyboardButton(
+                        "👑 بدء معالجة السحب", callback_data="admin_proc:" + request_id
+                    ))
+                    kb.add(InlineKeyboardButton(
+                        "↩️ إلغاء قبل الدفع", callback_data="admin_cancel:" + request_id
+                    ))
+                if status == "processing":
+                    kb.add(InlineKeyboardButton(
+                        "🔐 التحقق من الدفع برقم المعاملة",
+                        callback_data="admin_pay:" + request_id
+                    ))
+                if status != "paid":
+                    kb.add(InlineKeyboardButton(
+                        "🔍 فحص محفظة المستلم", callback_data="admin_check:" + request_id
+                    ))
+                suffix = ("\n🔗 معاملة Stellar: " + item["transaction_hash"]
+                          if item.get("transaction_hash") else "")
+                bot.send_message(
+                    chat_id,
+                    f"👤 Telegram ID: {telegram_id}\n"
+                    f"💎 {en96_number(item['amount'])} EN96\n"
+                    f"📌 الحالة: {status}\n"
+                    f"🏦 العنوان: {item['stellar_public_address']}\n"
+                    f"🆔 الطلب: {request_id}{suffix}",
+                    reply_markup=kb if kb.keyboard else None
                 )
-            )
-
-            bot.send_message(
-                chat_id,
-                "━━━━━━━━━━━━━━\n"
-                "⏳ طلب سحب معلق\n\n"
-                f"👤 Telegram: {telegram_id}\n\n"
-                "💎 المبلغ:\n"
-                f"{en96_number(item.get('amount'))} EN96\n\n"
-                "🔗 المستلم:\n"
-                f"{item.get('stellar_public_address')}\n\n"
-                f"🆔 الطلب:\n{request_id}\n\n"
-                "⚠️ لا يوجد تأكيد دفع آلي بعد.",
-                reply_markup=kb
-            )
-
     except Exception:
         log.exception("Admin withdrawals error")
+        bot.send_message(chat_id, "⚠️ تعذر تحميل لوحة السحوبات.")
 
+
+def en96_horizon_json(path):
+    """Read public Stellar mainnet Horizon, no secret keys."""
+    request = Request(
+        HORIZON_URL.rstrip("/") + path,
+        headers={"Accept": "application/json", "User-Agent": "EN96Bot/2.0"}
+    )
+    with urlopen(request, timeout=18) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def verify_en96_payment(tx_hash, order):
+    """Fail closed: exactly one standard EN96 payment from approved source."""
+    tx_hash = str(tx_hash).strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", tx_hash):
+        raise ValueError("رقم المعاملة يجب أن يكون 64 حرفًا سداسيًا.")
+    tx = en96_horizon_json("/transactions/" + quote(tx_hash))
+    if tx.get("hash", "").lower() != tx_hash or tx.get("successful") is not True:
+        raise ValueError("المعاملة غير ناجحة أو لا تطابق الرقم.")
+    if not tx.get("ledger"):
+        raise ValueError("لم تُؤكد المعاملة في دفتر Stellar.")
+    operations = en96_horizon_json(
+        "/transactions/" + quote(tx_hash) + "/operations?limit=200"
+    )
+    records = operations.get("_embedded", {}).get("records", [])
+    # Conservative rule: reject complex/multiple-operation transfers.
+    if int(tx.get("operation_count") or 0) != 1 or len(records) != 1:
+        raise ValueError("المعاملة تحتوي عمليات متعددة؛ تتطلب مراجعة يدوية.")
+    op = records[0]
+    if op.get("type") != "payment" or op.get("transaction_successful") is not True:
+        raise ValueError("المعاملة ليست تحويل EN96 عاديًا ناجحًا.")
+    if op.get("from") != EN96_PAYOUT_SOURCE:
+        raise ValueError("حساب الإرسال غير معتمد في إعدادات EN96.")
+    if op.get("to") != order["stellar_public_address"]:
+        raise ValueError("عنوان المستلم لا يطابق طلب السحب.")
+    if op.get("asset_code") != EN96_ASSET or op.get("asset_issuer") != EN96_ISSUER:
+        raise ValueError("رمز EN96 أو عنوان المُصدر غير صحيح.")
+    if Decimal(str(op.get("amount", "0"))) != Decimal(str(order["amount"])):
+        raise ValueError("مبلغ المعاملة مختلف عن طلب السحب.")
+    if op.get("transaction_hash", "").lower() != tx_hash:
+        raise ValueError("عملية الدفع لا تطابق المعاملة المطلوبة.")
+    return True
+
+
+def admin_pay_prompt(chat_id, user_id, request_id):
+    if not is_admin(user_id) or str(chat_id) != str(user_id):
+        return
+    try:
+        orders = (
+            db.table("withdrawal_requests")
+            .select("id,amount,status,stellar_public_address,transaction_hash")
+            .eq("id", request_id).limit(1).execute().data or []
+        )
+        if not orders or orders[0]["status"] != "processing":
+            bot.send_message(chat_id, "⚠️ الطلب ليس قيد المعالجة.")
+            return
+        ADMIN_PAY_HASH[str(user_id)] = request_id
         bot.send_message(
             chat_id,
-            "تعذر تحميل لوحة السحوبات."
+            "🔐 تأكيد دفع EN96\n\n"
+            f"💎 المبلغ: {en96_number(orders[0]['amount'])} EN96\n"
+            f"🔗 المستلم: {orders[0]['stellar_public_address']}\n"
+            f"🆔 الطلب: {request_id}\n\n"
+            "إذا كنت أرسلت العملات بالفعل من محفظة المخزون المعتمدة، "
+            "أرسل رقم المعاملة Transaction Hash (64 حرفًا).\n"
+            "للخروج أرسل /cancel. لا ترسل عملات مرة أخرى."
+        )
+    except Exception:
+        log.exception("Admin pay prompt error")
+        bot.send_message(chat_id, "تعذر فتح تأكيد الدفع.")
+
+
+def admin_pay_input(message):
+    uid = message.from_user.id
+    if not is_admin(uid) or not is_private(message):
+        return
+    request_id = ADMIN_PAY_HASH.pop(str(uid), None)
+    if not request_id:
+        return
+    tx_hash = (message.text or "").strip().lower()
+    if tx_hash == "/cancel":
+        bot.send_message(message.chat.id, "تم التراجع دون تغيير الطلب.")
+        return
+    try:
+        orders = (
+            db.table("withdrawal_requests")
+            .select("id,amount,status,stellar_public_address,transaction_hash")
+            .eq("id", request_id).limit(1).execute().data or []
+        )
+        if not orders or orders[0]["status"] != "processing":
+            raise ValueError("الطلب لم يعد قيد المعالجة.")
+        if orders[0].get("transaction_hash"):
+            raise ValueError("هذا الطلب لديه رقم معاملة سابق.")
+        verify_en96_payment(tx_hash, orders[0])
+        # DB RPC atomically updates status and reserved; a unique index on
+        # lower(transaction_hash) is required to reject hash reuse.
+        result = db.rpc("en96_finalize_paid", {
+            "p_request_id": request_id,
+            "p_transaction_hash": tx_hash
+        }).execute()
+        if result.data != "paid":
+            raise RuntimeError("نتيجة تسوية غير متوقعة.")
+        bot.send_message(
+            message.chat.id,
+            f"✅ تم التحقق من Stellar وتسجيل الطلب مدفوعًا.\n"
+            f"🆔 {request_id}\n🔗 {tx_hash}\n"
+            "تم خصم المبلغ المحجوز مرة واحدة داخل Supabase."
+        )
+    except Exception as exc:
+        log.exception("Admin payment verification error")
+        bot.send_message(
+            message.chat.id,
+            f"⚠️ لم يتم تسجيل الدفع: {str(exc)[:220]}\n"
+            "تحقق من بيانات الطلب في Supabase قبل أي محاولة أخرى. "
+            "لا ترسل العملات مرتين."
         )
 
 
@@ -2524,6 +2591,9 @@ def callback_handler(call):
         elif data == "withdraw_confirm":
             confirm_withdrawal(chat_id, uid)
 
+        elif data.startswith("admin_pay:") and is_admin(uid):
+            admin_pay_prompt(chat_id, uid, data.split(":", 1)[1])
+
         elif data.startswith("admin_proc:") and is_admin(uid):
             admin_begin_processing_prompt(
                 chat_id, uid, data.split(":", 1)[1]
@@ -2664,6 +2734,15 @@ def admin_video_input(message):
 def admin_reward_input(message):
     if is_admin(message.from_user.id):
         admin_reward(message)
+
+
+@bot.message_handler(
+    func=lambda m: is_private(m) and is_admin(m.from_user.id)
+        and str(m.from_user.id) in ADMIN_PAY_HASH,
+    content_types=["text"]
+)
+def admin_payment_hash_handler(message):
+    admin_pay_input(message)
 
 
 # Withdrawal text input
