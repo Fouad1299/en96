@@ -1,13 +1,13 @@
 
 import os
-import re
 import json
 import time
 import logging
 import threading
+import re
 from decimal import Decimal, InvalidOperation
 from urllib.request import Request, urlopen
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 
 import telebot
 from telebot.types import (
@@ -17,14 +17,16 @@ from telebot.types import (
     InlineKeyboardButton,
     WebAppInfo,
 )
+
 from supabase import create_client
 from en96_accounts import ensure_profile
 
 
-# ======================================
+# ==========================================
 # EN96 ICE BEAR KINGDOM
-# TELEGRAM BOT - WITHDRAWAL EDITION
-# ======================================
+# Telegram Mining and Withdrawal Bot
+# Stellar Mainnet
+# ==========================================
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("EN96")
@@ -52,13 +54,10 @@ ROYAL_APP_URL = (
 
 BOT_USERNAME = "EN96_IceDragon_2026_Bot"
 
-YOUTUBE_URL = (
-    "https://www.youtube.com/"
-    "@EN96_Gold_Miner_bo"
-)
+TIKTOK_URL = "https://www.tiktok.com/@en96mining"
 
-TIKTOK_URL = (
-    "https://www.tiktok.com/@en96mining"
+YOUTUBE_URL = (
+    "https://www.youtube.com/@EN96_Gold_Miner_bo"
 )
 
 LOBSTR_URL = "https://lobstr.co/"
@@ -66,20 +65,17 @@ LOBSTR_URL = "https://lobstr.co/"
 HORIZON_URL = "https://horizon.stellar.org"
 
 EN96_ISSUER = (
-    "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY"
-    "277TNYTZUSG7EVVUCVACH3OGB"
+    "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB"
 )
 
-MINING_RATE = Decimal("0.001")
+EN96_ASSET = "EN96"
+
+MINING_RATE = 0.001
 MINING_DURATION = 86400
-MIN_WITHDRAWAL = Decimal("500")
 
-# Keep this False until the withdrawal
-# workflow has been safely tested.
-WITHDRAWALS_ENABLED = (
-    os.getenv("EN96_WITHDRAWALS_ENABLED", "false")
-    .lower() == "true"
-)
+MIN_WITHDRAWAL = Decimal("500")
+MAX_WITHDRAWAL = Decimal("1000000000000")
+EN96_STEP = Decimal("0.0000001")
 
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN missing")
@@ -87,11 +83,7 @@ if not BOT_TOKEN:
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError("Supabase configuration missing")
 
-bot = telebot.TeleBot(
-    BOT_TOKEN,
-    threaded=True,
-    num_threads=4
-)
+bot = telebot.TeleBot(BOT_TOKEN)
 
 db = create_client(
     SUPABASE_URL,
@@ -101,16 +93,25 @@ db = create_client(
 MINING_COUNTERS = {}
 MINING_LOCK = threading.Lock()
 
-USER_STATES = {}
-STATE_LOCK = threading.RLock()
+WAITING_GIFT = set()
+WAITING_ADMIN_CODE = set()
+WAITING_ADMIN_VIDEO = set()
+WAITING_ADMIN_REWARD = set()
 
-WITHDRAW_LOCKS = {}
-WITHDRAW_LOCKS_GUARD = threading.Lock()
+ADMIN_ACTION = {}
+PENDING = {}
+
+# New withdrawal states
+WITHDRAWAL_STATES = {}
+WITHDRAWAL_LOCK = threading.RLock()
+
+# Administrative cancellation confirmation
+ADMIN_CANCEL_CONFIRM = {}
 
 
-# ======================================
-# GENERAL HELPERS
-# ======================================
+# ==========================================
+# COMMON HELPERS
+# ==========================================
 
 def is_admin(user_id):
     return str(user_id) == ADMIN_ID
@@ -139,27 +140,69 @@ def rpc_data(result):
     return data or {}
 
 
+def register_member(user_id):
+    try:
+        ensure_profile(db, user_id)
+        return True
+    except Exception:
+        log.exception("Registration error")
+        return False
+
+
+def profile_for(user_id):
+    result = (
+        db.table("profiles")
+        .select(
+            "id,telegram_id,stellar_public_address"
+        )
+        .eq("telegram_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+
+    return result.data[0] if result.data else None
+
+
+def balance_for(profile_id):
+    result = (
+        db.table("balances")
+        .select("available,reserved")
+        .eq("user_id", profile_id)
+        .limit(1)
+        .execute()
+    )
+
+    return result.data[0] if result.data else None
+
+
 def en96_number(value):
     try:
-        number = Decimal(str(value or "0"))
-        return f"{number:,.7f}"
-    except (ValueError, TypeError, InvalidOperation):
+        return f"{Decimal(str(value or 0)):,.7f}"
+    except Exception:
         return "0.0000000"
 
 
-def valid_address(address):
+def valid_stellar_address(value):
+    if not isinstance(value, str):
+        return False
+
     return bool(
-        isinstance(address, str)
-        and re.fullmatch(
+        re.fullmatch(
             r"G[A-Z2-7]{55}",
-            address.strip().upper()
+            value.strip().upper()
         )
     )
 
 
-def valid_amount(value):
+def parse_amount(value):
     try:
-        amount = Decimal(str(value))
+        value = (
+            str(value)
+            .strip()
+            .replace(",", ".")
+        )
+
+        amount = Decimal(value)
 
         if not amount.is_finite():
             return None
@@ -167,140 +210,86 @@ def valid_amount(value):
         if amount < MIN_WITHDRAWAL:
             return None
 
-        if amount > Decimal("1000000000000"):
+        if amount > MAX_WITHDRAWAL:
             return None
 
-        if amount != amount.quantize(
-            Decimal("0.0000001")
-        ):
+        if amount != amount.quantize(EN96_STEP):
             return None
 
         return amount
 
-    except (InvalidOperation, ValueError):
+    except (
+        InvalidOperation,
+        ValueError,
+        TypeError
+    ):
         return None
 
 
-def set_state(uid, action, **kwargs):
-    with STATE_LOCK:
-        USER_STATES[str(uid)] = {
-            "action": action,
-            **kwargs
-        }
-
-
-def get_state(uid):
-    with STATE_LOCK:
-        return dict(
-            USER_STATES.get(str(uid), {})
+def clear_withdrawal_state(user_id):
+    with WITHDRAWAL_LOCK:
+        WITHDRAWAL_STATES.pop(
+            str(user_id),
+            None
         )
 
 
-def clear_state(uid):
-    with STATE_LOCK:
-        USER_STATES.pop(str(uid), None)
-
-
-def user_withdraw_lock(uid):
-    with WITHDRAW_LOCKS_GUARD:
-        key = str(uid)
-
-        if key not in WITHDRAW_LOCKS:
-            WITHDRAW_LOCKS[key] = threading.Lock()
-
-        return WITHDRAW_LOCKS[key]
-
-
-def profile_for(uid):
-    rows = (
-        db.table("profiles")
-        .select(
-            "id,telegram_id,stellar_public_address"
+def get_withdrawal_state(user_id):
+    with WITHDRAWAL_LOCK:
+        return WITHDRAWAL_STATES.get(
+            str(user_id)
         )
-        .eq("telegram_id", str(uid))
-        .limit(1)
-        .execute()
-        .data or []
+
+
+def set_withdrawal_state(user_id, state):
+    with WITHDRAWAL_LOCK:
+        WITHDRAWAL_STATES[str(user_id)] = state
+
+
+def wallet_support_keyboard():
+    kb = InlineKeyboardMarkup()
+
+    kb.add(
+        InlineKeyboardButton(
+            "🪙 إنشاء / فتح محفظة LOBSTR",
+            url=LOBSTR_URL
+        )
     )
 
-    return rows[0] if rows else None
+    return kb
 
 
-def balance_for(uid):
-    profile = profile_for(uid)
+def app_button(chat_id):
+    kb = InlineKeyboardMarkup()
 
-    if not profile:
-        return None
-
-    rows = (
-        db.table("balances")
-        .select("available,reserved")
-        .eq("user_id", profile["id"])
-        .limit(1)
-        .execute()
-        .data or []
-    )
-
-    return rows[0] if rows else None
-
-
-def register_member(uid):
-    try:
-        ensure_profile(db, uid)
-        return True
-    except Exception:
-        log.exception("Member registration error")
-        return False
-
-
-def stellar_account(address):
-    url = (
-        HORIZON_URL
-        + "/accounts/"
-        + address
-    )
-
-    request = Request(
-        url,
-        headers={"Accept": "application/json"}
-    )
-
-    try:
-        with urlopen(request, timeout=12) as response:
-            return json.loads(
-                response.read().decode("utf-8")
+    kb.add(
+        InlineKeyboardButton(
+            "👑 افتح مملكة EN96 الملكية 🐻",
+            web_app=WebAppInfo(
+                url=ROYAL_APP_URL
             )
-    except HTTPError as exc:
-        if exc.code == 404:
-            return None
-        raise
+        )
+    )
+
+    bot.send_message(
+        chat_id,
+        "👑🐻 مرحبًا بك في EN96!\n\n"
+        "⛏️ التعدين الافتراضي\n"
+        "💰 المحفظة\n"
+        "💸 طلبات السحب\n"
+        "🎁 الهدايا والقبيلة\n\n"
+        "اضغط الزر للدخول.\n\n"
+        "⚠️ النقر التجريبي على الدب "
+        "لا يضيف رصيدًا حقيقيًا.",
+        reply_markup=kb
+    )
 
 
-def stellar_trustline(address):
-    if not valid_address(address):
-        return False, "invalid_address", None
-
-    account = stellar_account(address)
-
-    if not account:
-        return False, "account_not_found", None
-
-    for item in account.get("balances", []):
-        if (
-            item.get("asset_code") == "EN96"
-            and item.get("asset_issuer")
-            == EN96_ISSUER
-        ):
-            return True, "ok", item
-
-    return False, "trustline_missing", None
-
-
-# ======================================
+# ==========================================
 # MAIN MENU
-# ======================================
+# ==========================================
 
-def menu(uid=None):
+def menu(user_id=None):
     kb = ReplyKeyboardMarkup(
         resize_keyboard=True
     )
@@ -312,7 +301,7 @@ def menu(uid=None):
 
     kb.row(
         KeyboardButton("💸 سحب EN96"),
-        KeyboardButton("🔗 محفظة Stellar")
+        KeyboardButton("📋 طلبات السحب")
     )
 
     kb.row(
@@ -339,7 +328,7 @@ def menu(uid=None):
         KeyboardButton("🌐 فتح تطبيق EN96")
     )
 
-    if uid is not None and is_admin(uid):
+    if user_id is not None and is_admin(user_id):
         kb.row(
             KeyboardButton("🛠️ إدارة الهدايا"),
             KeyboardButton("⭐ رصيد Stars للإدارة")
@@ -350,6 +339,24 @@ def menu(uid=None):
         )
 
     return kb
+
+
+def send_menu(
+    chat_id,
+    text="🐻 مرحبًا بك في EN96 Mining!",
+    user_id=None
+):
+    bot.send_message(
+        chat_id,
+        text,
+        reply_markup=menu(user_id)
+    )
+
+    if (
+        user_id is not None
+        and str(chat_id) == str(user_id)
+    ):
+        app_button(chat_id)
 
 
 def admin_menu():
@@ -367,368 +374,134 @@ def admin_menu():
         KeyboardButton("✅ تفعيل كود")
     )
 
-    kb.add(
+    kb.row(
         KeyboardButton("🔙 القائمة الرئيسية")
     )
 
     return kb
 
 
-def send_menu(chat_id, uid=None):
-    bot.send_message(
-        chat_id,
-        "🐻‍❄️👑 مرحبًا بك في مملكة EN96!",
-        reply_markup=menu(uid)
+# ==========================================
+# STELLAR ACCOUNT VERIFICATION
+# ==========================================
+
+def stellar_account_info(address):
+    """
+    Public account lookup only.
+    Does not sign transactions.
+    Does not prove wallet ownership.
+    """
+
+    if not valid_stellar_address(address):
+        return {
+            "ok": False,
+            "reason": "invalid_address"
+        }
+
+    endpoint = (
+        f"{HORIZON_URL}/accounts/"
+        f"{address.upper()}"
     )
 
+    request = Request(
+        endpoint,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "EN96Bot/1.0"
+        }
+    )
 
-# ======================================
-# WEB APP
-# ======================================
-
-def app_button(chat_id):
-    kb = InlineKeyboardMarkup()
-
-    kb.add(
-        InlineKeyboardButton(
-            "👑 افتح مملكة EN96",
-            web_app=WebAppInfo(
-                url=ROYAL_APP_URL
+    try:
+        with urlopen(
+            request,
+            timeout=12
+        ) as response:
+            account = json.loads(
+                response.read().decode("utf-8")
             )
+
+    except HTTPError as exc:
+        if exc.code == 404:
+            return {
+                "ok": False,
+                "reason": "account_not_found"
+            }
+
+        log.warning(
+            "Stellar HTTP error: %s",
+            exc.code
         )
+
+        return {
+            "ok": False,
+            "reason": "network_error"
+        }
+
+    except Exception:
+        log.exception("Stellar account lookup failed")
+
+        return {
+            "ok": False,
+            "reason": "network_error"
+        }
+
+    asset = None
+
+    for item in account.get("balances", []):
+        if (
+            item.get("asset_code") == EN96_ASSET
+            and item.get("asset_issuer") == EN96_ISSUER
+        ):
+            asset = item
+            break
+
+    return {
+        "ok": True,
+        "trustline": asset is not None,
+        "asset_balance": (
+            asset.get("balance")
+            if asset else None
+        )
+    }
+
+
+def stellar_error_text(reason):
+    errors = {
+        "invalid_address":
+            "عنوان Stellar غير صالح.",
+        "account_not_found":
+            "الحساب غير مفعّل على Stellar Mainnet.",
+        "network_error":
+            "تعذر الاتصال بشبكة Stellar الآن."
+    }
+
+    return errors.get(
+        reason,
+        "تعذر التحقق من المحفظة."
     )
 
-    bot.send_message(
-        chat_id,
-        "🐻‍❄️ EN96 Ice Bear Kingdom\n\n"
-        "⛏️ التعدين الافتراضي\n"
-        "💰 المحفظة\n"
-        "🎁 الهدايا والقبيلة\n"
-        "👑 الواجهة الملكية\n\n"
-        "اضغط لفتح التطبيق.\n\n"
-        "⚠️ النقر التجريبي في الواجهة "
-        "لا يضيف رصيدًا.",
-        reply_markup=kb
-    )
 
-
-# ======================================
+# ==========================================
 # EN96 WALLET
-# ======================================
+# ==========================================
 
-def wallet(chat_id, uid):
+def wallet(chat_id, user_id):
     try:
-        profile = profile_for(uid)
-        balance = balance_for(uid)
-
-        if not profile or not balance:
-            bot.send_message(
-                chat_id,
-                "⚠️ لم نجد حسابك أو رصيدك.\n"
-                "أرسل /start أولًا."
-            )
-            return
-
-        address = (
-            profile.get("stellar_public_address")
-            or "غير مربوط"
-        )
-
-        kb = InlineKeyboardMarkup()
-
-        kb.row(
-            InlineKeyboardButton(
-                "💸 السحب",
-                callback_data="withdraw_start"
-            ),
-            InlineKeyboardButton(
-                "🔗 محفظة G",
-                callback_data="stellar_menu"
-            )
-        )
-
-        kb.add(
-            InlineKeyboardButton(
-                "🔄 تحديث المحفظة",
-                callback_data="wallet_refresh"
-            )
-        )
-
-        bot.send_message(
-            chat_id,
-            "🐻‍❄️👑 محفظة EN96\n"
-            "━━━━━━━━━━━━━━\n\n"
-            "💎 الرصيد المتاح:\n"
-            f"{en96_number(balance.get('available'))}"
-            " EN96\n\n"
-            "🔒 الرصيد المحجوز:\n"
-            f"{en96_number(balance.get('reserved'))}"
-            " EN96\n\n"
-            "🌐 عنوان Stellar:\n"
-            f"{address}\n\n"
-            "💸 الحد الأدنى للسحب: 500 EN96\n"
-            "⏳ مراجعة السحوبات يدوية.\n\n"
-            "⚠️ الرصيد داخل EN96 لا يعني "
-            "أن العملات وصلت بالفعل إلى Stellar.",
-            reply_markup=kb
-        )
-
-    except Exception:
-        log.exception("Wallet loading error")
-        bot.send_message(
-            chat_id,
-            "تعذر تحميل المحفظة."
-        )
-
-
-# ======================================
-# STELLAR WALLET
-# ======================================
-
-def stellar_menu(chat_id, uid):
-    try:
-        profile = profile_for(uid)
-
-        address = (
-            profile.get("stellar_public_address")
-            if profile else None
-        )
-
-        kb = InlineKeyboardMarkup()
-
-        kb.add(
-            InlineKeyboardButton(
-                "🪙 إنشاء محفظة LOBSTR",
-                url=LOBSTR_URL
-            )
-        )
-
-        kb.add(
-            InlineKeyboardButton(
-                "🔗 إدخال عنوان G",
-                callback_data="stellar_link"
-            )
-        )
-
-        kb.add(
-            InlineKeyboardButton(
-                "🛡️ فحص خط الثقة EN96",
-                callback_data="stellar_check"
-            )
-        )
-
-        bot.send_message(
-            chat_id,
-            "👑 محفظة Stellar - EN96\n\n"
-            "1️⃣ افتح LOBSTR أو أنشئ محفظة.\n"
-            "2️⃣ انسخ عنوانك العام G.\n"
-            "3️⃣ احفظ العنوان في بوت EN96.\n"
-            "4️⃣ أضف EN96 إلى المحفظة "
-            "عبر خط الثقة.\n"
-            "5️⃣ افحص خط الثقة من البوت.\n\n"
-            "💎 الأصل: EN96\n"
-            "🌐 الشبكة: Stellar Mainnet\n\n"
-            "🏦 المُصدر:\n"
-            f"{EN96_ISSUER}\n\n"
-            "📍 عنوانك المسجل:\n"
-            f"{address or 'غير مسجل'}\n\n"
-            "🔒 لا تشارك مفتاحك السري "
-            "أو عبارة الاسترداد.\n"
-            "⚠️ حفظ عنوان G وحده لا يثبت "
-            "ملكية المحفظة.",
-            reply_markup=kb
-        )
-
-    except Exception:
-        log.exception("Stellar menu error")
-
-
-def begin_stellar_link(chat_id, uid):
-    set_state(uid, "stellar_address")
-
-    bot.send_message(
-        chat_id,
-        "🔗 أرسل عنوان Stellar العام.\n\n"
-        "يبدأ بحرف G ويتكون من 56 حرفًا.\n\n"
-        "لا ترسل المفتاح السري.\n"
-        "للإلغاء: /cancel"
-    )
-
-
-def save_stellar_address(message):
-    uid = message.from_user.id
-    address = (
-        (message.text or "")
-        .strip()
-        .upper()
-    )
-
-    if not valid_address(address):
-        bot.send_message(
-            message.chat.id,
-            "⚠️ عنوان G غير صالح.\n"
-            "انسخه من LOBSTR وحاول مجددًا."
-        )
-        return
-
-    try:
-        profile = profile_for(uid)
+        profile = profile_for(user_id)
 
         if not profile:
-            clear_state(uid)
             bot.send_message(
-                message.chat.id,
-                "أرسل /start أولًا."
+                chat_id,
+                "لم أجد حسابك. أرسل /start أولًا."
             )
             return
 
-        db.table("profiles").update({
-            "stellar_public_address": address
-        }).eq("id", profile["id"]).execute()
+        balance = balance_for(profile["id"])
 
-        clear_state(uid)
-
-        bot.send_message(
-            message.chat.id,
-            "✅ تم حفظ عنوان G في EN96.\n\n"
-            f"{address}\n\n"
-            "ℹ️ العنوان محفوظ، لكن ملكيته "
-            "لم تُثبت بتوقيع المحفظة بعد."
-        )
-
-    except Exception:
-        log.exception("Save stellar address error")
-        bot.send_message(
-            message.chat.id,
-            "تعذر حفظ عنوان Stellar."
-        )
-
-
-def check_trustline(chat_id, uid):
-    try:
-        profile = profile_for(uid)
-
-        address = (
-            profile.get("stellar_public_address")
-            if profile else None
-        )
-
-        if not valid_address(address):
+        if not balance:
             bot.send_message(
                 chat_id,
-                "⚠️ احفظ عنوان G أولًا."
-            )
-            return
-
-        found, status, asset = stellar_trustline(address)
-
-        if found:
-            bot.send_message(
-                chat_id,
-                "✅ خط الثقة EN96 موجود!\n\n"
-                "🌐 Stellar Mainnet\n"
-                "💎 رصيد EN96 على الشبكة:\n"
-                f"{asset.get('balance', '0')} EN96\n\n"
-                "✅ المُصدر متطابق.\n"
-                "⚠️ الفحص لا يثبت ملكية "
-                "العضو لهذا العنوان."
-            )
-
-        elif status == "account_not_found":
-            bot.send_message(
-                chat_id,
-                "⚠️ الحساب غير موجود أو "
-                "غير مفعل على Stellar Mainnet."
-            )
-
-        else:
-            bot.send_message(
-                chat_id,
-                "⚠️ خط الثقة EN96 غير موجود.\n\n"
-                "افتح LOBSTR ثم Add Asset.\n"
-                "ابحث عن EN96 باستخدام "
-                "عنوان المُصدر:\n\n"
-                f"{EN96_ISSUER}\n\n"
-                "وافق على خط الثقة "
-                "داخل المحفظة."
-            )
-
-    except (HTTPError, URLError, TimeoutError):
-        bot.send_message(
-            chat_id,
-            "تعذر الاتصال بشبكة Stellar."
-        )
-
-    except Exception:
-        log.exception("Trustline check error")
-        bot.send_message(
-            chat_id,
-            "تعذر فحص خط الثقة."
-        )
-
-
-# ======================================
-# WITHDRAWAL SYSTEM
-# ======================================
-
-def pending_withdrawals(uid):
-    profile = profile_for(uid)
-
-    if not profile:
-        return []
-
-    return (
-        db.table("withdrawal_requests")
-        .select("id,amount,status")
-        .eq("user_id", profile["id"])
-        .eq("status", "pending")
-        .limit(10)
-        .execute()
-        .data or []
-    )
-
-
-def begin_withdrawal(chat_id, uid):
-    if not WITHDRAWALS_ENABLED:
-        bot.send_message(
-            chat_id,
-            "💸 نظام سحوبات EN96\n\n"
-            "🔒 طلبات السحب الحقيقية "
-            "موقوفة مؤقتًا للاختبار.\n\n"
-            "يمكنك تسجيل عنوان G وفحص "
-            "خط الثقة ومشاهدة الرصيدين."
-        )
-        return
-
-    try:
-        profile = profile_for(uid)
-        balance = balance_for(uid)
-
-        if not profile or not balance:
-            bot.send_message(
-                chat_id,
-                "⚠️ حسابك أو رصيدك غير موجود."
-            )
-            return
-
-        available = Decimal(
-            str(balance.get("available") or "0")
-        )
-
-        if available < MIN_WITHDRAWAL:
-            bot.send_message(
-                chat_id,
-                "⚠️ الرصيد غير كافٍ للسحب.\n\n"
-                "الحد الأدنى: 500 EN96\n"
-                f"المتاح: {en96_number(available)}"
-            )
-            return
-
-        if pending_withdrawals(uid):
-            bot.send_message(
-                chat_id,
-                "⏳ لديك طلب سحب قيد المراجعة.\n"
-                "لا يمكنك إنشاء طلب آخر الآن."
+                "لم أجد سجل رصيدك."
             )
             return
 
@@ -737,294 +510,598 @@ def begin_withdrawal(chat_id, uid):
             or ""
         )
 
-        if not valid_address(address):
-            stellar_menu(chat_id, uid)
-            bot.send_message(
-                chat_id,
-                "⚠️ سجل عنوان G أولًا."
-            )
-            return
-
-        found, status, asset = stellar_trustline(address)
-
-        if not found:
-            bot.send_message(
-                chat_id,
-                "⚠️ لا يمكن متابعة طلب السحب.\n"
-                "يجب أن يكون حساب Stellar "
-                "مفعلًا ولديه خط ثقة EN96.\n"
-                f"نتيجة الفحص: {status}"
-            )
-            return
-
-        set_state(
-            uid,
-            "withdraw_amount",
-            address=address
-        )
-
-        bot.send_message(
-            chat_id,
-            "💸 طلب سحب EN96\n\n"
-            f"💎 المتاح: {en96_number(available)}"
-            " EN96\n\n"
-            "أرسل مبلغ السحب.\n"
-            "الحد الأدنى 500 EN96.\n\n"
-            "سيُحجز المبلغ عند التأكيد.\n"
-            "للإلغاء: /cancel"
-        )
-
-    except Exception:
-        log.exception("Begin withdrawal error")
-        bot.send_message(
-            chat_id,
-            "تعذر فحص طلب السحب."
-        )
-
-
-def withdrawal_amount_input(message):
-    uid = message.from_user.id
-    amount = valid_amount(
-        (message.text or "").replace(",", ".")
-    )
-
-    if amount is None:
-        bot.send_message(
-            message.chat.id,
-            "⚠️ المبلغ غير صالح.\n"
-            "الحد الأدنى 500 EN96 "
-            "وبحد أقصى 7 أرقام عشرية."
-        )
-        return
-
-    try:
-        balance = balance_for(uid)
-
-        if not balance:
-            clear_state(uid)
-            bot.send_message(
-                message.chat.id,
-                "تعذر تحميل الرصيد."
-            )
-            return
-
-        available = Decimal(
-            str(balance.get("available") or "0")
-        )
-
-        if amount > available:
-            bot.send_message(
-                message.chat.id,
-                "⚠️ رصيدك غير كافٍ.\n"
-                f"المتاح: {en96_number(available)}"
-            )
-            return
-
-        state = get_state(uid)
-        address = state.get("address", "")
-
-        if not valid_address(address):
-            clear_state(uid)
-            bot.send_message(
-                message.chat.id,
-                "عنوان المحفظة غير صالح."
-            )
-            return
-
-        set_state(
-            uid,
-            "withdraw_confirm",
-            amount=str(amount),
-            address=address
-        )
-
         kb = InlineKeyboardMarkup()
 
         kb.row(
             InlineKeyboardButton(
-                "✅ تأكيد السحب",
-                callback_data="withdraw_confirm"
+                "💸 طلب سحب EN96",
+                callback_data="withdraw_start"
             ),
             InlineKeyboardButton(
-                "❌ تراجع",
-                callback_data="withdraw_abort"
+                "🔗 ربط عنوان G",
+                callback_data="wallet_link"
+            )
+        )
+
+        kb.row(
+            InlineKeyboardButton(
+                "🛡️ فحص خط الثقة",
+                callback_data="wallet_trustline"
+            )
+        )
+
+        kb.row(
+            InlineKeyboardButton(
+                "🪙 إنشاء محفظة LOBSTR",
+                url=LOBSTR_URL
             )
         )
 
         bot.send_message(
-            message.chat.id,
-            "💸 مراجعة طلب EN96\n\n"
-            f"💎 المبلغ: {en96_number(amount)}"
-            " EN96\n\n"
-            "🌐 عنوان الاستلام:\n"
-            f"{address}\n\n"
-            "🔒 سيتم حجز المبلغ "
-            "من الرصيد المتاح.\n"
-            "⏳ التحويل الفعلي يدوي "
-            "بعد مراجعة الإدارة.",
+            chat_id,
+            "🐻‍❄️👑 محفظة EN96\n"
+            "━━━━━━━━━━━━━━\n\n"
+            "🟢 الرصيد المتاح:\n"
+            f"{en96_number(balance.get('available'))} EN96\n\n"
+            "🟡 الرصيد المحجوز:\n"
+            f"{en96_number(balance.get('reserved'))} EN96\n\n"
+            "💸 الحد الأدنى للسحب: 500 EN96\n\n"
+            "🔗 عنوان Stellar:\n"
+            f"{address if address else 'غير مربوط'}\n\n"
+            "📌 السحب إلى شبكة Stellar Mainnet.\n"
+            "📌 إرسال العملات يتم يدويًا بعد المراجعة.\n"
+            "⚠️ الرصيد داخل البوت ليس رصيد Stellar.",
             reply_markup=kb
         )
 
     except Exception:
-        log.exception("Withdrawal amount error")
+        log.exception("Wallet error")
+
         bot.send_message(
-            message.chat.id,
-            "تعذر مراجعة المبلغ."
+            chat_id,
+            "تعذر عرض المحفظة الآن."
         )
 
 
-def confirm_withdrawal(call):
-    uid = call.from_user.id
-    chat_id = call.message.chat.id
+def start_wallet_link(chat_id, user_id):
+    set_withdrawal_state(
+        user_id,
+        {"step": "link_address"}
+    )
 
-    if not WITHDRAWALS_ENABLED:
+    bot.send_message(
+        chat_id,
+        "🔗 ربط محفظة Stellar\n\n"
+        "افتح LOBSTR واختر Receive، "
+        "ثم انسخ عنوانك العام الذي يبدأ بحرف G.\n\n"
+        "أرسله هنا لحفظ عنوان الاستلام.\n\n"
+        "⚠️ لا ترسل المفتاح السري أو كلمات الاسترداد.\n"
+        "⚠️ حفظ العنوان لا يثبت ملكيته.",
+        reply_markup=wallet_support_keyboard()
+    )
+
+
+def save_wallet_address(chat_id, user_id, address):
+    address = address.strip().upper()
+
+    if not valid_stellar_address(address):
         bot.send_message(
             chat_id,
-            "🔒 السحوبات الحقيقية "
-            "غير مفعلة حاليًا."
-        )
-        return
-
-    lock = user_withdraw_lock(uid)
-
-    if not lock.acquire(blocking=False):
-        bot.send_message(
-            chat_id,
-            "⏳ تتم معالجة طلبك بالفعل."
+            "❌ عنوان G غير صالح.\n"
+            "أرسل عنوان Stellar عامًا صحيحًا "
+            "أو أرسل /cancel."
         )
         return
 
     try:
-        with STATE_LOCK:
-            state = dict(
-                USER_STATES.get(str(uid), {})
-            )
-
-            if state.get("action") != "withdraw_confirm":
-                bot.send_message(
-                    chat_id,
-                    "انتهت صلاحية تأكيد الطلب."
-                )
-                return
-
-            USER_STATES[str(uid)]["action"] = (
-                "withdraw_submitting"
-            )
-
-        amount = valid_amount(state.get("amount"))
-        address = state.get("address", "")
-
-        if amount is None or not valid_address(address):
-            clear_state(uid)
-            bot.send_message(
-                chat_id,
-                "بيانات السحب غير صالحة."
-            )
-            return
-
-        profile = profile_for(uid)
+        profile = profile_for(user_id)
 
         if not profile:
-            clear_state(uid)
+            clear_withdrawal_state(user_id)
             bot.send_message(
                 chat_id,
-                "حساب العضو غير موجود."
+                "لم أجد حسابك. أرسل /start."
             )
             return
+
+        # Do not change destination during a pending request.
+        existing = (
+            db.table("withdrawal_requests")
+            .select("id")
+            .eq("user_id", profile["id"])
+            .eq("status", "pending")
+            .limit(1)
+            .execute()
+            .data or []
+        )
+
+        if existing:
+            clear_withdrawal_state(user_id)
+
+            bot.send_message(
+                chat_id,
+                "⚠️ لديك طلب سحب معلق.\n"
+                "لا يمكن تغيير عنوان الاستلام "
+                "أثناء مراجعة الطلب."
+            )
+            return
+
+        db.table("profiles").update(
+            {
+                "stellar_public_address": address
+            }
+        ).eq(
+            "id", profile["id"]
+        ).execute()
+
+        clear_withdrawal_state(user_id)
+
+        bot.send_message(
+            chat_id,
+            "✅ تم حفظ عنوان Stellar في حساب EN96.\n\n"
+            f"{address}\n\n"
+            "🛡️ افحص خط الثقة قبل طلب السحب.\n\n"
+            "⚠️ حفظ عنوان G لا يعني إثبات "
+            "ملكية المحفظة.",
+            reply_markup=menu(user_id)
+        )
+
+    except Exception:
+        log.exception("Save Stellar address error")
+
+        bot.send_message(
+            chat_id,
+            "تعذر حفظ العنوان الآن."
+        )
+
+
+def check_wallet_trustline(chat_id, user_id):
+    try:
+        profile = profile_for(user_id)
+
+        if not profile:
+            bot.send_message(
+                chat_id,
+                "أرسل /start أولًا."
+            )
+            return
+
+        address = (
+            profile.get("stellar_public_address")
+            or ""
+        )
+
+        if not valid_stellar_address(address):
+            bot.send_message(
+                chat_id,
+                "⚠️ لم تربط عنوان G بعد.\n"
+                "افتح المحفظة واضغط ربط عنوان G.",
+                reply_markup=wallet_support_keyboard()
+            )
+            return
+
+        result = stellar_account_info(address)
+
+        if not result["ok"]:
+            bot.send_message(
+                chat_id,
+                "⚠️ " + stellar_error_text(
+                    result["reason"]
+                ),
+                reply_markup=wallet_support_keyboard()
+            )
+            return
+
+        if result["trustline"]:
+            bot.send_message(
+                chat_id,
+                "✅ تم العثور على خط ثقة EN96!\n\n"
+                "🌐 Stellar Mainnet\n"
+                f"🪙 الأصل: {EN96_ASSET}\n\n"
+                "💎 رصيد المحفظة على Stellar:\n"
+                f"{result['asset_balance']} EN96\n\n"
+                "⚠️ هذا فحص عام، وليس إثبات ملكية."
+            )
+        else:
+            bot.send_message(
+                chat_id,
+                "⚠️ حساب Stellar موجود، "
+                "لكن خط ثقة EN96 غير موجود.\n\n"
+                "افتح LOBSTR ثم Add Asset.\n"
+                "ابحث عن EN96 بالمُصدر:\n\n"
+                f"{EN96_ISSUER}\n\n"
+                "وافق على إضافة الأصل من المحفظة.",
+                reply_markup=wallet_support_keyboard()
+            )
+
+    except Exception:
+        log.exception("Trustline check error")
+
+        bot.send_message(
+            chat_id,
+            "تعذر فحص خط الثقة."
+        )
+
+
+# ==========================================
+# WITHDRAWAL - MEMBER
+# ==========================================
+
+def start_withdrawal(chat_id, user_id):
+    try:
+        profile = profile_for(user_id)
+
+        if not profile:
+            bot.send_message(
+                chat_id,
+                "لم أجد حسابك.\nأرسل /start أولًا."
+            )
+            return
+
+        balance = balance_for(profile["id"])
+
+        if not balance:
+            bot.send_message(
+                chat_id,
+                "تعذر العثور على رصيدك."
+            )
+            return
+
+        available = Decimal(
+            str(balance.get("available") or 0)
+        )
+
+        address = (
+            profile.get("stellar_public_address")
+            or ""
+        )
+
+        if available < MIN_WITHDRAWAL:
+            bot.send_message(
+                chat_id,
+                "❌ الرصيد المتاح غير كافٍ.\n\n"
+                f"رصيدك: {en96_number(available)} EN96\n"
+                "الحد الأدنى: 500 EN96."
+            )
+            return
+
+        existing = (
+            db.table("withdrawal_requests")
+            .select("id")
+            .eq("user_id", profile["id"])
+            .eq("status", "pending")
+            .limit(1)
+            .execute()
+            .data or []
+        )
+
+        if existing:
+            bot.send_message(
+                chat_id,
+                "⏳ لديك طلب سحب معلق بالفعل.\n"
+                "افتح «📋 طلبات السحب» "
+                "لمتابعة الطلب."
+            )
+            return
+
+        if not valid_stellar_address(address):
+            start_wallet_link(chat_id, user_id)
+            return
+
+        result = stellar_account_info(address)
+
+        if not result["ok"]:
+            bot.send_message(
+                chat_id,
+                "⚠️ لا يمكن بدء السحب.\n"
+                + stellar_error_text(
+                    result["reason"]
+                )
+            )
+            return
+
+        if not result["trustline"]:
+            bot.send_message(
+                chat_id,
+                "⚠️ يجب إضافة خط ثقة EN96 "
+                "إلى محفظتك أولًا.\n\n"
+                f"المُصدر:\n{EN96_ISSUER}",
+                reply_markup=wallet_support_keyboard()
+            )
+            return
+
+        set_withdrawal_state(
+            user_id,
+            {
+                "step": "amount",
+                "address": address
+            }
+        )
+
+        bot.send_message(
+            chat_id,
+            "💸 طلب سحب EN96\n"
+            "━━━━━━━━━━━━━━\n\n"
+            "🟢 الرصيد المتاح:\n"
+            f"{en96_number(available)} EN96\n\n"
+            "🟡 الحد الأدنى: 500 EN96\n\n"
+            "🔗 عنوان الاستلام:\n"
+            f"{address}\n\n"
+            "✅ خط الثقة موجود.\n\n"
+            "اكتب مبلغ السحب الآن.\n"
+            "مثال: 500\n\n"
+            "⚠️ تأكد أن هذا عنوان محفظتك."
+        )
+
+    except Exception:
+        log.exception("Start withdrawal error")
+
+        bot.send_message(
+            chat_id,
+            "تعذر بدء طلب السحب.\n"
+            "لم يتم حجز رصيد جديد."
+        )
+
+
+def withdrawal_amount_input(
+    chat_id,
+    user_id,
+    value
+):
+    amount = parse_amount(value)
+
+    if amount is None:
+        bot.send_message(
+            chat_id,
+            "❌ مبلغ غير صالح.\n\n"
+            "الحد الأدنى: 500 EN96.\n"
+            "أقصى دقة: 7 أرقام عشرية.\n\n"
+            "أرسل المبلغ مجددًا أو /cancel."
+        )
+        return
+
+    state = get_withdrawal_state(user_id)
+
+    if not state or state.get("step") != "amount":
+        return
+
+    address = state.get("address", "")
+
+    if not valid_stellar_address(address):
+        clear_withdrawal_state(user_id)
+        bot.send_message(
+            chat_id,
+            "عنوان Stellar غير صالح."
+        )
+        return
+
+    set_withdrawal_state(
+        user_id,
+        {
+            "step": "confirm",
+            "amount": str(amount),
+            "address": address
+        }
+    )
+
+    kb = InlineKeyboardMarkup()
+
+    kb.row(
+        InlineKeyboardButton(
+            "✅ تأكيد طلب السحب",
+            callback_data="withdraw_confirm"
+        ),
+        InlineKeyboardButton(
+            "❌ تراجع",
+            callback_data="withdraw_abort"
+        )
+    )
+
+    bot.send_message(
+        chat_id,
+        "👑 تأكيد سحب EN96\n"
+        "━━━━━━━━━━━━━━\n\n"
+        f"💎 المبلغ: {en96_number(amount)} EN96\n\n"
+        f"🔗 المحفظة:\n{address}\n\n"
+        "عند التأكيد سيُنقل المبلغ "
+        "من المتاح إلى المحجوز.\n\n"
+        "⚠️ لن تُرسل العملات فورًا.\n"
+        "سيُراجع الطلب قبل الإرسال اليدوي.\n\n"
+        "تأكد من صحة العنوان.",
+        reply_markup=kb
+    )
+
+
+def confirm_withdrawal(chat_id, user_id):
+    with WITHDRAWAL_LOCK:
+        state = WITHDRAWAL_STATES.get(
+            str(user_id)
+        )
+
+        if (
+            not state
+            or state.get("step") != "confirm"
+        ):
+            bot.send_message(
+                chat_id,
+                "لا يوجد طلب جاهز للتأكيد."
+            )
+            return
+
+        # Prevent double-click duplicate requests.
+        WITHDRAWAL_STATES[str(user_id)] = {
+            **state,
+            "step": "processing"
+        }
+
+    try:
+        address = state["address"]
+        amount = Decimal(state["amount"])
+
+        # Check again before reserving.
+        profile = profile_for(user_id)
+
+        if not profile:
+            raise ValueError("Account not found")
 
         if (
             profile.get("stellar_public_address")
             != address
         ):
-            clear_state(uid)
-            bot.send_message(
-                chat_id,
-                "عنوان Stellar تغير.\n"
-                "ابدأ الطلب من جديد."
-            )
-            return
+            raise ValueError("Destination changed")
 
-        if pending_withdrawals(uid):
-            clear_state(uid)
-            bot.send_message(
-                chat_id,
-                "⚠️ لديك طلب سحب سابق "
-                "قيد المراجعة."
-            )
-            return
+        check = stellar_account_info(address)
 
+        if not check["ok"]:
+            raise ValueError("Stellar verification unavailable")
+
+        if not check["trustline"]:
+            raise ValueError("EN96 trustline missing")
+
+        # Existing Supabase function returns UUID.
         result = db.rpc(
             "en96_request_withdrawal",
             {
-                "p_telegram_id": str(uid),
+                "p_telegram_id": str(user_id),
                 "p_amount": str(amount),
                 "p_stellar_address": address
             }
         ).execute()
 
-        # Existing Supabase RPC returns UUID.
-        request_id = str(result.data or "")
+        request_id = result.data
+
+        if isinstance(request_id, list):
+            request_id = (
+                request_id[0]
+                if request_id else None
+            )
 
         if not request_id:
-            raise RuntimeError("Missing withdrawal ID")
+            raise ValueError("Missing withdrawal request ID")
 
-        clear_state(uid)
+        clear_withdrawal_state(user_id)
 
         bot.send_message(
             chat_id,
-            "✅ تم تسجيل طلب السحب!\n\n"
-            f"🆔 الطلب: {request_id}\n"
-            f"💎 المبلغ: {en96_number(amount)}"
-            " EN96\n\n"
-            "🔒 المبلغ محجوز في Supabase.\n"
-            "⏳ الحالة: pending\n\n"
-            "لم تُرسل عملات Stellar بعد.\n"
-            "افتح محفظتي لتحديث الرصيد."
+            "✅ تم تسجيل طلب السحب!\n"
+            "━━━━━━━━━━━━━━\n\n"
+            f"💎 المبلغ: {en96_number(amount)} EN96\n\n"
+            "🟡 الحالة: قيد المراجعة\n"
+            "🔒 تم حجز المبلغ في Supabase.\n\n"
+            f"🆔 رقم الطلب:\n{request_id}\n\n"
+            "📌 العملات لم تُرسل بعد.\n"
+            "سيتولى المسؤول مراجعة الطلب.",
+            reply_markup=menu(user_id)
         )
 
         try:
             bot.send_message(
                 int(ADMIN_ID),
-                "👑 طلب سحب جديد\n\n"
-                f"👤 العضو: {uid}\n"
-                f"🆔 الطلب: {request_id}\n"
-                f"💎 المبلغ: {en96_number(amount)}"
-                " EN96\n\n"
-                f"🌐 المستلم:\n{address}\n\n"
-                "⏳ قيد المراجعة."
+                "👑 طلب سحب EN96 جديد\n\n"
+                f"👤 Telegram ID: {user_id}\n"
+                f"💎 المبلغ: {en96_number(amount)} EN96\n\n"
+                f"🔗 عنوان الاستلام:\n{address}\n\n"
+                f"🆔 الطلب:\n{request_id}\n\n"
+                "⚠️ لا ترسل العملات مرتين.\n"
+                "افتح لوحة إدارة السحوبات."
             )
         except Exception:
-            log.warning("Admin notification failed")
+            log.exception("Admin notification error")
 
-    except Exception:
-        log.exception("Withdrawal confirmation error")
+    except Exception as exc:
+        clear_withdrawal_state(user_id)
 
-        clear_state(uid)
+        log.exception("Withdrawal request failed")
 
         bot.send_message(
             chat_id,
-            "⚠️ تعذر تأكيد نتيجة الطلب.\n"
-            "قد يكون قد سُجل بالفعل.\n"
-            "لا تكرر السحب قبل مراجعة "
-            "الطلبات مع الإدارة."
+            "⚠️ لم يكتمل تأكيد طلب السحب.\n"
+            "افتح «📋 طلبات السحب» "
+            "وتحقق من وجود طلب معلق "
+            "قبل المحاولة مجددًا.\n\n"
+            "لم يتم إرسال أي عملات Stellar."
         )
 
-    finally:
-        lock.release()
+
+def member_withdrawal_history(chat_id, user_id):
+    try:
+        profile = profile_for(user_id)
+
+        if not profile:
+            bot.send_message(
+                chat_id,
+                "أرسل /start أولًا."
+            )
+            return
+
+        rows = (
+            db.table("withdrawal_requests")
+            .select(
+                "id,amount,status,"
+                "stellar_public_address"
+            )
+            .eq("user_id", profile["id"])
+            .order("created_at", desc=True)
+            .limit(10)
+            .execute()
+            .data or []
+        )
+
+        if not rows:
+            bot.send_message(
+                chat_id,
+                "📋 لا توجد طلبات سحب حتى الآن."
+            )
+            return
+
+        labels = {
+            "pending": "⏳ قيد المراجعة",
+            "paid": "✅ مدفوع",
+            "cancelled": "❌ ملغى",
+            "processing": "🔄 قيد المعالجة"
+        }
+
+        lines = [
+            "🐻‍❄️ طلبات سحب EN96",
+            "━━━━━━━━━━━━━━"
+        ]
+
+        for row in rows:
+            status = row.get("status", "unknown")
+
+            lines.append(
+                "\n"
+                f"🆔 {row.get('id')}\n"
+                f"💎 {en96_number(row.get('amount'))} EN96\n"
+                f"{labels.get(status, status)}"
+            )
+
+        bot.send_message(
+            chat_id,
+            "\n".join(lines)
+        )
+
+    except Exception:
+        log.exception("Withdrawal history error")
+
+        bot.send_message(
+            chat_id,
+            "تعذر تحميل طلبات السحب."
+        )
 
 
-# ======================================
+# ==========================================
 # ADMIN WITHDRAWALS
-# ======================================
+# ==========================================
 
-def admin_withdrawals(chat_id, uid):
+def admin_withdrawals(chat_id, user_id):
     if (
-        not is_admin(uid)
-        or str(chat_id) != str(uid)
+        not is_admin(user_id)
+        or str(chat_id) != str(user_id)
     ):
         bot.send_message(
             chat_id,
-            "🔒 هذا القسم خاص بالإدارة."
+            "🔒 إدارة السحوبات خاصة بالمسؤول."
         )
         return
 
@@ -1033,11 +1110,11 @@ def admin_withdrawals(chat_id, uid):
             db.table("withdrawal_requests")
             .select(
                 "id,user_id,amount,status,"
-                "stellar_public_address,"
-                "transaction_hash,created_at"
+                "stellar_public_address,created_at"
             )
-            .order("created_at", desc=True)
-            .limit(15)
+            .eq("status", "pending")
+            .order("created_at")
+            .limit(20)
             .execute()
             .data or []
         )
@@ -1045,74 +1122,270 @@ def admin_withdrawals(chat_id, uid):
         if not rows:
             bot.send_message(
                 chat_id,
-                "👑 لا توجد طلبات سحب حاليًا."
+                "👑 إدارة السحوبات\n\n"
+                "✅ لا توجد طلبات معلقة حاليًا.\n\n"
+                "⚠️ التحقق من المدفوعات "
+                "لم يُفعّل بعد."
             )
             return
 
         bot.send_message(
             chat_id,
-            "👑 لوحة سحوبات EN96\n\n"
-            "📋 أحدث الطلبات:\n"
-            "🔒 تأكيد الدفع معطل مؤقتًا "
-            "إلى حين إكمال التحقق من Stellar."
+            "👑 إدارة سحوبات EN96\n"
+            "━━━━━━━━━━━━━━\n\n"
+            f"📋 الطلبات المعلقة المعروضة: {len(rows)}\n\n"
+            "راجع عنوان G والمبلغ.\n"
+            "لا ترسل العملات دون سجل واضح.\n"
+            "ولا تلغِ طلبًا بدأ تحويله."
         )
 
-        for order in rows:
-            status = order.get("status", "unknown")
-
-            if status == "pending":
-                symbol = "⏳"
-            elif status == "paid":
-                symbol = "✅"
-            elif status == "cancelled":
-                symbol = "❌"
-            else:
-                symbol = "📋"
+        for item in rows:
+            request_id = str(item["id"])
+            profile_id = item.get("user_id")
 
             telegram_id = "غير معروف"
 
             try:
-                profile_rows = (
+                member = (
                     db.table("profiles")
                     .select("telegram_id")
-                    .eq("id", order["user_id"])
+                    .eq("id", profile_id)
                     .limit(1)
                     .execute()
                     .data or []
                 )
 
-                if profile_rows:
-                    telegram_id = profile_rows[0].get(
-                        "telegram_id", "غير معروف"
+                if member:
+                    telegram_id = str(
+                        member[0].get(
+                            "telegram_id",
+                            "غير معروف"
+                        )
                     )
             except Exception:
-                log.warning("Profile read error")
+                log.exception("Admin member lookup")
+
+            kb = InlineKeyboardMarkup()
+
+            kb.add(
+                InlineKeyboardButton(
+                    "🔍 فحص محفظة المستلم",
+                    callback_data=(
+                        "admin_check:" + request_id
+                    )
+                )
+            )
+
+            kb.add(
+                InlineKeyboardButton(
+                    "↩️ طلب إلغاء قبل الدفع",
+                    callback_data=(
+                        "admin_cancel:" + request_id
+                    )
+                )
+            )
 
             bot.send_message(
                 chat_id,
                 "━━━━━━━━━━━━━━\n"
-                f"{symbol} {status}\n\n"
-                f"🆔 الطلب: {order.get('id')}\n"
-                f"👤 Telegram: {telegram_id}\n"
-                f"💎 {en96_number(order.get('amount'))}"
-                " EN96\n\n"
-                "🌐 المستلم:\n"
-                f"{order.get('stellar_public_address')}\n\n"
-                "🔗 المعاملة:\n"
-                f"{order.get('transaction_hash') or 'لا يوجد'}"
+                "⏳ طلب سحب معلق\n\n"
+                f"👤 Telegram: {telegram_id}\n\n"
+                "💎 المبلغ:\n"
+                f"{en96_number(item.get('amount'))} EN96\n\n"
+                "🔗 المستلم:\n"
+                f"{item.get('stellar_public_address')}\n\n"
+                f"🆔 الطلب:\n{request_id}\n\n"
+                "⚠️ لا يوجد تأكيد دفع آلي بعد.",
+                reply_markup=kb
             )
 
     except Exception:
         log.exception("Admin withdrawals error")
+
         bot.send_message(
             chat_id,
-            "تعذر عرض طلبات السحب."
+            "تعذر تحميل لوحة السحوبات."
         )
 
 
-# ======================================
+def admin_check_withdrawal(
+    chat_id,
+    user_id,
+    request_id
+):
+    if not is_admin(user_id):
+        return
+
+    try:
+        rows = (
+            db.table("withdrawal_requests")
+            .select(
+                "id,status,amount,"
+                "stellar_public_address"
+            )
+            .eq("id", request_id)
+            .limit(1)
+            .execute()
+            .data or []
+        )
+
+        if not rows:
+            bot.send_message(
+                chat_id,
+                "الطلب غير موجود."
+            )
+            return
+
+        item = rows[0]
+        address = item["stellar_public_address"]
+
+        result = stellar_account_info(address)
+
+        if not result["ok"]:
+            bot.send_message(
+                chat_id,
+                "⚠️ " + stellar_error_text(
+                    result["reason"]
+                )
+            )
+            return
+
+        bot.send_message(
+            chat_id,
+            "🔍 فحص محفظة المستلم\n\n"
+            f"🆔 الطلب: {request_id}\n"
+            f"💎 المبلغ: {en96_number(item['amount'])}\n\n"
+            "🛡️ خط الثقة:\n"
+            + (
+                "✅ موجود"
+                if result["trustline"]
+                else "❌ غير موجود"
+            )
+            + "\n\n"
+            "⚠️ فحص خط الثقة لا يثبت ملكية "
+            "المحفظة أو اكتمال الدفع."
+        )
+
+    except Exception:
+        log.exception("Admin check withdrawal")
+
+        bot.send_message(
+            chat_id,
+            "تعذر فحص المحفظة."
+        )
+
+
+def admin_cancel_prompt(
+    chat_id,
+    user_id,
+    request_id
+):
+    if not is_admin(user_id):
+        return
+
+    try:
+        rows = (
+            db.table("withdrawal_requests")
+            .select("id,status,amount")
+            .eq("id", request_id)
+            .limit(1)
+            .execute()
+            .data or []
+        )
+
+        if not rows or rows[0]["status"] != "pending":
+            bot.send_message(
+                chat_id,
+                "لا يمكن إلغاء هذا الطلب."
+            )
+            return
+
+        ADMIN_CANCEL_CONFIRM[str(user_id)] = request_id
+
+        kb = InlineKeyboardMarkup()
+
+        kb.row(
+            InlineKeyboardButton(
+                "✅ لم أرسل العملات، ألغِ الطلب",
+                callback_data="admin_cancel_yes"
+            ),
+            InlineKeyboardButton(
+                "❌ تراجع",
+                callback_data="admin_cancel_no"
+            )
+        )
+
+        bot.send_message(
+            chat_id,
+            "⚠️ تأكيد إلغاء سحب EN96\n\n"
+            f"🆔 {request_id}\n"
+            f"💎 {en96_number(rows[0]['amount'])} EN96\n\n"
+            "لا توافق إلا إذا تأكدت أنك "
+            "لم ترسل العملات ولم تبدأ "
+            "عملية تحويل قد تكتمل لاحقًا.\n\n"
+            "سيعود المبلغ إلى رصيد العضو المتاح.",
+            reply_markup=kb
+        )
+
+    except Exception:
+        log.exception("Admin cancel prompt error")
+
+        bot.send_message(
+            chat_id,
+            "تعذر فتح تأكيد الإلغاء."
+        )
+
+
+def admin_cancel_execute(chat_id, user_id):
+    if not is_admin(user_id):
+        return
+
+    request_id = ADMIN_CANCEL_CONFIRM.pop(
+        str(user_id),
+        None
+    )
+
+    if not request_id:
+        bot.send_message(
+            chat_id,
+            "انتهى تأكيد الإلغاء."
+        )
+        return
+
+    try:
+        result = db.rpc(
+            "en96_cancel_withdrawal",
+            {
+                "p_request_id": request_id
+            }
+        ).execute()
+
+        if result.data != "cancelled":
+            raise ValueError(
+                "Unexpected cancellation response"
+            )
+
+        bot.send_message(
+            chat_id,
+            "✅ أُلغي طلب السحب.\n"
+            "✅ أعادت Supabase المبلغ "
+            "من المحجوز إلى المتاح.\n\n"
+            f"🆔 {request_id}"
+        )
+
+    except Exception:
+        log.exception("Cancel withdrawal failed")
+
+        bot.send_message(
+            chat_id,
+            "⚠️ تعذر تأكيد الإلغاء.\n"
+            "تحقق من حالة الطلب في Supabase."
+        )
+
+
+# ==========================================
 # MINING
-# ======================================
+# ==========================================
 
 def mining_keyboard():
     kb = InlineKeyboardMarkup()
@@ -1127,8 +1400,12 @@ def mining_keyboard():
     return kb
 
 
-def mining_counter(chat_id, uid, elapsed_before=0):
-    key = (chat_id, str(uid))
+def mining_counter(
+    chat_id,
+    user_id,
+    elapsed_before=0
+):
+    key = (chat_id, str(user_id))
 
     with MINING_LOCK:
         previous = MINING_COUNTERS.get(key)
@@ -1149,14 +1426,17 @@ def mining_counter(chat_id, uid, elapsed_before=0):
     try:
         msg = bot.send_message(
             chat_id,
+            "🐻👑 منجم EN96\n\n"
             "⛏️ التعدين الافتراضي نشط.\n"
             "⚡ 0.001 EN96/ثانية\n"
-            "⏱️ الجلسة: 24 ساعة",
+            "⏱️ الجلسة: 24 ساعة\n\n"
+            "العداد تقديري والرصيد تحدده Supabase.",
             reply_markup=mining_keyboard()
         )
 
     except Exception:
-        log.exception("Mining message error")
+        log.exception("Counter send error")
+
         with MINING_LOCK:
             if MINING_COUNTERS.get(key) is stop_event:
                 MINING_COUNTERS.pop(key, None)
@@ -1168,21 +1448,20 @@ def mining_counter(chat_id, uid, elapsed_before=0):
         try:
             while not stop_event.is_set():
                 elapsed = min(
-                    max(0, int(time.time() - started)),
+                    max(
+                        0,
+                        int(time.time() - started)
+                    ),
                     MINING_DURATION
                 )
 
-                estimate = (
-                    Decimal(elapsed) * MINING_RATE
-                )
+                estimate = elapsed * MINING_RATE
 
-                hours, remainder = divmod(elapsed, 3600)
-                minutes, seconds = divmod(
-                    remainder, 60
-                )
+                hours, rest = divmod(elapsed, 3600)
+                minutes, seconds = divmod(rest, 60)
 
-                counter_text = (
-                    "🐻‍❄️👑 منجم EN96\n\n"
+                content = (
+                    "🐻👑 منجم EN96\n\n"
                     "⛏️ التعدين الافتراضي نشط\n\n"
                     "💎 المكافأة التقديرية:\n"
                     f"{estimate:.7f} EN96\n\n"
@@ -1190,13 +1469,13 @@ def mining_counter(chat_id, uid, elapsed_before=0):
                     f"{hours:02d}:"
                     f"{minutes:02d}:"
                     f"{seconds:02d} / 24:00:00\n\n"
-                    "⚡ 0.001 EN96/ثانية\n"
-                    "⚠️ الرصيد الفعلي تحدده Supabase."
+                    "⚡ 0.001 EN96/ثانية\n\n"
+                    "⚠️ الرصيد الفعلي محفوظ في Supabase."
                 )
 
                 try:
                     bot.edit_message_text(
-                        counter_text,
+                        content,
                         chat_id=chat_id,
                         message_id=msg.message_id,
                         reply_markup=mining_keyboard()
@@ -1207,7 +1486,8 @@ def mining_counter(chat_id, uid, elapsed_before=0):
                         not in str(exc).lower()
                     ):
                         log.warning(
-                            "Mining counter: %s", exc
+                            "Mining counter update: %s",
+                            exc
                         )
 
                 if elapsed >= MINING_DURATION:
@@ -1216,7 +1496,7 @@ def mining_counter(chat_id, uid, elapsed_before=0):
                             db.rpc(
                                 "en96_mining_action",
                                 {
-                                    "p_telegram_id": str(uid)
+                                    "p_telegram_id": str(user_id)
                                 }
                             ).execute()
                         )
@@ -1227,19 +1507,21 @@ def mining_counter(chat_id, uid, elapsed_before=0):
                             bot.send_message(
                                 chat_id,
                                 "✅ أكدت Supabase إضافة "
-                                f"{data.get('reward', 86.4)}"
-                                " EN96.\n"
-                                "بدأت جلسة جديدة."
+                                f"{data.get('reward', 86.4)} "
+                                "EN96.\nبدأت جلسة جديدة."
                             )
+
                             started = time.time()
                             continue
 
                         if status == "active":
                             remaining = max(
                                 1,
-                                int(data.get(
-                                    "remaining_seconds", 1
-                                ))
+                                int(
+                                    data.get(
+                                        "remaining_seconds", 1
+                                    )
+                                )
                             )
 
                             started = (
@@ -1251,12 +1533,13 @@ def mining_counter(chat_id, uid, elapsed_before=0):
 
                         bot.send_message(
                             chat_id,
-                            "⚠️ لم يتم تأكيد مكافأة الجلسة."
+                            "⚠️ لم يتم تأكيد المكافأة.\n"
+                            "اضغط بدء التعدين للتحقق."
                         )
                         break
 
                     except Exception:
-                        log.exception("Mining settlement")
+                        log.exception("Mining settlement error")
                         break
 
                 if stop_event.wait(5):
@@ -1273,67 +1556,74 @@ def mining_counter(chat_id, uid, elapsed_before=0):
     ).start()
 
 
-def mining(chat_id, uid):
+def mining(chat_id, user_id):
     try:
-        if not profile_for(uid):
+        if not profile_for(user_id):
             bot.send_message(
                 chat_id,
-                "أرسل /start أولًا."
+                "لم أجد حسابك. أرسل /start أولًا."
             )
             return
 
         data = rpc_data(
             db.rpc(
                 "en96_mining_action",
-                {"p_telegram_id": str(uid)}
+                {
+                    "p_telegram_id": str(user_id)
+                }
             ).execute()
         )
 
         status = data.get("status")
 
         if status == "started":
-            mining_counter(chat_id, uid)
+            mining_counter(chat_id, user_id)
 
         elif status == "rewarded_and_started":
             bot.send_message(
                 chat_id,
                 "✅ تمت إضافة "
                 f"{data.get('reward', 86.4)} EN96 "
-                "وبدأت جلسة جديدة."
+                "وبدأت جلسة تعدين جديدة."
             )
-            mining_counter(chat_id, uid)
+
+            mining_counter(chat_id, user_id)
 
         elif status == "active":
             remaining = max(
                 0,
                 min(
-                    int(data.get(
-                        "remaining_seconds",
-                        MINING_DURATION
-                    )),
+                    int(
+                        data.get(
+                            "remaining_seconds",
+                            MINING_DURATION
+                        )
+                    ),
                     MINING_DURATION
                 )
             )
 
             mining_counter(
                 chat_id,
-                uid,
+                user_id,
                 MINING_DURATION - remaining
             )
 
         elif status == "profile_missing":
             bot.send_message(
                 chat_id,
-                "حسابك غير موجود."
+                "ملفك غير موجود في قاعدة البيانات."
             )
 
         elif status == "balance_missing":
             bot.send_message(
                 chat_id,
-                "سجل الرصيد غير موجود."
+                "سجل رصيدك غير موجود."
             )
 
         else:
+            log.warning("Unexpected mining data: %s", data)
+
             bot.send_message(
                 chat_id,
                 "تعذر تأكيد حالة التعدين."
@@ -1341,24 +1631,39 @@ def mining(chat_id, uid):
 
     except Exception:
         log.exception("Mining error")
+
         bot.send_message(
             chat_id,
-            "⚠️ حدث خطأ أثناء التعدين."
+            "حدث خطأ في التعدين."
         )
 
 
-# ======================================
-# REFERRAL SYSTEM
-# ======================================
+# ==========================================
+# REFERRALS AND TRIBE
+# ==========================================
 
-def referral_link(uid):
+def referral_link(user_id):
     return (
         f"https://t.me/{BOT_USERNAME}"
-        f"?start=ref_{uid}"
+        f"?start=ref_{user_id}"
     )
 
 
-def record_referral(message, payload):
+def record_referral(message):
+    parts = (
+        (message.text or "")
+        .strip()
+        .split(maxsplit=1)
+    )
+
+    if len(parts) != 2:
+        return
+
+    if parts[0].split("@")[0] != "/start":
+        return
+
+    payload = parts[1].strip()
+
     if not payload.startswith("ref_"):
         return
 
@@ -1396,64 +1701,85 @@ def record_referral(message, payload):
         log.exception("Referral error")
 
 
-def tribe(chat_id, uid):
-    link = referral_link(uid)
+def tribe(chat_id, user_id):
+    link = referral_link(user_id)
 
     try:
         data = rpc_data(
             db.rpc(
                 "en96_tribe_stats",
-                {"p_telegram_id": str(uid)}
+                {
+                    "p_telegram_id": str(user_id)
+                }
             ).execute()
         )
 
+        if data.get("status") == "profile_missing":
+            bot.send_message(
+                chat_id,
+                "لم أجد حسابك. أرسل /start أولًا."
+            )
+            return
+
         if data.get("status") != "ok":
-            raise ValueError("Tribe statistics error")
+            raise ValueError("Unexpected tribe response")
+
+        friends = int(data.get("friends") or 0)
+
+        invitation_bonus = en96_number(
+            data.get("invitation_bonus")
+        )
+
+        commission = en96_number(
+            data.get("mining_commission")
+        )
+
+        total = en96_number(
+            data.get("total")
+        )
 
         bot.send_message(
             chat_id,
-            "🐻‍❄️👑 قبيلة EN96\n"
+            "🐻👑 قبيلة EN96\n"
             "━━━━━━━━━━━━━━\n\n"
-            f"👥 عدد الأصدقاء: "
-            f"{int(data.get('friends') or 0)}\n\n"
+            f"👥 عدد الأصدقاء: {friends}\n\n"
             "🎁 مكافآت الدعوات:\n"
-            f"{en96_number(data.get('invitation_bonus'))}"
-            " EN96\n\n"
-            "⛏️ عمولة التعدين 5%:\n"
-            f"{en96_number(data.get('mining_commission'))}"
-            " EN96\n\n"
+            f"{invitation_bonus} EN96\n\n"
+            "⛏️ عمولات تعدين الأصدقاء 5%:\n"
+            f"{commission} EN96\n\n"
             "💎 مجموع مكافآت القبيلة:\n"
-            f"{en96_number(data.get('total'))}"
-            " EN96\n\n"
+            f"{total} EN96\n\n"
             "🔗 رابط دعوتك:\n"
             f"{link}\n\n"
-            "🎁 50 EN96 عند اكتمال أول "
-            "جلسة مؤهلة للصديق.\n"
+            "🎁 50 EN96 عند اكتمال "
+            "أول جلسة مؤهلة للصديق.\n"
             "⛏️ 5% من مكافآت تعدين "
-            "الأصدقاء المباشرين المؤكدة.",
+            "الأصدقاء المباشرين المؤكدة.\n\n"
+            "⚠️ المكافآت حسب سجلات Supabase.",
             disable_web_page_preview=True
         )
 
     except Exception:
-        log.exception("Tribe error")
+        log.exception("Tribe stats error")
 
         bot.send_message(
             chat_id,
-            "تعذر تحميل إحصائيات القبيلة.\n\n"
-            f"رابطك:\n{link}",
+            "🐻👑 قبيلة EN96\n\n"
+            "تعذر تحميل الإحصائيات الآن.\n"
+            f"رابط دعوتك:\n{link}",
             disable_web_page_preview=True
         )
 
 
-# ======================================
+# ==========================================
 # VIDEO GIFTS
-# ======================================
+# ==========================================
 
 def redeem_gift(message):
     uid = message.from_user.id
     code = (message.text or "").strip()
 
-    clear_state(uid)
+    WAITING_GIFT.discard(uid)
 
     try:
         data = rpc_data(
@@ -1470,8 +1796,8 @@ def redeem_gift(message):
             bot.send_message(
                 message.chat.id,
                 "🎁 تم استلام "
-                f"{data.get('reward', 1)}"
-                " EN96 بنجاح!"
+                f"{data.get('reward', 1)} "
+                "EN96 بنجاح!"
             )
             return
 
@@ -1482,18 +1808,16 @@ def redeem_gift(message):
         )
 
         errors = {
-            "invalid_input":
-                "الكود غير صالح.",
-            "profile_not_found":
-                "أرسل /start أولًا.",
+            "invalid_input": "الكود غير صالح.",
+            "profile_not_found": "أرسل /start أولًا.",
             "invalid_or_inactive_code":
                 "الكود غير موجود أو غير مفعل.",
             "already_claimed":
-                "استعملت الكود من قبل.",
+                "استعملت هذا الكود من قبل.",
             "cooldown_2_hours":
                 "انتظر ساعتين قبل هدية أخرى.",
             "balance_not_found":
-                "سجل الرصيد غير موجود."
+                "لم أجد سجل رصيدك."
         }
 
         bot.send_message(
@@ -1509,7 +1833,7 @@ def redeem_gift(message):
 
         bot.send_message(
             message.chat.id,
-            "تعذر التحقق من الهدية."
+            "تعذر التحقق من كود الهدية."
         )
 
 
@@ -1548,51 +1872,17 @@ def show_videos(chat_id):
         )
 
     except Exception:
-        log.exception("Videos error")
+        log.exception("Show videos error")
 
         bot.send_message(
             chat_id,
-            "تعذر عرض الفيديوهات."
+            "تعذر تحميل الفيديوهات."
         )
 
 
-def show_tiktok(chat_id):
-    kb = InlineKeyboardMarkup()
-
-    kb.add(
-        InlineKeyboardButton(
-            "🎵 TikTok EN96",
-            url=TIKTOK_URL
-        )
-    )
-
-    bot.send_message(
-        chat_id,
-        "🎵 TikTok الرسمي لمملكة EN96",
-        reply_markup=kb
-    )
-
-
-def show_youtube(chat_id):
-    kb = InlineKeyboardMarkup()
-
-    kb.add(
-        InlineKeyboardButton(
-            "▶️ YouTube EN96",
-            url=YOUTUBE_URL
-        )
-    )
-
-    bot.send_message(
-        chat_id,
-        "▶️ قناة EN96 الرسمية",
-        reply_markup=kb
-    )
-
-
-# ======================================
+# ==========================================
 # ADMIN GIFTS
-# ======================================
+# ==========================================
 
 def admin_create_code(message):
     uid = message.from_user.id
@@ -1601,6 +1891,7 @@ def admin_create_code(message):
         return
 
     code = (message.text or "").strip()
+    WAITING_ADMIN_CODE.discard(uid)
 
     if not code or len(code) > 120:
         bot.send_message(
@@ -1609,11 +1900,8 @@ def admin_create_code(message):
         )
         return
 
-    set_state(
-        uid,
-        "admin_gift_video",
-        code=code
-    )
+    PENDING[uid] = {"code": code}
+    WAITING_ADMIN_VIDEO.add(uid)
 
     bot.send_message(
         message.chat.id,
@@ -1636,14 +1924,12 @@ def admin_video(message):
         )
         return
 
-    state = get_state(uid)
+    PENDING.setdefault(uid, {})[
+        "video_url"
+    ] = url
 
-    set_state(
-        uid,
-        "admin_gift_reward",
-        code=state.get("code"),
-        video_url=url
-    )
+    WAITING_ADMIN_VIDEO.discard(uid)
+    WAITING_ADMIN_REWARD.add(uid)
 
     bot.send_message(
         message.chat.id,
@@ -1658,30 +1944,29 @@ def admin_reward(message):
         return
 
     try:
-        reward = Decimal(
+        reward = float(
             (message.text or "")
             .strip()
             .replace(",", ".")
         )
 
-        if (
-            not reward.is_finite()
-            or reward <= 0
-            or reward > Decimal("1000000")
-        ):
+        if reward <= 0:
             raise ValueError
 
-    except (InvalidOperation, ValueError):
+    except ValueError:
         bot.send_message(
             message.chat.id,
-            "أرسل مقدارًا موجبًا صالحًا."
+            "أرسل رقمًا موجبًا."
         )
         return
 
-    state = get_state(uid)
+    item = PENDING.get(uid, {})
 
-    if not state.get("code") or not state.get("video_url"):
-        clear_state(uid)
+    if (
+        not item.get("code")
+        or not item.get("video_url")
+    ):
+        WAITING_ADMIN_REWARD.discard(uid)
         bot.send_message(
             message.chat.id,
             "بيانات الهدية ناقصة."
@@ -1689,23 +1974,25 @@ def admin_reward(message):
         return
 
     try:
-        db.table("video_gift_codes").insert({
-            "code": state["code"],
-            "video_url": state["video_url"],
-            "reward": str(reward),
-            "active": True,
-            "description": "EN96 admin gift"
-        }).execute()
+        db.table("video_gift_codes").insert(
+            {
+                "code": item["code"],
+                "video_url": item["video_url"],
+                "reward": reward,
+                "active": True,
+                "description": "EN96 admin gift"
+            }
+        ).execute()
 
         bot.send_message(
             message.chat.id,
-            "✅ تم إنشاء الهدية.\n\n"
-            f"الكود: {state['code']}\n"
-            f"المكافأة: {reward} EN96"
+            "✅ تم إنشاء الكود "
+            f"{item['code']} "
+            f"بمكافأة {reward:g} EN96."
         )
 
     except Exception:
-        log.exception("Admin gift creation error")
+        log.exception("Create gift error")
 
         bot.send_message(
             message.chat.id,
@@ -1713,7 +2000,8 @@ def admin_reward(message):
         )
 
     finally:
-        clear_state(uid)
+        WAITING_ADMIN_REWARD.discard(uid)
+        PENDING.pop(uid, None)
 
 
 def list_gifts(chat_id):
@@ -1755,14 +2043,15 @@ def list_gifts(chat_id):
         )
 
     except Exception:
-        log.exception("Gift list error")
+        log.exception("List gifts error")
+
         bot.send_message(
             chat_id,
-            "تعذر عرض الهدايا."
+            "تعذر عرض الأكواد."
         )
 
 
-def toggle_gift(message, active):
+def set_gift_active(message, active):
     if not is_admin(message.from_user.id):
         return
 
@@ -1784,37 +2073,108 @@ def toggle_gift(message, active):
         else:
             bot.send_message(
                 message.chat.id,
-                "الكود غير موجود."
+                "لم أجد هذا الكود."
             )
 
     except Exception:
         log.exception("Gift toggle error")
+
         bot.send_message(
             message.chat.id,
             "تعذر تغيير حالة الكود."
         )
 
 
-# ======================================
-# ADMIN TELEGRAM STARS
-# ======================================
+# ==========================================
+# SOCIAL LINKS
+# ==========================================
 
-def admin_stars_balance(chat_id, uid):
+def show_social(chat_id):
+    kb = InlineKeyboardMarkup()
+
+    kb.row(
+        InlineKeyboardButton(
+            "▶️ YouTube EN96",
+            url=YOUTUBE_URL
+        ),
+        InlineKeyboardButton(
+            "🎵 TikTok EN96",
+            url=TIKTOK_URL
+        )
+    )
+
+    bot.send_message(
+        chat_id,
+        "🐻👑 مجتمع EN96 الرسمي\n\n"
+        "▶️ شاهد فيديوهات YouTube.\n"
+        "🎵 تابع فيديوهات TikTok.\n"
+        "🎁 ابحث عن أكواد الهدايا.\n\n"
+        "يمكنك إدخال الأكواد الصحيحة "
+        "داخل بوت EN96.",
+        reply_markup=kb
+    )
+
+
+def show_tiktok(chat_id):
+    kb = InlineKeyboardMarkup()
+
+    kb.add(
+        InlineKeyboardButton(
+            "🎵 فتح TikTok الرسمي",
+            url=TIKTOK_URL
+        )
+    )
+
+    bot.send_message(
+        chat_id,
+        "🎵 TikTok الرسمي لمشروع EN96\n\n"
+        "@en96mining",
+        reply_markup=kb
+    )
+
+
+def show_youtube(chat_id):
+    kb = InlineKeyboardMarkup()
+
+    kb.add(
+        InlineKeyboardButton(
+            "▶️ فتح قناة YouTube",
+            url=YOUTUBE_URL
+        )
+    )
+
+    bot.send_message(
+        chat_id,
+        "▶️ قناة YouTube الرسمية لـ EN96\n\n"
+        "@EN96_Gold_Miner_bo",
+        reply_markup=kb
+    )
+
+
+# ==========================================
+# TELEGRAM STARS - ADMIN ONLY
+# ==========================================
+
+def admin_stars_balance(
+    chat_id,
+    user_id,
+    chat_type="private"
+):
     if (
-        not is_admin(uid)
-        or str(chat_id) != str(uid)
+        not is_admin(user_id)
+        or chat_type != "private"
+        or str(chat_id) != str(user_id)
     ):
         bot.send_message(
             chat_id,
-            "🔒 هذا القسم خاص بالإدارة."
+            "🔒 هذا القسم خاص بإدارة EN96."
         )
         return
 
     try:
         endpoint = (
-            "https://api.telegram.org/bot"
-            + BOT_TOKEN
-            + "/getMyStarBalance"
+            f"https://api.telegram.org/"
+            f"bot{BOT_TOKEN}/getMyStarBalance"
         )
 
         request = Request(
@@ -1826,43 +2186,53 @@ def admin_stars_balance(chat_id, uid):
             method="POST"
         )
 
-        with urlopen(request, timeout=15) as response:
+        with urlopen(
+            request,
+            timeout=15
+        ) as response:
             payload = json.loads(
                 response.read().decode("utf-8")
             )
 
         if not payload.get("ok"):
-            raise RuntimeError("Stars request failed")
+            raise RuntimeError(
+                "Telegram rejected getMyStarBalance"
+            )
 
         result = payload.get("result") or {}
 
-        amount = (
-            int(result.get("amount", 0))
-            + int(result.get("nanostar_amount", 0))
-            / 1000000000
+        whole = int(result.get("amount", 0))
+        nano = int(
+            result.get("nanostar_amount", 0)
         )
+
+        amount = whole + nano / 1_000_000_000
 
         bot.send_message(
             chat_id,
-            "👑 إدارة EN96\n\n"
-            "⭐ رصيد نجوم البوت:\n"
+            "👑 إدارة مملكة EN96\n"
+            "━━━━━━━━━━━━━━\n\n"
+            "⭐ رصيد نجوم البوت\n\n"
             f"💎 {amount:,.9f} Stars\n\n"
-            "هذا رصيد البوت وليس حسابك الشخصي.\n"
-            "عمليات الدفع والسحب غير مفعلة."
+            "ℹ️ هذا رصيد Stars الخاص بالبوت، "
+            "وليس رصيد حسابك الشخصي.\n\n"
+            "⚠️ الرصيد لا يضمن أهلية السحب "
+            "عبر Fragment."
         )
 
     except Exception:
-        log.exception("Telegram Stars error")
+        log.exception("Stars balance error")
 
         bot.send_message(
             chat_id,
-            "تعذر الحصول على رصيد Stars."
+            "⚠️ تعذر الحصول على رصيد Stars.\n"
+            "تحقق من Render وحاول مجددًا."
         )
 
 
-# ======================================
-# START / COMMANDS
-# ======================================
+# ==========================================
+# BOT COMMANDS
+# ==========================================
 
 @bot.message_handler(commands=["start", "menu"])
 def start(message):
@@ -1874,13 +2244,15 @@ def start(message):
         return
 
     uid = message.from_user.id
-    clear_state(uid)
+    chat_id = message.chat.id
+
+    clear_withdrawal_state(uid)
 
     if not register_member(uid):
         bot.send_message(
-            message.chat.id,
-            "تعذر تأكيد حسابك.\n"
-            "حاول مرة أخرى."
+            chat_id,
+            "⚠️ تعذر تأكيد حسابك.\n"
+            "حاول لاحقًا."
         )
         return
 
@@ -1890,47 +2262,88 @@ def start(message):
         .split(maxsplit=1)
     )
 
-    command = parts[0].split("@")[0] if parts else ""
-    payload = parts[1].strip() if len(parts) > 1 else ""
+    command = (
+        parts[0].split("@")[0]
+        if parts else ""
+    )
 
-    if command == "/start" and payload == "mining":
-        mining(message.chat.id, uid)
+    payload = (
+        parts[1].strip()
+        if len(parts) == 2
+        else ""
+    )
+
+    if (
+        command == "/start"
+        and payload == "mining"
+    ):
+        mining(chat_id, uid)
         return
 
-    if command == "/start" and payload.startswith("ref_"):
-        record_referral(message, payload)
+    if (
+        command == "/start"
+        and payload.startswith("ref_")
+    ):
+        record_referral(message)
 
-    send_menu(message.chat.id, uid)
-    app_button(message.chat.id)
+    send_menu(
+        chat_id,
+        user_id=uid
+    )
 
 
 @bot.message_handler(commands=["cancel"])
 def cancel_command(message):
-    clear_state(message.from_user.id)
+    clear_withdrawal_state(message.from_user.id)
+
+    WAITING_GIFT.discard(message.from_user.id)
+    WAITING_ADMIN_CODE.discard(message.from_user.id)
+    WAITING_ADMIN_VIDEO.discard(message.from_user.id)
+    WAITING_ADMIN_REWARD.discard(message.from_user.id)
+
+    ADMIN_ACTION.pop(message.from_user.id, None)
+    PENDING.pop(message.from_user.id, None)
 
     bot.send_message(
         message.chat.id,
-        "✅ تم إلغاء إدخال البيانات.\n"
-        "لم نلغِ طلب سحب محفوظًا."
+        "✅ تم إلغاء الإدخال الجاري.\n"
+        "لم يتم إلغاء أي طلب سحب "
+        "مسجل في Supabase.",
+        reply_markup=menu(message.from_user.id)
     )
 
 
 @bot.message_handler(commands=["wallet"])
 def wallet_command(message):
     if is_private(message):
-        wallet(message.chat.id, message.from_user.id)
-
-
-@bot.message_handler(commands=["mining"])
-def mining_command(message):
-    if is_private(message):
-        mining(message.chat.id, message.from_user.id)
+        wallet(
+            message.chat.id,
+            message.from_user.id
+        )
 
 
 @bot.message_handler(commands=["withdraw"])
 def withdraw_command(message):
     if is_private(message):
-        begin_withdrawal(
+        start_withdrawal(
+            message.chat.id,
+            message.from_user.id
+        )
+
+
+@bot.message_handler(commands=["withdrawals"])
+def withdrawals_command(message):
+    if is_private(message):
+        member_withdrawal_history(
+            message.chat.id,
+            message.from_user.id
+        )
+
+
+@bot.message_handler(commands=["mining"])
+def mining_command(message):
+    if is_private(message):
+        mining(
             message.chat.id,
             message.from_user.id
         )
@@ -1939,16 +2352,19 @@ def withdraw_command(message):
 @bot.message_handler(commands=["tribe"])
 def tribe_command(message):
     if is_private(message):
-        tribe(message.chat.id, message.from_user.id)
+        tribe(
+            message.chat.id,
+            message.from_user.id
+        )
 
 
 @bot.message_handler(commands=["stars"])
 def stars_command(message):
-    if is_private(message):
-        admin_stars_balance(
-            message.chat.id,
-            message.from_user.id
-        )
+    admin_stars_balance(
+        message.chat.id,
+        message.from_user.id,
+        message.chat.type
+    )
 
 
 @bot.message_handler(commands=["tiktok"])
@@ -1963,318 +2379,413 @@ def youtube_command(message):
 
 @bot.message_handler(commands=["admin"])
 def admin_command(message):
-    if (
-        is_private(message)
-        and is_admin(message.from_user.id)
+    if is_private(message) and is_admin(
+        message.from_user.id
     ):
-        bot.send_message(
+        admin_withdrawals(
             message.chat.id,
-            "🛠️ إدارة هدايا EN96",
-            reply_markup=admin_menu()
+            message.from_user.id
         )
     else:
         bot.send_message(
             message.chat.id,
-            "هذا القسم للمسؤول فقط."
+            "هذا الأمر مخصص للمسؤول."
         )
 
 
-# ======================================
-# INLINE CALLBACKS
-# ======================================
+# ==========================================
+# INLINE BUTTON HANDLER
+# ==========================================
 
 @bot.callback_query_handler(
-    func=lambda call: call.data in (
-        "wallet_refresh",
-        "withdraw_start",
-        "withdraw_confirm",
-        "withdraw_abort",
-        "stellar_menu",
-        "stellar_link",
-        "stellar_check",
-        "mining_refresh",
-        "admin_withdrawals"
-    )
+    func=lambda call: True
 )
 def callback_handler(call):
+    uid = call.from_user.id
+    chat_id = call.message.chat.id
+    data = call.data or ""
+
     try:
         bot.answer_callback_query(call.id)
+    except Exception:
+        pass
 
-        uid = call.from_user.id
-        chat_id = call.message.chat.id
+    if (
+        call.message.chat.type != "private"
+        or str(chat_id) != str(uid)
+    ):
+        return
 
-        if (
-            call.message.chat.type != "private"
-            or str(chat_id) != str(uid)
-        ):
-            return
-
-        action = call.data
-
-        if action == "wallet_refresh":
-            wallet(chat_id, uid)
-
-        elif action == "withdraw_start":
-            clear_state(uid)
-            begin_withdrawal(chat_id, uid)
-
-        elif action == "withdraw_confirm":
-            confirm_withdrawal(call)
-
-        elif action == "withdraw_abort":
-            clear_state(uid)
-            bot.send_message(
-                chat_id,
-                "✅ تراجعت عن إنشاء الطلب."
-            )
-
-        elif action == "stellar_menu":
-            stellar_menu(chat_id, uid)
-
-        elif action == "stellar_link":
-            begin_stellar_link(chat_id, uid)
-
-        elif action == "stellar_check":
-            check_trustline(chat_id, uid)
-
-        elif action == "mining_refresh":
+    try:
+        if data == "mining_refresh":
             mining(chat_id, uid)
 
-        elif action == "admin_withdrawals":
-            admin_withdrawals(chat_id, uid)
+        elif data == "withdraw_start":
+            start_withdrawal(chat_id, uid)
+
+        elif data == "wallet_link":
+            start_wallet_link(chat_id, uid)
+
+        elif data == "wallet_trustline":
+            check_wallet_trustline(chat_id, uid)
+
+        elif data == "withdraw_abort":
+            clear_withdrawal_state(uid)
+
+            bot.send_message(
+                chat_id,
+                "✅ تراجعت عن طلب السحب.\n"
+                "لم يتم حجز مبلغ جديد."
+            )
+
+        elif data == "withdraw_confirm":
+            confirm_withdrawal(chat_id, uid)
+
+        elif (
+            data.startswith("admin_check:")
+            and is_admin(uid)
+        ):
+            request_id = data.split(":", 1)[1]
+
+            admin_check_withdrawal(
+                chat_id,
+                uid,
+                request_id
+            )
+
+        elif (
+            data.startswith("admin_cancel:")
+            and is_admin(uid)
+        ):
+            request_id = data.split(":", 1)[1]
+
+            admin_cancel_prompt(
+                chat_id,
+                uid,
+                request_id
+            )
+
+        elif (
+            data == "admin_cancel_yes"
+            and is_admin(uid)
+        ):
+            admin_cancel_execute(chat_id, uid)
+
+        elif (
+            data == "admin_cancel_no"
+            and is_admin(uid)
+        ):
+            ADMIN_CANCEL_CONFIRM.pop(
+                str(uid),
+                None
+            )
+
+            bot.send_message(
+                chat_id,
+                "✅ لم يتم إلغاء الطلب."
+            )
 
     except Exception:
         log.exception("Callback handler error")
 
+        bot.send_message(
+            chat_id,
+            "⚠️ تعذر تنفيذ الأمر الآن."
+        )
 
-# ======================================
-# MAIN TEXT HANDLER
-# ======================================
+
+# ==========================================
+# INPUT HANDLERS
+# ==========================================
+
+@bot.message_handler(
+    func=lambda m: (
+        is_private(m)
+        and m.from_user.id in WAITING_GIFT
+    ),
+    content_types=["text"]
+)
+def gift_input(message):
+    redeem_gift(message)
+
+
+@bot.message_handler(
+    func=lambda m: (
+        is_private(m)
+        and m.from_user.id in WAITING_ADMIN_CODE
+        and ADMIN_ACTION.get(m.from_user.id)
+        in ("enable", "disable")
+    ),
+    content_types=["text"]
+)
+def admin_toggle_input(message):
+    uid = message.from_user.id
+
+    if not is_admin(uid):
+        return
+
+    action = ADMIN_ACTION.pop(uid, None)
+    WAITING_ADMIN_CODE.discard(uid)
+
+    set_gift_active(
+        message,
+        active=(action == "enable")
+    )
+
+
+@bot.message_handler(
+    func=lambda m: (
+        is_private(m)
+        and m.from_user.id in WAITING_ADMIN_CODE
+    ),
+    content_types=["text"]
+)
+def admin_code_input(message):
+    if is_admin(message.from_user.id):
+        admin_create_code(message)
+
+
+@bot.message_handler(
+    func=lambda m: (
+        is_private(m)
+        and m.from_user.id in WAITING_ADMIN_VIDEO
+    ),
+    content_types=["text"]
+)
+def admin_video_input(message):
+    if is_admin(message.from_user.id):
+        admin_video(message)
+
+
+@bot.message_handler(
+    func=lambda m: (
+        is_private(m)
+        and m.from_user.id in WAITING_ADMIN_REWARD
+    ),
+    content_types=["text"]
+)
+def admin_reward_input(message):
+    if is_admin(message.from_user.id):
+        admin_reward(message)
+
+
+# Withdrawal text input
+
+@bot.message_handler(
+    func=lambda m: (
+        is_private(m)
+        and get_withdrawal_state(m.from_user.id)
+        is not None
+    ),
+    content_types=["text"]
+)
+def withdrawal_input(message):
+    uid = message.from_user.id
+    chat_id = message.chat.id
+
+    state = get_withdrawal_state(uid)
+
+    if not state:
+        return
+
+    step = state.get("step")
+
+    text_value = (
+        message.text or ""
+    ).strip()
+
+    if step == "link_address":
+        save_wallet_address(
+            chat_id,
+            uid,
+            text_value
+        )
+
+    elif step == "amount":
+        withdrawal_amount_input(
+            chat_id,
+            uid,
+            text_value
+        )
+
+    elif step == "confirm":
+        bot.send_message(
+            chat_id,
+            "اضغط زر تأكيد السحب "
+            "أو تراجع من الرسالة السابقة."
+        )
+
+    elif step == "processing":
+        bot.send_message(
+            chat_id,
+            "⏳ طلبك قيد المعالجة.\n"
+            "تحقق من طلبات السحب."
+        )
+
+
+# ==========================================
+# MAIN MENU HANDLER
+# ==========================================
 
 @bot.message_handler(content_types=["text"])
-def text_handler(message):
+def menu_handler(message):
     if not is_private(message):
         return
 
+    text_value = (
+        message.text or ""
+    ).strip()
+
     uid = message.from_user.id
     chat_id = message.chat.id
-    text = (message.text or "").strip()
 
-    # Navigation buttons
-    if text == "🔙 القائمة الرئيسية":
-        clear_state(uid)
-        send_menu(chat_id, uid)
-        return
-
-    if text == "⛏️ بدء التعدين":
-        clear_state(uid)
+    if text_value == "⛏️ بدء التعدين":
         mining(chat_id, uid)
-        return
 
-    if text == "💰 محفظتي":
-        clear_state(uid)
+    elif text_value == "💰 محفظتي":
         wallet(chat_id, uid)
-        return
 
-    if text == "💸 سحب EN96":
-        clear_state(uid)
-        begin_withdrawal(chat_id, uid)
-        return
+    elif text_value == "💸 سحب EN96":
+        start_withdrawal(chat_id, uid)
 
-    if text == "🔗 محفظة Stellar":
-        clear_state(uid)
-        stellar_menu(chat_id, uid)
-        return
+    elif text_value == "📋 طلبات السحب":
+        member_withdrawal_history(chat_id, uid)
 
-    if text == "🌐 فتح تطبيق EN96":
-        clear_state(uid)
-        app_button(chat_id)
-        return
-
-    if text == "👑 إدارة السحوبات":
-        clear_state(uid)
+    elif text_value == "👑 إدارة السحوبات":
         admin_withdrawals(chat_id, uid)
-        return
 
-    if text == "⭐ رصيد Stars للإدارة":
-        clear_state(uid)
-        admin_stars_balance(chat_id, uid)
-        return
+    elif text_value == "⭐ رصيد Stars للإدارة":
+        admin_stars_balance(
+            chat_id,
+            uid,
+            message.chat.type
+        )
 
-    if text == "🎁 استلام الهدية":
-        set_state(uid, "gift_code")
+    elif text_value == "⚡ ترقية المنجم":
+        bot.send_message(
+            chat_id,
+            "⚡ ترقيات المنجم لم تُفعّل بعد."
+        )
+
+    elif text_value == "🏆 المكافآت":
+        bot.send_message(
+            chat_id,
+            "🏆 مكافآت EN96 الافتراضية.\n"
+            "يمكنك جمع هدايا الفيديو "
+            "ومكافآت القبيلة المؤهلة."
+        )
+
+    elif text_value == "🎵 TikTok EN96":
+        show_tiktok(chat_id)
+
+    elif text_value == "▶️ YouTube EN96":
+        show_youtube(chat_id)
+
+    elif text_value == "📺 مشاهدة الفيديوهات":
+        show_videos(chat_id)
+
+    elif text_value == "🎁 استلام الهدية":
+        WAITING_GIFT.add(uid)
+
         bot.send_message(
             chat_id,
             "🎁 أرسل كود هدية الفيديو."
         )
-        return
 
-    if text == "📺 مشاهدة الفيديوهات":
-        clear_state(uid)
-        show_videos(chat_id)
-        return
-
-    if text in (
+    elif text_value in (
         "🐻 أعضاء القبيلة",
         "🐉 أعضاء القبيلة"
     ):
-        clear_state(uid)
         tribe(chat_id, uid)
-        return
 
-    if text == "🎵 TikTok EN96":
-        clear_state(uid)
-        show_tiktok(chat_id)
-        return
-
-    if text == "▶️ YouTube EN96":
-        clear_state(uid)
-        show_youtube(chat_id)
-        return
-
-    if text == "⚡ ترقية المنجم":
-        clear_state(uid)
+    elif text_value == "ℹ️ معلومات EN96":
         bot.send_message(
             chat_id,
-            "⚡ ترقيات المنجم لم تفعل بعد."
+            "🐻 EN96 Ice Bear Mining\n\n"
+            "⛏️ التعدين افتراضي.\n"
+            "⚡ 0.001 EN96 في الثانية.\n"
+            "⏱️ الجلسة: 24 ساعة.\n"
+            "💎 مكافأة الجلسة: 86.4 EN96.\n\n"
+            "🎁 دعوة مؤهلة: 50 EN96.\n"
+            "👥 عمولة تعدين الأصدقاء: 5%.\n\n"
+            "💸 الحد الأدنى للسحب: 500 EN96.\n"
+            "🌐 Stellar Mainnet.\n\n"
+            "⚠️ ليس تعدين أجهزة حقيقيًا.\n"
+            "السحب يحتاج مراجعة يدوية."
         )
-        return
 
-    if text == "🏆 المكافآت":
-        clear_state(uid)
+    elif (
+        text_value == "🛠️ إدارة الهدايا"
+        and is_admin(uid)
+    ):
         bot.send_message(
             chat_id,
-            "🏆 مكافآت EN96\n\n"
-            "🎁 هدايا الفيديو\n"
-            "🐻 مكافآت القبيلة\n"
-            "⛏️ التعدين الافتراضي"
+            "🛠️ إدارة الهدايا",
+            reply_markup=admin_menu()
         )
-        return
 
-    if text == "ℹ️ معلومات EN96":
-        clear_state(uid)
+    elif (
+        text_value == "➕ إنشاء كود هدية"
+        and is_admin(uid)
+    ):
+        WAITING_ADMIN_CODE.add(uid)
+
         bot.send_message(
             chat_id,
-            "🐻‍❄️ EN96 Ice Bear Kingdom\n\n"
-            "🌐 Stellar Mainnet\n"
-            "⛏️ تعدين افتراضي\n"
-            "⚡ 0.001 EN96/ثانية\n"
-            "⏱️ 24 ساعة للجلسة\n"
-            "💎 86.4 EN96 للجلسة\n\n"
-            "🎁 50 EN96 للدعوة المؤهلة\n"
-            "👥 عمولة تعدين 5%\n"
-            "💸 الحد الأدنى للسحب 500 EN96\n\n"
-            "السحوبات تراجع يدويًا."
+            "أرسل كود الهدية الجديد."
         )
-        return
 
-    # Administrator buttons
-    if is_admin(uid):
-        if text == "🛠️ إدارة الهدايا":
-            clear_state(uid)
-            bot.send_message(
-                chat_id,
-                "🛠️ إدارة الهدايا",
-                reply_markup=admin_menu()
-            )
-            return
+    elif (
+        text_value == "📋 أكواد الهدايا"
+        and is_admin(uid)
+    ):
+        list_gifts(chat_id)
 
-        if text == "➕ إنشاء كود هدية":
-            set_state(uid, "admin_gift_code")
-            bot.send_message(
-                chat_id,
-                "أرسل الكود الجديد."
-            )
-            return
+    elif (
+        text_value in (
+            "⛔ تعطيل كود",
+            "✅ تفعيل كود"
+        )
+        and is_admin(uid)
+    ):
+        ADMIN_ACTION[uid] = (
+            "disable"
+            if text_value == "⛔ تعطيل كود"
+            else "enable"
+        )
 
-        if text == "📋 أكواد الهدايا":
-            clear_state(uid)
-            list_gifts(chat_id)
-            return
+        WAITING_ADMIN_CODE.add(uid)
 
-        if text == "⛔ تعطيل كود":
-            set_state(
-                uid,
-                "admin_gift_toggle",
-                active=False
-            )
-            bot.send_message(
-                chat_id,
-                "أرسل الكود المطلوب تعطيله."
-            )
-            return
-
-        if text == "✅ تفعيل كود":
-            set_state(
-                uid,
-                "admin_gift_toggle",
-                active=True
-            )
-            bot.send_message(
-                chat_id,
-                "أرسل الكود المطلوب تفعيله."
-            )
-            return
-
-    # Input states
-    state = get_state(uid)
-    action = state.get("action")
-
-    if action == "stellar_address":
-        save_stellar_address(message)
-        return
-
-    if action == "withdraw_amount":
-        withdrawal_amount_input(message)
-        return
-
-    if action == "withdraw_confirm":
         bot.send_message(
             chat_id,
-            "اضغط زر تأكيد السحب "
-            "أو التراجع في الرسالة السابقة."
+            "أرسل الكود المطلوب."
         )
-        return
 
-    if action == "withdraw_submitting":
-        bot.send_message(
+    elif text_value == "🔙 القائمة الرئيسية":
+        clear_withdrawal_state(uid)
+
+        send_menu(
             chat_id,
-            "⏳ تتم مراجعة طلبك.\n"
-            "افتح المحفظة للتحقق من النتيجة."
+            user_id=uid
         )
-        return
 
-    if action == "gift_code":
-        redeem_gift(message)
-        return
+    elif text_value == "🌐 فتح تطبيق EN96":
+        app_button(chat_id)
 
-    if action == "admin_gift_code" and is_admin(uid):
-        admin_create_code(message)
-        return
-
-    if action == "admin_gift_video" and is_admin(uid):
-        admin_video(message)
-        return
-
-    if action == "admin_gift_reward" and is_admin(uid):
-        admin_reward(message)
-        return
-
-    if action == "admin_gift_toggle" and is_admin(uid):
-        active = bool(state.get("active"))
-        clear_state(uid)
-        toggle_gift(message, active)
-        return
-
-    send_menu(chat_id, uid)
+    else:
+        send_menu(
+            chat_id,
+            "اختر زرًا من قائمة EN96.",
+            user_id=uid
+        )
 
 
-# ======================================
+# ==========================================
 # START BOT
-# ======================================
+# ==========================================
 
 if __name__ == "__main__":
-    log.info("Starting EN96 Ice Bear Kingdom")
+    log.info("Starting EN96 Telegram bot")
 
     bot.infinity_polling(
         skip_pending=True,
