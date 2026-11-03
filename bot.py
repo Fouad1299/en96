@@ -1,4 +1,3 @@
-
 import os
 import json
 import time
@@ -6,6 +5,7 @@ import logging
 import threading
 import re
 
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
@@ -127,6 +127,112 @@ ADMIN_CANCEL_CONFIRM = {}
 ADMIN_PROCESS_CONFIRM = {}
 ADMIN_PAY_HASH = {}
 
+
+
+# ==========================================
+# FIVE-LANGUAGE INTERFACE
+# Arabic / English / Russian / Hebrew / Spanish
+# ==========================================
+
+LANGUAGES = {
+    "ar": "🇩🇿 العربية",
+    "en": "🇬🇧 English",
+    "ru": "🇷🇺 Русский",
+    "he": "🇮🇱 עברית",
+    "es": "🇪🇸 Español",
+}
+
+BUTTONS = {
+ "⛏️ بدء التعدين": ["⛏️ بدء التعدين", "⛏️ Start mining", "⛏️ Начать майнинг", "⛏️ התחל כרייה", "⛏️ Iniciar minería"],
+ "💰 محفظتي": ["💰 محفظتي", "💰 My wallet", "💰 Мой кошелёк", "💰 הארנק שלי", "💰 Mi billetera"],
+ "💸 سحب EN96": ["💸 سحب EN96", "💸 Withdraw EN96", "💸 Вывод EN96", "💸 משיכת EN96", "💸 Retirar EN96"],
+ "📋 طلبات السحب": ["📋 طلبات السحب", "📋 Withdrawals", "📋 Запросы на вывод", "📋 בקשות משיכה", "📋 Retiros"],
+ "⚡ ترقية المنجم": ["⚡ ترقية المنجم", "⚡ Upgrade mine", "⚡ Улучшить шахту", "⚡ שדרוג מכרה", "⚡ Mejorar mina"],
+ "🏆 المكافآت": ["🏆 المكافآت", "🏆 Rewards", "🏆 Награды", "🏆 פרסים", "🏆 Recompensas"],
+ "📺 مشاهدة الفيديوهات": ["📺 مشاهدة الفيديوهات", "📺 Watch videos", "📺 Смотреть видео", "📺 צפייה בסרטונים", "📺 Ver vídeos"],
+ "🎁 استلام الهدية": ["🎁 استلام الهدية", "🎁 Redeem video code", "🎁 Ввести код подарка", "🎁 מימוש קוד מתנה", "🎁 Canjear código"],
+ "🎁 هدية 5 EN96": ["🎁 هدية 5 EN96", "🎁 5 EN96 gift", "🎁 Подарок 5 EN96", "🎁 מתנת 5 EN96", "🎁 Regalo de 5 EN96"],
+ "🐻 أعضاء القبيلة": ["🐻 أعضاء القبيلة", "🐻 Tribe", "🐻 Племя", "🐻 השבט", "🐻 Tribu"],
+ "ℹ️ معلومات EN96": ["ℹ️ معلومات EN96", "ℹ️ About EN96", "ℹ️ Об EN96", "ℹ️ על EN96", "ℹ️ Acerca de EN96"],
+ "🎵 TikTok EN96": ["🎵 TikTok EN96"] * 5,
+ "▶️ YouTube EN96": ["▶️ YouTube EN96"] * 5,
+ "📢 قناة EN96 الرسمية": ["📢 قناة EN96 الرسمية", "📢 EN96 official channel", "📢 Канал EN96", "📢 ערוץ EN96", "📢 Canal oficial EN96"],
+ "🌐 فتح تطبيق EN96": ["🌐 فتح تطبيق EN96", "🌐 Open EN96 app", "🌐 Открыть EN96", "🌐 פתיחת EN96", "🌐 Abrir app EN96"],
+ "🌐 تغيير اللغة": ["🌐 تغيير اللغة", "🌐 Change language", "🌐 Сменить язык", "🌐 שינוי שפה", "🌐 Cambiar idioma"],
+ "🛠️ إدارة الهدايا": ["🛠️ إدارة الهدايا", "🛠️ Manage gifts", "🛠️ Управление подарками", "🛠️ ניהול מתנות", "🛠️ Administrar regalos"],
+ "⭐ رصيد Stars للإدارة": ["⭐ رصيد Stars للإدارة", "⭐ Admin Stars", "⭐ Stars администратора", "⭐ Stars למנהל", "⭐ Stars de administrador"],
+ "👑 إدارة السحوبات": ["👑 إدارة السحوبات", "👑 Manage withdrawals", "👑 Управление выводами", "👑 ניהול משיכות", "👑 Gestionar retiros"],
+ "➕ إنشاء كود هدية": ["➕ إنشاء كود هدية", "➕ Create gift code", "➕ Создать код", "➕ יצירת קוד מתנה", "➕ Crear código"],
+ "📋 أكواد الهدايا": ["📋 أكواد الهدايا", "📋 Gift codes", "📋 Коды подарков", "📋 קודי מתנה", "📋 Códigos de regalo"],
+ "⛔ تعطيل كود": ["⛔ تعطيل كود", "⛔ Disable code", "⛔ Отключить код", "⛔ השבתת קוד", "⛔ Desactivar código"],
+ "✅ تفعيل كود": ["✅ تفعيل كود", "✅ Enable code", "✅ Включить код", "✅ הפעלת קוד", "✅ Activar código"],
+ "🔙 القائمة الرئيسية": ["🔙 القائمة الرئيسية", "🔙 Main menu", "🔙 Главное меню", "🔙 תפריט ראשי", "🔙 Menú principal"],
+}
+
+LANG_ORDER = tuple(LANGUAGES)
+BUTTON_CANONICAL = {translated: original for original, variants in BUTTONS.items() for translated in variants}
+LANG_CACHE = {}
+
+MESSAGES = {
+ "welcome": ["🐻 مرحبًا بك في EN96 Mining!", "🐻 Welcome to EN96 Mining!", "🐻 Добро пожаловать в EN96 Mining!", "🐻 ברוכים הבאים ל-EN96 Mining!", "🐻 ¡Bienvenido a EN96 Mining!"],
+ "choose": ["اختر زرًا من قائمة EN96.", "Choose an EN96 menu button.", "Выберите кнопку меню EN96.", "בחרו כפתור מתפריט EN96.", "Elige una opción del menú EN96."],
+ "language": ["🌐 اختر لغتك:", "🌐 Choose your language:", "🌐 Выберите язык:", "🌐 בחרו שפה:", "🌐 Elige tu idioma:"],
+ "saved": ["✅ تم حفظ اللغة.", "✅ Language saved.", "✅ Язык сохранён.", "✅ השפה נשמרה.", "✅ Idioma guardado."],
+ "mining_future": ["⚡ ترقيات المنجم لم تُفعّل بعد.", "⚡ Mine upgrades are not available yet.", "⚡ Улучшения пока недоступны.", "⚡ שדרוגי מכרה עדיין לא זמינים.", "⚡ Las mejoras aún no están disponibles."],
+ "enter_code": ["🎁 أرسل كود هدية الفيديو.", "🎁 Send the video gift code.", "🎁 Отправьте код подарка из видео.", "🎁 שלחו את קוד המתנה מהסרטון.", "🎁 Envía el código de regalo del vídeo."],
+}
+
+def normalized_language(value):
+    code = str(value or "").lower().split("-")[0].split("_")[0]
+    return code if code in LANGUAGES else "en"
+
+def get_language(user_id, telegram_language=None):
+    uid = str(user_id)
+    if uid in LANG_CACHE:
+        return LANG_CACHE[uid]
+    default = normalized_language(telegram_language)
+    try:
+        rows = (db.table("en96_user_languages")
+                .select("language_code")
+                .eq("telegram_id", uid).limit(1).execute().data or [])
+        if rows:
+            lang = normalized_language(rows[0]["language_code"])
+            LANG_CACHE[uid] = lang
+            return lang
+    except Exception:
+        log.exception("Failed to load EN96 language")
+    LANG_CACHE[uid] = default
+    return default
+
+def save_language(user_id, language):
+    lang = normalized_language(language)
+    uid = str(user_id)
+    db.table("en96_user_languages").upsert({
+        "telegram_id": uid,
+        "language_code": lang,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }, on_conflict="telegram_id").execute()
+    LANG_CACHE[uid] = lang
+    return lang
+
+def local_text(key, user_id):
+    lang = get_language(user_id)
+    return MESSAGES[key][LANG_ORDER.index(lang)]
+
+def local_button(original, user_id):
+    choices = BUTTONS.get(original)
+    return choices[LANG_ORDER.index(get_language(user_id))] if choices else original
+
+def language_keyboard():
+    kb = InlineKeyboardMarkup(row_width=2)
+    items = [InlineKeyboardButton(name, callback_data="lang:" + code)
+             for code, name in LANGUAGES.items()]
+    kb.add(*items)
+    return kb
+
+def choose_language(chat_id, user_id):
+    bot.send_message(chat_id, local_text("language", user_id),
+                     reply_markup=language_keyboard())
 
 # ==========================================
 # COMMON HELPERS
@@ -332,46 +438,48 @@ def menu(user_id=None):
     )
 
     kb.row(
-        KeyboardButton("⛏️ بدء التعدين"),
-        KeyboardButton("💰 محفظتي")
+        KeyboardButton(local_button("⛏️ بدء التعدين", user_id)),
+        KeyboardButton(local_button("💰 محفظتي", user_id))
     )
 
     kb.row(
-        KeyboardButton("💸 سحب EN96"),
-        KeyboardButton("📋 طلبات السحب")
+        KeyboardButton(local_button("💸 سحب EN96", user_id)),
+        KeyboardButton(local_button("📋 طلبات السحب", user_id))
     )
 
     kb.row(
-        KeyboardButton("⚡ ترقية المنجم"),
-        KeyboardButton("🏆 المكافآت")
+        KeyboardButton(local_button("⚡ ترقية المنجم", user_id)),
+        KeyboardButton(local_button("🏆 المكافآت", user_id))
     )
 
     kb.row(
-        KeyboardButton("📺 مشاهدة الفيديوهات"),
-        KeyboardButton("🎁 استلام الهدية")
+        KeyboardButton(local_button("📺 مشاهدة الفيديوهات", user_id)),
+        KeyboardButton(local_button("🎁 استلام الهدية", user_id))
     )
 
     kb.row(
-        KeyboardButton("🎁 هدية 5 EN96")
+        KeyboardButton(local_button("🎁 هدية 5 EN96", user_id))
     )
 
     kb.row(
-        KeyboardButton("🐻 أعضاء القبيلة"),
-        KeyboardButton("ℹ️ معلومات EN96")
+        KeyboardButton(local_button("🐻 أعضاء القبيلة", user_id)),
+        KeyboardButton(local_button("ℹ️ معلومات EN96", user_id))
     )
 
     kb.row(
-        KeyboardButton("🎵 TikTok EN96"),
-        KeyboardButton("▶️ YouTube EN96")
+        KeyboardButton(local_button("🎵 TikTok EN96", user_id)),
+        KeyboardButton(local_button("▶️ YouTube EN96", user_id))
     )
+
+    kb.row(KeyboardButton(local_button("🌐 تغيير اللغة", user_id)))
 
     # NEW CHANNEL BUTTON
     kb.row(
-        KeyboardButton("📢 قناة EN96 الرسمية")
+        KeyboardButton(local_button("📢 قناة EN96 الرسمية", user_id))
     )
 
     kb.row(
-        KeyboardButton("🌐 فتح تطبيق EN96")
+        KeyboardButton(local_button("🌐 فتح تطبيق EN96", user_id))
     )
 
     if (
@@ -379,14 +487,14 @@ def menu(user_id=None):
         and is_admin(user_id)
     ):
         kb.row(
-            KeyboardButton("🛠️ إدارة الهدايا"),
+            KeyboardButton(local_button("🛠️ إدارة الهدايا", user_id)),
             KeyboardButton(
                 "⭐ رصيد Stars للإدارة"
             )
         )
 
         kb.row(
-            KeyboardButton("👑 إدارة السحوبات")
+            KeyboardButton(local_button("👑 إدارة السحوبات", user_id))
         )
 
     return kb
@@ -397,6 +505,8 @@ def send_menu(
     text="🐻 مرحبًا بك في EN96 Mining!",
     user_id=None
 ):
+    if user_id is not None and text == MESSAGES["welcome"][0]:
+        text = local_text("welcome", user_id)
     bot.send_message(
         chat_id,
         text,
@@ -410,23 +520,23 @@ def send_menu(
         app_button(chat_id)
 
 
-def admin_menu():
+def admin_menu(user_id=None):
     kb = ReplyKeyboardMarkup(
         resize_keyboard=True
     )
 
     kb.row(
-        KeyboardButton("➕ إنشاء كود هدية"),
-        KeyboardButton("📋 أكواد الهدايا")
+        KeyboardButton(local_button("➕ إنشاء كود هدية", user_id)),
+        KeyboardButton(local_button("📋 أكواد الهدايا", user_id))
     )
 
     kb.row(
-        KeyboardButton("⛔ تعطيل كود"),
-        KeyboardButton("✅ تفعيل كود")
+        KeyboardButton(local_button("⛔ تعطيل كود", user_id)),
+        KeyboardButton(local_button("✅ تفعيل كود", user_id))
     )
 
     kb.row(
-        KeyboardButton("🔙 القائمة الرئيسية")
+        KeyboardButton(local_button("🔙 القائمة الرئيسية", user_id))
     )
 
     return kb
@@ -3266,6 +3376,7 @@ def start(message):
     uid = message.from_user.id
     chat_id = message.chat.id
 
+    get_language(uid, getattr(message.from_user, "language_code", None))
     clear_withdrawal_state(uid)
 
     if not register_member(uid):
@@ -3312,6 +3423,7 @@ def start(message):
 
     send_menu(
         chat_id,
+        local_text("welcome", uid),
         user_id=uid
     )
 
@@ -3456,6 +3568,12 @@ def channel_command(message):
         )
 
 
+@bot.message_handler(commands=["language", "lang"])
+def language_command(message):
+    if is_private(message):
+        choose_language(message.chat.id, message.from_user.id)
+
+
 @bot.message_handler(
     commands=["admin"]
 )
@@ -3511,7 +3629,19 @@ def callback_handler(call):
         return
 
     try:
-        if data == "mining_refresh":
+        if data.startswith("lang:"):
+            new_lang = data.split(":", 1)[1]
+            if new_lang not in LANGUAGES:
+                return
+            try:
+                save_language(uid, new_lang)
+            except Exception:
+                log.exception("EN96 language update failed")
+                bot.send_message(chat_id, "⚠️ Could not save language. Try again.")
+                return
+            send_menu(chat_id, local_text("saved", uid), user_id=uid)
+
+        elif data == "mining_refresh":
             mining(
                 chat_id,
                 uid
@@ -3657,6 +3787,18 @@ def callback_handler(call):
 # ==========================================
 # INPUT HANDLERS
 # ==========================================
+
+@bot.message_handler(
+    func=lambda m: (
+        is_private(m) and
+        BUTTON_CANONICAL.get((m.text or "").strip()) == "🌐 تغيير اللغة"
+    ),
+    content_types=["text"]
+)
+def language_button_handler(message):
+    choose_language(message.chat.id, message.from_user.id)
+
+
 
 @bot.message_handler(
     func=lambda m: (
@@ -3832,8 +3974,12 @@ def menu_handler(message):
 
     uid = message.from_user.id
     chat_id = message.chat.id
+    text_value = BUTTON_CANONICAL.get(text_value, text_value)
 
-    if text_value == "⛏️ بدء التعدين":
+    if text_value == "🌐 تغيير اللغة":
+        choose_language(chat_id, uid)
+
+    elif text_value == "⛏️ بدء التعدين":
         mining(
             chat_id,
             uid
@@ -3885,7 +4031,7 @@ def menu_handler(message):
     elif text_value == "⚡ ترقية المنجم":
         bot.send_message(
             chat_id,
-            "⚡ ترقيات المنجم لم تُفعّل بعد."
+            local_text("mining_future", uid)
         )
 
     elif text_value == "🏆 المكافآت":
@@ -3914,7 +4060,7 @@ def menu_handler(message):
 
         bot.send_message(
             chat_id,
-            "🎁 أرسل كود هدية الفيديو."
+            local_text("enter_code", uid)
         )
 
     elif text_value in (
@@ -3957,7 +4103,7 @@ def menu_handler(message):
         bot.send_message(
             chat_id,
             "🛠️ إدارة الهدايا",
-            reply_markup=admin_menu()
+            reply_markup=admin_menu(uid)
         )
 
     elif (
@@ -4011,7 +4157,7 @@ def menu_handler(message):
     else:
         send_menu(
             chat_id,
-            "اختر زرًا من قائمة EN96.",
+            local_text("choose", uid),
             user_id=uid
         )
 
@@ -4029,4 +4175,4 @@ if __name__ == "__main__":
         skip_pending=True,
         timeout=30,
         long_polling_timeout=30
-    )
+  
