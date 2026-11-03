@@ -40,10 +40,7 @@ header{
  border-bottom:1px solid #98612c;
  padding:17px 9px;
 }
-header strong{
- font-size:18px;
- color:#ffe090;
-}
+header strong{font-size:18px;color:#ffe090}
 header small{
  display:block;
  color:#e8c8b7;
@@ -510,8 +507,6 @@ h1{
  border-radius:12px;
  font-size:12px;
 }
-
-/* EN96 GIFT 5 */
 .gift5-card{
  text-align:center;
  border:2px solid #ffe18b;
@@ -537,6 +532,14 @@ h1{
  color:#ffe9ba;
  margin-top:13px;
  line-height:1.8;
+ overflow-wrap:anywhere;
+}
+#gift5Button:disabled{
+ background:#5e533d;
+ color:#f9e8c2;
+ opacity:.9;
+ cursor:default;
+ box-shadow:none;
 }
 </style>
 </head>
@@ -549,7 +552,7 @@ h1{
  <small>Telegram WebApp</small>
 </header>
 
-<!-- HOME - MINING -->
+<!-- HOME -->
 <section id="home" class="page active">
 
 <div class="top">
@@ -643,11 +646,10 @@ h1{
 </div>
 </section>
 
-<!-- EARN - GIFTS AND VIDEOS -->
+<!-- EARN -->
 <section id="earn" class="page other-page">
  <h2 class="page-title">🎁 Earn EN96</h2>
 
- <!-- NEW GIFT 5 EN96 -->
  <div class="card gift5-card" id="en96Gift5">
   <div class="gift5-icon">🎁🐻‍❄️</div>
   <h3>هدية مملكة EN96</h3>
@@ -659,19 +661,25 @@ h1{
   </p>
 
   <p>
-   تُضاف المكافأة إلى نفس رصيدك
+   المكافأة تُضاف إلى نفس رصيدك
    الموجود في البوت وSupabase.
   </p>
 
-  <button class="card-button"
+  <button
+   id="gift5Button"
+   class="card-button"
    type="button"
    onclick="claimGift5()">
    🎁 استلام 5 EN96
   </button>
 
-  <div class="gift5-note" id="gift5Message">
-   ✅ الهدية مرة واحدة لكل عضو.
-   بعد فتح البوت اضغط زر «🎁 هدية 5 EN96».
+  <div
+   id="gift5Message"
+   class="gift5-note"
+   role="status"
+   aria-live="polite">
+   🔄 سيتم التحقق من حالة الهدية
+   عند فتح قسم المكافآت.
   </div>
  </div>
 
@@ -940,6 +948,10 @@ function showPage(page){
  if(page==="home"){
   checkMining();
  }
+
+ if(page==="earn"){
+  checkGift5Status();
+ }
 }
 
 /* TELEGRAM */
@@ -959,20 +971,153 @@ function startMining(){
  openTelegram(BOT+"?start=mining");
 }
 
-/* NEW: GIFT 5 EN96 */
-function claimGift5(){
- const status=document.getElementById("gift5Message");
+/* ==================================
+   GIFT 5 EN96 - DIRECT WEBSITE CLAIM
+   ================================== */
 
- if(status){
-  status.textContent=
-   "🎁 سيتم فتح بوت EN96. "+
-   "اضغط داخله زر «🎁 هدية 5 EN96» "+
-   "لاستلام المكافأة مرة واحدة.";
- }
+let gift5Busy=false;
+let gift5Claimed=false;
 
- openBot();
+function gift5Message(text){
+ document.getElementById("gift5Message")
+  .textContent=text;
 }
 
+function gift5SetClaimed(){
+ gift5Claimed=true;
+
+ const button=document.getElementById(
+  "gift5Button"
+ );
+
+ button.disabled=true;
+ button.textContent="✅ تم استلام 5 EN96";
+
+ gift5Message(
+  "✅ لقد استلمت هدية 5 EN96 بالفعل. "+
+  "هذه الهدية مرة واحدة لكل حساب."
+ );
+}
+
+async function checkGift5Status(){
+ const button=document.getElementById(
+  "gift5Button"
+ );
+
+ if(gift5Busy || gift5Claimed)return;
+
+ button.disabled=true;
+ gift5Message("🔄 جارٍ التحقق من حالة الهدية...");
+
+ try{
+  const data=await apiRequest(
+   "/api/gift5/status"
+  );
+
+  if(data.claimed===true){
+   gift5SetClaimed();
+  }else{
+   gift5Message(
+    "🎁 الهدية متاحة لك. "+
+    "اضغط الزر لاستلام 5 EN96 مباشرة."
+   );
+  }
+
+ }catch(error){
+  gift5Message(
+   "⚠️ "+(
+    error.message||
+    "تعذر التحقق من حالة الهدية."
+   )
+  );
+ }finally{
+  if(!gift5Claimed){
+   button.disabled=false;
+  }
+ }
+}
+
+async function claimGift5(){
+ if(gift5Busy || gift5Claimed)return;
+
+ gift5Busy=true;
+
+ const button=document.getElementById(
+  "gift5Button"
+ );
+
+ button.disabled=true;
+ button.textContent="⏳ جارٍ تسجيل الهدية...";
+
+ gift5Message(
+  "🔄 نتحقق من حساب Telegram "+
+  "ونسجل الهدية في Supabase."
+ );
+
+ try{
+  const data=await apiRequest(
+   "/api/gift5/claim",
+   {
+    method:"POST",
+    body:{}
+   }
+  );
+
+  if(data.success===true){
+   gift5SetClaimed();
+
+   button.textContent="✅ استلمت 5 EN96";
+
+   gift5Message(
+    "🎉 مبروك! تمت إضافة 5 EN96 "+
+    "إلى رصيدك في Supabase بنجاح. "+
+    "يمكنك فتح Wallet لرؤية الرصيد."
+   );
+
+   if(tg && tg.HapticFeedback){
+    try{
+     tg.HapticFeedback.notificationOccurred(
+      "success"
+     );
+    }catch(e){}
+   }
+
+  }else if(data.claimed===true){
+   gift5SetClaimed();
+
+  }else{
+   throw new Error(
+    data.error||"لم يتم تأكيد الهدية."
+   );
+  }
+
+ }catch(error){
+  gift5Message(
+   "⚠️ "+(
+    error.message||
+    "تعذر تسجيل الهدية."
+   )
+  );
+
+  /*
+   The server may have registered the gift
+   even if the response was interrupted.
+   Re-check before allowing another claim.
+  */
+  gift5Busy=false;
+  await checkGift5Status();
+
+ }finally{
+  gift5Busy=false;
+
+  if(!gift5Claimed){
+   button.disabled=false;
+   button.textContent="🎁 استلام 5 EN96";
+  }
+ }
+}
+
+/* OTHER BUTTONS */
 function boost(){
  alert(
   "⚡ EN96 Boost\n\n"+
@@ -1064,6 +1209,7 @@ async function apiRequest(path,options={}){
  }
 
  const controller=new AbortController();
+
  const timeout=setTimeout(()=>{
   controller.abort();
  },15000);
@@ -1092,6 +1238,7 @@ async function apiRequest(path,options={}){
   }
 
   return data;
+
  }finally{
   clearTimeout(timeout);
  }
@@ -1168,7 +1315,9 @@ async function checkMining(){
  clearMiningValues();
 
  try{
-  const data=await apiRequest("/api/mining/status");
+  const data=await apiRequest(
+   "/api/mining/status"
+  );
 
   if(data.status==="active"){
    const elapsed=Number(data.elapsed_seconds);
@@ -1186,6 +1335,7 @@ async function checkMining(){
    sessionReadAt=Date.now();
 
    state.textContent="✅ التعدين نشط";
+
    notice.textContent=
     "الجلسة مؤكدة من خادم EN96. "+
     "الأرقام المتحركة تقديرية، "+
@@ -1202,6 +1352,7 @@ async function checkMining(){
 
   }else if(data.status==="ready"){
    state.textContent="⌛ انتهت جلسة الـ24 ساعة";
+
    notice.textContent=
     "اضغط بدء التعدين داخل البوت "+
     "للتحقق من مكافأة الجلسة وبدء جلسة جديدة.";
@@ -1224,6 +1375,7 @@ async function checkMining(){
 
  }catch(error){
   state.textContent="⚠️ تعذر التحقق من التعدين";
+
   notice.textContent=
    error.message||"تعذر الاتصال بالخادم.";
  }
@@ -1293,6 +1445,7 @@ async function loadRoyalWallet(){
     .textContent=
     "✅ عنوان Stellar محفوظ في Supabase.\n"+
     "🔒 ملكية المحفظة لم تُثبت بالتوقيع بعد.";
+
   }else{
    document.getElementById("savedStellarAddress")
     .textContent="لا يوجد عنوان Stellar محفوظ.";
@@ -1310,7 +1463,10 @@ async function loadRoyalWallet(){
    .textContent="— EN96";
 
   message.textContent=
-   "⚠️ "+(error.message||"تعذر تحميل المحفظة.");
+   "⚠️ "+(
+    error.message||"تعذر تحميل المحفظة."
+   );
+
  }finally{
   walletLoading=false;
   button.disabled=false;
@@ -1375,7 +1531,10 @@ async function saveRoyalStellarAddress(){
 
  }catch(error){
   status.textContent=
-   "⚠️ "+(error.message||"فشل حفظ العنوان.");
+   "⚠️ "+(
+    error.message||"فشل حفظ العنوان."
+   );
+
  }finally{
   button.disabled=false;
  }
@@ -1404,6 +1563,7 @@ async function copyInvite(){
  try{
   await navigator.clipboard.writeText(link);
   output.textContent="✅ تم نسخ رابط الدعوة.";
+
  }catch(error){
   output.textContent=link;
  }
