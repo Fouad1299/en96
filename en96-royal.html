@@ -388,8 +388,6 @@ h1{
  color:#542400;
  font-weight:900;
 }
-
-/* ROYAL WALLET */
 .wallet-balance{
  background:linear-gradient(135deg,#271009,#674019,#2f110c);
  border:1px solid #ffdc78;
@@ -454,9 +452,7 @@ h1{
  background:linear-gradient(140deg,#ffe48c,#ab6712);
  color:#341203;
 }
-.wallet-option strong{
- font-size:15px;
-}
+.wallet-option strong{font-size:15px}
 .wallet-option small{
  display:block;
  font-size:11px;
@@ -477,9 +473,7 @@ h1{
  direction:ltr;
  text-align:left;
 }
-.wallet-input:focus{
- border-color:#ffe78d;
-}
+.wallet-input:focus{border-color:#ffe78d}
 .wallet-message{
  background:#29100d;
  border:1px solid #976f45;
@@ -516,6 +510,34 @@ h1{
  border-radius:12px;
  font-size:12px;
 }
+
+/* EN96 GIFT 5 */
+.gift5-card{
+ text-align:center;
+ border:2px solid #ffe18b;
+ background:linear-gradient(145deg,#572311,#29100c);
+ box-shadow:0 0 22px #ffb32b30;
+}
+.gift5-icon{
+ font-size:48px;
+ margin-bottom:8px;
+}
+.gift5-amount{
+ font-size:32px;
+ color:#ffe17c;
+ font-weight:900;
+ margin:9px 0;
+}
+.gift5-card .card-button{
+ font-size:17px;
+ padding:16px 10px;
+}
+.gift5-note{
+ font-size:12px;
+ color:#ffe9ba;
+ margin-top:13px;
+ line-height:1.8;
+}
 </style>
 </head>
 
@@ -527,7 +549,7 @@ h1{
  <small>Telegram WebApp</small>
 </header>
 
-<!-- HOME - MINING ONLY -->
+<!-- HOME - MINING -->
 <section id="home" class="page active">
 
 <div class="top">
@@ -576,7 +598,6 @@ h1{
  <small>النقر تجريبي — لا يضيف رصيدًا</small>
 </div>
 
-<!-- ONE START BUTTON -->
 <button class="gold start" onclick="startMining()">
  ⛏️ بدء تشغيل التعدين
 </button>
@@ -622,9 +643,37 @@ h1{
 </div>
 </section>
 
-<!-- EARN - VIDEOS HERE ONLY -->
+<!-- EARN - GIFTS AND VIDEOS -->
 <section id="earn" class="page other-page">
  <h2 class="page-title">🎁 Earn EN96</h2>
+
+ <!-- NEW GIFT 5 EN96 -->
+ <div class="card gift5-card" id="en96Gift5">
+  <div class="gift5-icon">🎁🐻‍❄️</div>
+  <h3>هدية مملكة EN96</h3>
+  <div class="gift5-amount">5 EN96</div>
+
+  <p>
+   🎉 احصل على هدية 5 EN96
+   مرة واحدة فقط لكل حساب Telegram.
+  </p>
+
+  <p>
+   تُضاف المكافأة إلى نفس رصيدك
+   الموجود في البوت وSupabase.
+  </p>
+
+  <button class="card-button"
+   type="button"
+   onclick="claimGift5()">
+   🎁 استلام 5 EN96
+  </button>
+
+  <div class="gift5-note" id="gift5Message">
+   ✅ الهدية مرة واحدة لكل عضو.
+   بعد فتح البوت اضغط زر «🎁 هدية 5 EN96».
+  </div>
+ </div>
 
  <div class="card">
   <h3>🎬 هدايا الفيديوهات</h3>
@@ -637,7 +686,7 @@ h1{
    <span>تابع EN96</span>
 
    <a class="youtube"
-    href="https://www.youtube.com/@EN96_Gold_Miner_bo"
+    href="https://www.youtube.com/@EN96_Gold_Miner_bot"
     target="_blank" rel="noopener noreferrer">
     ▶️ YouTube
    </a>
@@ -654,7 +703,7 @@ h1{
   </button>
 
   <p class="note">
-   🎁 مكافأة الكود الافتراضية 1 EN96
+   🎁 مكافأة الكود الافتراضية 1 EN96،
    وفترة الانتظار ساعتان وفق قواعد البوت.
   </p>
  </div>
@@ -847,6 +896,8 @@ h1{
 </main>
 
 <script>
+"use strict";
+
 const BOT =
  "https://t.me/EN96_IceDragon_2026_Bot";
 
@@ -874,11 +925,11 @@ function showPage(page){
  document.querySelectorAll(".nav button")
   .forEach(el=>el.classList.remove("active"));
 
- document.getElementById(page)
-  .classList.add("active");
+ const current=document.getElementById(page);
+ const nav=document.getElementById("nav-"+page);
 
- document.getElementById("nav-"+page)
-  .classList.add("active");
+ if(current)current.classList.add("active");
+ if(nav)nav.classList.add("active");
 
  window.scrollTo(0,0);
 
@@ -906,6 +957,20 @@ function openBot(){
 
 function startMining(){
  openTelegram(BOT+"?start=mining");
+}
+
+/* NEW: GIFT 5 EN96 */
+function claimGift5(){
+ const status=document.getElementById("gift5Message");
+
+ if(status){
+  status.textContent=
+   "🎁 سيتم فتح بوت EN96. "+
+   "اضغط داخله زر «🎁 هدية 5 EN96» "+
+   "لاستلام المكافأة مرة واحدة.";
+ }
+
+ openBot();
 }
 
 function boost(){
@@ -1071,10 +1136,7 @@ function renderMining(){
 
  const elapsed=Math.min(
   86400,
-  Math.max(
-   0,
-   session.elapsed_seconds+delta
-  )
+  Math.max(0,session.elapsed_seconds+delta)
  );
 
  const remaining=Math.max(0,86400-elapsed);
