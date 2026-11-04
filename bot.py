@@ -1,3 +1,4 @@
+
 import os
 import json
 import time
@@ -130,43 +131,42 @@ ADMIN_PAY_HASH = {}
 
 
 # ==========================================
-# FIVE-LANGUAGE INTERFACE
-# Arabic / English / Russian / Hebrew / Spanish
+# FOUR-LANGUAGE INTERFACE
+# Arabic / English / Russian / Spanish
 # ==========================================
 
 LANGUAGES = {
-    "ar": "🇩🇿 العربية",
-    "en": "🇬🇧 English",
-    "ru": "🇷🇺 Русский",
-    "he": "🇮🇱 עברית",
-    "es": "🇪🇸 Español",
+    "ar": "العربية",
+    "en": "English",
+    "ru": "Русский",
+    "es": "Español",
 }
 
 BUTTONS = {
- "⛏️ بدء التعدين": ["⛏️ بدء التعدين", "⛏️ Start mining", "⛏️ Начать майнинг", "⛏️ התחל כרייה", "⛏️ Iniciar minería"],
- "💰 محفظتي": ["💰 محفظتي", "💰 My wallet", "💰 Мой кошелёк", "💰 הארנק שלי", "💰 Mi billetera"],
- "💸 سحب EN96": ["💸 سحب EN96", "💸 Withdraw EN96", "💸 Вывод EN96", "💸 משיכת EN96", "💸 Retirar EN96"],
- "📋 طلبات السحب": ["📋 طلبات السحب", "📋 Withdrawals", "📋 Запросы на вывод", "📋 בקשות משיכה", "📋 Retiros"],
- "⚡ ترقية المنجم": ["⚡ ترقية المنجم", "⚡ Upgrade mine", "⚡ Улучшить шахту", "⚡ שדרוג מכרה", "⚡ Mejorar mina"],
- "🏆 المكافآت": ["🏆 المكافآت", "🏆 Rewards", "🏆 Награды", "🏆 פרסים", "🏆 Recompensas"],
- "📺 مشاهدة الفيديوهات": ["📺 مشاهدة الفيديوهات", "📺 Watch videos", "📺 Смотреть видео", "📺 צפייה בסרטונים", "📺 Ver vídeos"],
- "🎁 استلام الهدية": ["🎁 استلام الهدية", "🎁 Redeem video code", "🎁 Ввести код подарка", "🎁 מימוש קוד מתנה", "🎁 Canjear código"],
- "🎁 هدية 5 EN96": ["🎁 هدية 5 EN96", "🎁 5 EN96 gift", "🎁 Подарок 5 EN96", "🎁 מתנת 5 EN96", "🎁 Regalo de 5 EN96"],
- "🐻 أعضاء القبيلة": ["🐻 أعضاء القبيلة", "🐻 Tribe", "🐻 Племя", "🐻 השבט", "🐻 Tribu"],
- "ℹ️ معلومات EN96": ["ℹ️ معلومات EN96", "ℹ️ About EN96", "ℹ️ Об EN96", "ℹ️ על EN96", "ℹ️ Acerca de EN96"],
- "🎵 TikTok EN96": ["🎵 TikTok EN96"] * 5,
- "▶️ YouTube EN96": ["▶️ YouTube EN96"] * 5,
- "📢 قناة EN96 الرسمية": ["📢 قناة EN96 الرسمية", "📢 EN96 official channel", "📢 Канал EN96", "📢 ערוץ EN96", "📢 Canal oficial EN96"],
- "🌐 فتح تطبيق EN96": ["🌐 فتح تطبيق EN96", "🌐 Open EN96 app", "🌐 Открыть EN96", "🌐 פתיחת EN96", "🌐 Abrir app EN96"],
- "🌐 تغيير اللغة": ["🌐 تغيير اللغة", "🌐 Change language", "🌐 Сменить язык", "🌐 שינוי שפה", "🌐 Cambiar idioma"],
- "🛠️ إدارة الهدايا": ["🛠️ إدارة الهدايا", "🛠️ Manage gifts", "🛠️ Управление подарками", "🛠️ ניהול מתנות", "🛠️ Administrar regalos"],
- "⭐ رصيد Stars للإدارة": ["⭐ رصيد Stars للإدارة", "⭐ Admin Stars", "⭐ Stars администратора", "⭐ Stars למנהל", "⭐ Stars de administrador"],
- "👑 إدارة السحوبات": ["👑 إدارة السحوبات", "👑 Manage withdrawals", "👑 Управление выводами", "👑 ניהול משיכות", "👑 Gestionar retiros"],
- "➕ إنشاء كود هدية": ["➕ إنشاء كود هدية", "➕ Create gift code", "➕ Создать код", "➕ יצירת קוד מתנה", "➕ Crear código"],
- "📋 أكواد الهدايا": ["📋 أكواد الهدايا", "📋 Gift codes", "📋 Коды подарков", "📋 קודי מתנה", "📋 Códigos de regalo"],
- "⛔ تعطيل كود": ["⛔ تعطيل كود", "⛔ Disable code", "⛔ Отключить код", "⛔ השבתת קוד", "⛔ Desactivar código"],
- "✅ تفعيل كود": ["✅ تفعيل كود", "✅ Enable code", "✅ Включить код", "✅ הפעלת קוד", "✅ Activar código"],
- "🔙 القائمة الرئيسية": ["🔙 القائمة الرئيسية", "🔙 Main menu", "🔙 Главное меню", "🔙 תפריט ראשי", "🔙 Menú principal"],
+    '⛏️ بدء التعدين': ['⛏️ بدء التعدين', '⛏️ Start mining', '⛏️ Начать майнинг', '⛏️ Iniciar minería'],
+    '💰 محفظتي': ['💰 محفظتي', '💰 My wallet', '💰 Мой кошелёк', '💰 Mi billetera'],
+    '💸 سحب EN96': ['💸 سحب EN96', '💸 Withdraw EN96', '💸 Вывод EN96', '💸 Retirar EN96'],
+    '📋 طلبات السحب': ['📋 طلبات السحب', '📋 Withdrawals', '📋 Запросы на вывод', '📋 Retiros'],
+    '⚡ ترقية المنجم': ['⚡ ترقية المنجم', '⚡ Upgrade mine', '⚡ Улучшить шахту', '⚡ Mejorar mina'],
+    '🏆 المكافآت': ['🏆 المكافآت', '🏆 Rewards', '🏆 Награды', '🏆 Recompensas'],
+    '📺 مشاهدة الفيديوهات': ['📺 مشاهدة الفيديوهات', '📺 Watch videos', '📺 Смотреть видео', '📺 Ver vídeos'],
+    '🎁 استلام الهدية': ['🎁 استلام الهدية', '🎁 Redeem video code', '🎁 Ввести код подарка', '🎁 Canjear código'],
+    '🎁 هدية 5 EN96': ['🎁 هدية 5 EN96', '🎁 5 EN96 gift', '🎁 Подарок 5 EN96', '🎁 Regalo de 5 EN96'],
+    '🐻 أعضاء القبيلة': ['🐻 أعضاء القبيلة', '🐻 Tribe', '🐻 Племя', '🐻 Tribu'],
+    'ℹ️ معلومات EN96': ['ℹ️ معلومات EN96', 'ℹ️ About EN96', 'ℹ️ Об EN96', 'ℹ️ Acerca de EN96'],
+    '🎵 TikTok EN96': ['🎵 TikTok EN96', '🎵 TikTok EN96', '🎵 TikTok EN96', '🎵 TikTok EN96'],
+    '▶️ YouTube EN96': ['▶️ YouTube EN96', '▶️ YouTube EN96', '▶️ YouTube EN96', '▶️ YouTube EN96'],
+    '📢 قناة EN96 الرسمية': ['📢 قناة EN96 الرسمية', '📢 EN96 official channel', '📢 Канал EN96', '📢 Canal oficial EN96'],
+    '🌐 فتح تطبيق EN96': ['🌐 فتح تطبيق EN96', '🌐 Open EN96 app', '🌐 Открыть EN96', '🌐 Abrir app EN96'],
+    '🌐 تغيير اللغة': ['🌐 تغيير اللغة', '🌐 Change language', '🌐 Сменить язык', '🌐 Cambiar idioma'],
+    '🛠️ إدارة الهدايا': ['🛠️ إدارة الهدايا', '🛠️ Manage gifts', '🛠️ Управление подарками', '🛠️ Administrar regalos'],
+    '⭐ رصيد Stars للإدارة': ['⭐ رصيد Stars للإدارة', '⭐ Admin Stars', '⭐ Stars администратора', '⭐ Stars de administrador'],
+    '👑 إدارة السحوبات': ['👑 إدارة السحوبات', '👑 Manage withdrawals', '👑 Управление выводами', '👑 Gestionar retiros'],
+    '➕ إنشاء كود هدية': ['➕ إنشاء كود هدية', '➕ Create gift code', '➕ Создать код', '➕ Crear código'],
+    '📋 أكواد الهدايا': ['📋 أكواد الهدايا', '📋 Gift codes', '📋 Коды подарков', '📋 Códigos de regalo'],
+    '⛔ تعطيل كود': ['⛔ تعطيل كود', '⛔ Disable code', '⛔ Отключить код', '⛔ Desactivar código'],
+    '✅ تفعيل كود': ['✅ تفعيل كود', '✅ Enable code', '✅ Включить код', '✅ Activar código'],
+    '🔙 القائمة الرئيسية': ['🔙 القائمة الرئيسية', '🔙 Main menu', '🔙 Главное меню', '🔙 Menú principal'],
 }
 
 LANG_ORDER = tuple(LANGUAGES)
@@ -174,13 +174,32 @@ BUTTON_CANONICAL = {translated: original for original, variants in BUTTONS.items
 LANG_CACHE = {}
 
 MESSAGES = {
- "welcome": ["🐻 مرحبًا بك في EN96 Mining!", "🐻 Welcome to EN96 Mining!", "🐻 Добро пожаловать в EN96 Mining!", "🐻 ברוכים הבאים ל-EN96 Mining!", "🐻 ¡Bienvenido a EN96 Mining!"],
- "choose": ["اختر زرًا من قائمة EN96.", "Choose an EN96 menu button.", "Выберите кнопку меню EN96.", "בחרו כפתור מתפריט EN96.", "Elige una opción del menú EN96."],
- "language": ["🌐 اختر لغتك:", "🌐 Choose your language:", "🌐 Выберите язык:", "🌐 בחרו שפה:", "🌐 Elige tu idioma:"],
- "saved": ["✅ تم حفظ اللغة.", "✅ Language saved.", "✅ Язык сохранён.", "✅ השפה נשמרה.", "✅ Idioma guardado."],
- "mining_future": ["⚡ ترقيات المنجم لم تُفعّل بعد.", "⚡ Mine upgrades are not available yet.", "⚡ Улучшения пока недоступны.", "⚡ שדרוגי מכרה עדיין לא זמינים.", "⚡ Las mejoras aún no están disponibles."],
- "enter_code": ["🎁 أرسل كود هدية الفيديو.", "🎁 Send the video gift code.", "🎁 Отправьте код подарка из видео.", "🎁 שלחו את קוד המתנה מהסרטון.", "🎁 Envía el código de regalo del vídeo."],
+    'welcome': ['🐻 مرحبًا بك في EN96 Mining!', '🐻 Welcome to EN96 Mining!', '🐻 Добро пожаловать в EN96 Mining!', '🐻 ¡Bienvenido a EN96 Mining!'],
+    'choose': ['اختر زرًا من قائمة EN96.', 'Choose an EN96 menu button.', 'Выберите кнопку меню EN96.', 'Elige una opción del menú EN96.'],
+    'language': ['🌐 اختر لغتك:', '🌐 Choose your language:', '🌐 Выберите язык:', '🌐 Elige tu idioma:'],
+    'saved': ['✅ تم حفظ اللغة.', '✅ Language saved.', '✅ Язык сохранён.', '✅ Idioma guardado.'],
+    'mining_future': ['⚡ ترقيات المنجم لم تُفعّل بعد.', '⚡ Mine upgrades are not available yet.', '⚡ Улучшения пока недоступны.', '⚡ Las mejoras aún no están disponibles.'],
+    'enter_code': ['🎁 أرسل كود هدية الفيديو.', '🎁 Send the video gift code.', '🎁 Отправьте код подарка из видео.', '🎁 Envía el código de regalo del vídeo.'],
 }
+
+
+EXTRA_MESSAGES = {
+    "rewards": {
+        "ar": "🏆 مكافآت EN96 الافتراضية.\nيمكنك جمع هدايا الفيديو ومكافآت القبيلة المؤهلة.",
+        "en": "🏆 EN96 virtual rewards.\nYou can collect video gifts and eligible tribe rewards.",
+        "ru": "🏆 Виртуальные награды EN96.\nПолучайте видеоподарки и доступные награды племени.",
+        "es": "🏆 Recompensas virtuales EN96.\nPuedes obtener regalos de vídeos y recompensas de la tribu.",
+    },
+    "about": {
+        "ar": "🐻 EN96 Ice Bear Kingdom\n\n⛏️ تعدين افتراضي، وليس تعدين أجهزة حقيقيًا.\n⚡ 0.001 EN96 في الثانية.\n⏱️ الجلسة: 24 ساعة (86.4 EN96).\n🎁 الدعوة المؤهلة: 50 EN96.\n👥 عمولة تعدين الأصدقاء: 5%.\n💸 الحد الأدنى للسحب: 500 EN96.\n🌐 Stellar Mainnet.\n⚠️ السحب يحتاج مراجعة يدوية.",
+        "en": "🐻 EN96 Ice Bear Kingdom\n\n⛏️ Virtual mining, not hardware or blockchain mining.\n⚡ 0.001 EN96 per second.\n⏱️ Session: 24 hours (86.4 EN96).\n🎁 Eligible referral: 50 EN96.\n👥 Friends' mining bonus: 5%.\n💸 Minimum withdrawal: 500 EN96.\n🌐 Stellar Mainnet.\n⚠️ Withdrawals require manual review.",
+        "ru": "🐻 EN96 Ice Bear Kingdom\n\n⛏️ Виртуальный майнинг, не реальная добыча криптовалюты.\n⚡ 0,001 EN96 в секунду.\n⏱️ Сессия: 24 часа (86,4 EN96).\n🎁 За подходящее приглашение: 50 EN96.\n👥 Бонус за майнинг друзей: 5%.\n💸 Минимальный вывод: 500 EN96.\n🌐 Stellar Mainnet.\n⚠️ Вывод проверяется вручную.",
+        "es": "🐻 EN96 Ice Bear Kingdom\n\n⛏️ Minería virtual, no minería real de blockchain.\n⚡ 0,001 EN96 por segundo.\n⏱️ Sesión: 24 horas (86,4 EN96).\n🎁 Invitación válida: 50 EN96.\n👥 Bono por minería de amigos: 5%.\n💸 Retiro mínimo: 500 EN96.\n🌐 Stellar Mainnet.\n⚠️ Los retiros requieren revisión manual.",
+    },
+}
+
+def extra_text(key, user_id):
+    return EXTRA_MESSAGES[key][get_language(user_id)]
 
 def normalized_language(value):
     code = str(value or "").lower().split("-")[0].split("_")[0]
@@ -233,6 +252,336 @@ def language_keyboard():
 def choose_language(chat_id, user_id):
     bot.send_message(chat_id, local_text("language", user_id),
                      reply_markup=language_keyboard())
+
+
+# ==========================================
+# LOCALIZATION OF LEGACY REPLIES
+# All existing Telegram callbacks and Supabase RPCs remain unchanged.
+# ==========================================
+LOCALE_PHRASES = {'🐻\u200d❄️👑 محفظة EN96': ('🐻\u200d❄️👑 EN96 Wallet', '🐻\u200d❄️👑 Кошелёк EN96', '🐻\u200d❄️👑 Billetera EN96'),
+ '🟢 الرصيد المتاح:': ('🟢 Available balance:', '🟢 Доступно:', '🟢 Saldo disponible:'),
+ '🟡 الرصيد المحجوز:': ('🟡 Reserved balance:', '🟡 Зарезервировано:', '🟡 Saldo reservado:'),
+ '💸 الحد الأدنى للسحب:': ('💸 Minimum withdrawal:', '💸 Минимальный вывод:', '💸 Retiro mínimo:'),
+ '🔗 عنوان Stellar:': ('🔗 Stellar address:', '🔗 Адрес Stellar:', '🔗 Dirección Stellar:'),
+ 'غير مربوط': ('Not linked', 'Не привязан', 'No vinculada'),
+ '📌 السحب إلى شبكة Stellar Mainnet.': ('📌 Withdrawals use Stellar Mainnet.',
+                                       '📌 Вывод в сети Stellar Mainnet.',
+                                       '📌 Los retiros usan Stellar Mainnet.'),
+ '📌 إرسال العملات يتم يدويًا بعد المراجعة.': ('📌 Coins are sent manually after review.',
+                                              '📌 Отправка монет вручную после проверки.',
+                                              '📌 Las monedas se envían manualmente tras la revisión.'),
+ '⚠️ الرصيد داخل البوت ليس رصيد Stellar.': ('⚠️ In-bot balance is not a Stellar balance.',
+                                            '⚠️ Баланс бота не является балансом Stellar.',
+                                            '⚠️ El saldo del bot no es saldo en Stellar.'),
+ '💸 طلب سحب EN96': ('💸 Request EN96 withdrawal', '💸 Запросить вывод EN96', '💸 Solicitar retiro de EN96'),
+ '🔗 ربط عنوان G': ('🔗 Link G address', '🔗 Привязать G-адрес', '🔗 Vincular dirección G'),
+ '🛡️ فحص خط الثقة': ('🛡️ Check trustline', '🛡️ Проверить trustline', '🛡️ Comprobar trustline'),
+ '🪙 إنشاء محفظة LOBSTR': ('🪙 Create LOBSTR wallet', '🪙 Создать кошелёк LOBSTR', '🪙 Crear billetera LOBSTR'),
+ '🔄 تحديث التعدين': ('🔄 Refresh mining', '🔄 Обновить майнинг', '🔄 Actualizar minería'),
+ '🐻👑 منجم EN96': ('🐻👑 EN96 Mine', '🐻👑 Шахта EN96', '🐻👑 Mina EN96'),
+ '⛏️ التعدين الافتراضي نشط.': ('⛏️ Virtual mining is active.',
+                               '⛏️ Виртуальный майнинг активен.',
+                               '⛏️ La minería virtual está activa.'),
+ '⛏️ التعدين الافتراضي نشط': ('⛏️ Virtual mining is active',
+                              '⛏️ Виртуальный майнинг активен',
+                              '⛏️ La minería virtual está activa'),
+ '⚡ 0.001 EN96/ثانية': ('⚡ 0.001 EN96/second', '⚡ 0,001 EN96/секунду', '⚡ 0,001 EN96/segundo'),
+ '⏱️ الجلسة: 24 ساعة': ('⏱️ Session: 24 hours', '⏱️ Сессия: 24 часа', '⏱️ Sesión: 24 horas'),
+ 'العداد تقديري والرصيد تحدده Supabase.': ('The counter is an estimate; Supabase determines the balance.',
+                                           'Счётчик приблизительный; баланс определяет Supabase.',
+                                           'El contador es estimado; Supabase determina el saldo.'),
+ '💎 المكافأة التقديرية:': ('💎 Estimated reward:', '💎 Примерная награда:', '💎 Recompensa estimada:'),
+ '⏱️ الوقت:': ('⏱️ Time:', '⏱️ Время:', '⏱️ Tiempo:'),
+ '⚠️ الرصيد الفعلي محفوظ في Supabase.': ('⚠️ The actual balance is stored in Supabase.',
+                                         '⚠️ Фактический баланс хранится в Supabase.',
+                                         '⚠️ El saldo real se guarda en Supabase.'),
+ '✅ تم إضافة مكافأة الجلسة السابقة وبدء جلسة جديدة.': ('✅ Previous session reward credited; new session started.',
+                                                       '✅ Награда за прошлую сессию начислена; начата новая.',
+                                                       '✅ Recompensa anterior acreditada; nueva sesión iniciada.'),
+ 'بدأت جلسة جديدة.': ('A new session has started.', 'Началась новая сессия.', 'Ha comenzado una nueva sesión.'),
+ '⚠️ لم يتم تأكيد المكافأة.': ('⚠️ Reward not confirmed.',
+                               '⚠️ Награда не подтверждена.',
+                               '⚠️ Recompensa no confirmada.'),
+ 'اضغط بدء التعدين للتحقق.': ('Tap Start mining to check.',
+                              'Нажмите Начать майнинг для проверки.',
+                              'Pulsa Iniciar minería para comprobar.'),
+ '⚠️ لم تؤكد Supabase عملية التعدين.': ('⚠️ Supabase did not confirm mining.',
+                                        '⚠️ Supabase не подтвердил майнинг.',
+                                        '⚠️ Supabase no confirmó la minería.'),
+ 'الحالة:': ('Status:', 'Статус:', 'Estado:'),
+ 'غير معروفة': ('Unknown', 'Неизвестно', 'Desconocido'),
+ 'تعذر تشغيل التعدين الآن.': ('Mining is temporarily unavailable.',
+                              'Майнинг временно недоступен.',
+                              'La minería no está disponible ahora.'),
+ '🐻👑 قبيلة EN96': ('🐻👑 EN96 Tribe', '🐻👑 Племя EN96', '🐻👑 Tribu EN96'),
+ '👥 عدد الأصدقاء:': ('👥 Friends:', '👥 Друзей:', '👥 Amigos:'),
+ '🎁 مكافآت الدعوات:': ('🎁 Referral rewards:', '🎁 Награды за приглашения:', '🎁 Recompensas por invitaciones:'),
+ '⛏️ عمولات تعدين الأصدقاء 5%:': ('⛏️ Friends mining bonus 5%:',
+                                  '⛏️ Бонус за майнинг друзей 5%:',
+                                  '⛏️ Bono por minería de amigos 5%:'),
+ '💎 مجموع مكافآت القبيلة:': ('💎 Total tribe rewards:',
+                             '💎 Всего наград племени:',
+                             '💎 Total de recompensas de la tribu:'),
+ '🔗 رابط دعوتك:': ('🔗 Your invite link:', '🔗 Ваша ссылка-приглашение:', '🔗 Tu enlace de invitación:'),
+ 'تعذر تحميل الإحصائيات الآن.': ('Could not load stats.',
+                                 'Не удалось загрузить статистику.',
+                                 'No se pudieron cargar las estadísticas.'),
+ 'رابط دعوتك:': ('Your invite link:', 'Ваша ссылка-приглашение:', 'Tu enlace de invitación:'),
+ 'لا يمكنك دعوة نفسك.': ('You cannot refer yourself.',
+                         'Нельзя пригласить самого себя.',
+                         'No puedes invitarte a ti mismo.'),
+ '🎉 تم تسجيل دعوتك في قبيلة EN96!': ('🎉 Your referral was registered in the EN96 tribe!',
+                                     '🎉 Ваше приглашение зарегистрировано в племени EN96!',
+                                     '🎉 ¡Tu invitación quedó registrada en la tribu EN96!'),
+ 'لم أجد حسابك. أرسل /start أولًا.': ('Account not found. Send /start first.',
+                                      'Аккаунт не найден. Сначала отправьте /start.',
+                                      'Cuenta no encontrada. Envía /start primero.'),
+ 'لم أجد حسابك. أرسل /start.': ('Account not found. Send /start.',
+                                'Аккаунт не найден. Отправьте /start.',
+                                'Cuenta no encontrada. Envía /start.'),
+ 'لم أجد حسابك.': ('Account not found.', 'Аккаунт не найден.', 'Cuenta no encontrada.'),
+ 'أرسل /start أولًا.': ('Send /start first.', 'Сначала отправьте /start.', 'Envía /start primero.'),
+ 'لم أجد سجل رصيدك.': ('Balance record not found.',
+                       'Запись баланса не найдена.',
+                       'No se encontró el registro de saldo.'),
+ 'تعذر عرض المحفظة الآن.': ('Could not display wallet now.',
+                            'Не удалось открыть кошелёк.',
+                            'No se pudo mostrar la billetera.'),
+ '🔗 ربط محفظة Stellar': ('🔗 Link Stellar wallet', '🔗 Привязать кошелёк Stellar', '🔗 Vincular billetera Stellar'),
+ 'أرسل عنوان Stellar عامًا صحيحًا أو أرسل /cancel.': ('Send a valid public Stellar address or /cancel.',
+                                                      'Отправьте корректный публичный адрес Stellar или /cancel.',
+                                                      'Envía una dirección pública de Stellar válida o /cancel.'),
+ '❌ عنوان G غير صالح.': ('❌ Invalid G address.', '❌ Неверный G-адрес.', '❌ Dirección G no válida.'),
+ 'عنوان Stellar غير صالح.': ('Invalid Stellar address.', 'Неверный адрес Stellar.', 'Dirección Stellar no válida.'),
+ '✅ تم حفظ عنوان Stellar في حساب EN96.': ('✅ Stellar address saved to your EN96 account.',
+                                          '✅ Адрес Stellar сохранён в аккаунте EN96.',
+                                          '✅ Dirección Stellar guardada en tu cuenta EN96.'),
+ '🛡️ افحص خط الثقة قبل طلب السحب.': ('🛡️ Check the trustline before withdrawing.',
+                                     '🛡️ Проверьте trustline перед выводом.',
+                                     '🛡️ Comprueba la trustline antes de retirar.'),
+ '⚠️ حفظ عنوان G لا يعني إثبات ملكية المحفظة.': ('⚠️ Saving a G-address does not prove ownership.',
+                                                 '⚠️ Сохранение G-адреса не доказывает владение.',
+                                                 '⚠️ Guardar una dirección G no demuestra propiedad.'),
+ '⚠️ لديك طلب سحب معلق بالفعل.': ('⚠️ You already have a pending withdrawal.',
+                                  '⚠️ У вас уже есть запрос на вывод.',
+                                  '⚠️ Ya tienes un retiro pendiente.'),
+ '⏳ لديك طلب سحب معلق بالفعل.': ('⏳ You already have a pending withdrawal.',
+                                 '⏳ У вас уже есть запрос на вывод.',
+                                 '⏳ Ya tienes un retiro pendiente.'),
+ '⏳ لديك طلب سحب معلق.': ('⏳ You have a pending withdrawal.',
+                          '⏳ У вас есть запрос на вывод.',
+                          '⏳ Tienes un retiro pendiente.'),
+ 'لا يمكن تغيير عنوان الاستلام أثناء مراجعة الطلب.': ('You cannot change the receiving address during review.',
+                                                      'Нельзя изменить адрес во время проверки.',
+                                                      'No puedes cambiar la dirección durante la revisión.'),
+ 'تعذر حفظ العنوان الآن.': ('Could not save the address now.',
+                            'Не удалось сохранить адрес.',
+                            'No se pudo guardar la dirección.'),
+ '⚠️ لم تربط عنوان G بعد.': ('⚠️ No G-address linked yet.',
+                             '⚠️ G-адрес ещё не привязан.',
+                             '⚠️ Aún no hay una dirección G vinculada.'),
+ 'افتح المحفظة واضغط ربط عنوان G.': ('Open Wallet and tap Link G address.',
+                                     'Откройте кошелёк и выберите Привязать G-адрес.',
+                                     'Abre la billetera y pulsa Vincular dirección G.'),
+ '✅ تم العثور على خط ثقة EN96!': ('✅ EN96 trustline found!',
+                                  '✅ Trustline EN96 найдена!',
+                                  '✅ ¡Trustline EN96 encontrada!'),
+ '💎 رصيد المحفظة على Stellar:': ('💎 Wallet balance on Stellar:',
+                                 '💎 Баланс кошелька Stellar:',
+                                 '💎 Saldo de billetera en Stellar:'),
+ '⚠️ هذا فحص عام، وليس إثبات ملكية.': ('⚠️ This is a public check, not proof of ownership.',
+                                       '⚠️ Это публичная проверка, не доказательство владения.',
+                                       '⚠️ Es una consulta pública, no prueba de propiedad.'),
+ 'تعذر فحص خط الثقة.': ('Could not check trustline.',
+                        'Не удалось проверить trustline.',
+                        'No se pudo comprobar la trustline.'),
+ '❌ الرصيد المتاح غير كافٍ.': ('❌ Insufficient available balance.',
+                               '❌ Недостаточно доступного баланса.',
+                               '❌ Saldo disponible insuficiente.'),
+ 'رصيدك:': ('Your balance:', 'Ваш баланс:', 'Tu saldo:'),
+ 'الحد الأدنى:': ('Minimum:', 'Минимум:', 'Mínimo:'),
+ '🟡 الحد الأدنى:': ('🟡 Minimum:', '🟡 Минимум:', '🟡 Mínimo:'),
+ 'افتح «📋 طلبات السحب» لمتابعة الطلب.': ('Open Withdrawals to track it.',
+                                         'Откройте Запросы на вывод для отслеживания.',
+                                         'Abre Retiros para seguir la solicitud.'),
+ '⚠️ لا يمكن بدء السحب.': ('⚠️ Cannot start withdrawal.',
+                           '⚠️ Нельзя начать вывод.',
+                           '⚠️ No se puede iniciar el retiro.'),
+ '⚠️ يجب إضافة خط ثقة EN96 إلى محفظتك أولًا.': ('⚠️ Add EN96 trustline to your wallet first.',
+                                                '⚠️ Сначала добавьте trustline EN96 в кошелёк.',
+                                                '⚠️ Agrega primero la trustline EN96 a tu billetera.'),
+ 'المُصدر:': ('Issuer:', 'Эмитент:', 'Emisor:'),
+ '🔗 عنوان الاستلام:': ('🔗 Receiving address:', '🔗 Адрес получателя:', '🔗 Dirección de recepción:'),
+ '✅ خط الثقة موجود.': ('✅ Trustline present.', '✅ Trustline есть.', '✅ Trustline disponible.'),
+ 'اكتب مبلغ السحب الآن.': ('Enter the withdrawal amount now.',
+                           'Введите сумму вывода.',
+                           'Escribe el importe del retiro.'),
+ 'مثال:': ('Example:', 'Пример:', 'Ejemplo:'),
+ '⚠️ تأكد أن هذا عنوان محفظتك.': ('⚠️ Make sure this is your wallet address.',
+                                  '⚠️ Убедитесь, что это ваш адрес кошелька.',
+                                  '⚠️ Verifica que sea tu dirección de billetera.'),
+ 'تعذر العثور على رصيدك.': ('Could not find your balance.', 'Не удалось найти баланс.', 'No se encontró tu saldo.'),
+ 'تعذر بدء طلب السحب.': ('Could not start withdrawal.', 'Не удалось начать вывод.', 'No se pudo iniciar el retiro.'),
+ 'لم يتم حجز رصيد جديد.': ('No new balance was reserved.',
+                           'Новые средства не резервировались.',
+                           'No se reservó saldo nuevo.'),
+ '❌ مبلغ غير صالح.': ('❌ Invalid amount.', '❌ Неверная сумма.', '❌ Importe no válido.'),
+ 'أقصى دقة: 7 أرقام عشرية.': ('Maximum precision: 7 decimal places.',
+                              'Точность: до 7 знаков после запятой.',
+                              'Máximo 7 decimales.'),
+ 'أرسل المبلغ مجددًا أو /cancel.': ('Send amount again or /cancel.',
+                                    'Отправьте сумму снова или /cancel.',
+                                    'Envía otra vez el importe o /cancel.'),
+ '👑 تأكيد سحب EN96': ('👑 Confirm EN96 withdrawal', '👑 Подтверждение вывода EN96', '👑 Confirmar retiro de EN96'),
+ '💎 المبلغ:': ('💎 Amount:', '💎 Сумма:', '💎 Importe:'),
+ '🔗 المحفظة:': ('🔗 Wallet:', '🔗 Кошелёк:', '🔗 Billetera:'),
+ 'عند التأكيد سيُنقل المبلغ من المتاح إلى المحجوز.': ('Confirming moves the amount from available to reserved.',
+                                                      'После подтверждения сумма перейдёт из доступных средств в '
+                                                      'резерв.',
+                                                      'Al confirmar, el importe pasará de disponible a reservado.'),
+ '⚠️ لن تُرسل العملات فورًا.': ('⚠️ Coins are not sent immediately.',
+                                '⚠️ Монеты отправляются не сразу.',
+                                '⚠️ Las monedas no se envían de inmediato.'),
+ '✅ تم تسجيل طلب السحب!': ('✅ Withdrawal request submitted!',
+                           '✅ Запрос на вывод отправлен!',
+                           '✅ ¡Solicitud de retiro enviada!'),
+ '🟡 الحالة: قيد المراجعة': ('🟡 Status: under review', '🟡 Статус: на проверке', '🟡 Estado: en revisión'),
+ '🔒 تم حجز المبلغ في Supabase.': ('🔒 Amount reserved in Supabase.',
+                                  '🔒 Сумма зарезервирована в Supabase.',
+                                  '🔒 Importe reservado en Supabase.'),
+ '🆔 رقم الطلب:': ('🆔 Request ID:', '🆔 ID запроса:', '🆔 ID de solicitud:'),
+ 'لا يوجد طلب جاهز للتأكيد.': ('No withdrawal ready to confirm.',
+                               'Нет вывода для подтверждения.',
+                               'No hay retiro listo para confirmar.'),
+ '📋 لا توجد طلبات سحب حتى الآن.': ('📋 No withdrawal requests yet.',
+                                   '📋 Пока нет запросов на вывод.',
+                                   '📋 Aún no hay solicitudes de retiro.'),
+ 'تعذر تحميل طلبات السحب.': ('Could not load withdrawals.',
+                             'Не удалось загрузить выводы.',
+                             'No se pudieron cargar los retiros.'),
+ '✅ تراجعت عن طلب السحب.': ('✅ Withdrawal canceled before submission.',
+                            '✅ Запрос на вывод отменён до отправки.',
+                            '✅ Retiro cancelado antes del envío.'),
+ 'لم يتم حجز مبلغ جديد.': ('No new amount reserved.',
+                           'Новая сумма не резервировалась.',
+                           'No se reservó importe nuevo.'),
+ '🎁 مبروك! أضفنا 5 EN96 إلى رصيدك المتاح في Supabase.': ('🎁 Congratulations! 5 EN96 was added to your available '
+                                                         'balance in Supabase.',
+                                                         '🎁 Поздравляем! 5 EN96 добавлено к доступному балансу в '
+                                                         'Supabase.',
+                                                         '🎁 ¡Enhorabuena! Se añadieron 5 EN96 a tu saldo disponible en '
+                                                         'Supabase.'),
+ 'يمكنك رؤية الرصيد من زر 💰 محفظتي.': ('Check it using My wallet.',
+                                       'Проверьте баланс через Мой кошелёк.',
+                                       'Consúltalo en Mi billetera.'),
+ '✅ لقد استلمت هدية 5 EN96 سابقًا. الهدية مرة واحدة لكل حساب.': ('✅ You have already claimed the one-time 5 EN96 gift.',
+                                                                 '✅ Вы уже получили разовый подарок 5 EN96.',
+                                                                 '✅ Ya reclamaste el regalo único de 5 EN96.'),
+ '🎁 تم استلام': ('🎁 Received', '🎁 Получено', '🎁 Recibido'),
+ 'بنجاح!': ('successfully!', 'успешно!', 'correctamente!'),
+ 'تعذر التحقق من كود الهدية.': ('Could not verify gift code.',
+                                'Не удалось проверить подарочный код.',
+                                'No se pudo verificar el código de regalo.'),
+ 'لا توجد فيديوهات هدايا حاليًا.': ('No gift videos currently available.',
+                                    'Сейчас нет видео с подарками.',
+                                    'Actualmente no hay vídeos con regalos.'),
+ 'تعذر تحميل الفيديوهات.': ('Could not load videos.',
+                            'Не удалось загрузить видео.',
+                            'No se pudieron cargar los vídeos.'),
+ '⚠️ فشل تسجيل الهدية مؤقتًا. حاول لاحقًا ولا تكرر الضغط بسرعة.': ('⚠️ Gift registration failed temporarily. Try '
+                                                                   'later; avoid repeated taps.',
+                                                                   '⚠️ Временная ошибка подарка. Попробуйте позже; не '
+                                                                   'нажимайте часто.',
+                                                                   '⚠️ Error temporal al reclamar el regalo. Inténtalo '
+                                                                   'después; no pulses repetidamente.'),
+ '⚠️ تعذر المطالبة الآن. لم تتم إضافة مكافأة جديدة.': ('⚠️ Claim unavailable. No new reward was added.',
+                                                       '⚠️ Получение недоступно. Новая награда не начислена.',
+                                                       '⚠️ No se pudo reclamar. No se añadió una recompensa nueva.'),
+ '⚠️ لم نجد حسابك. أرسل /start أولًا.': ('⚠️ Account not found. Send /start first.',
+                                         '⚠️ Аккаунт не найден. Сначала отправьте /start.',
+                                         '⚠️ Cuenta no encontrada. Envía /start primero.'),
+ '⚠️ تعذر تسجيل حسابك. أرسل /start لاحقًا.': ('⚠️ Could not register your account. Try /start later.',
+                                              '⚠️ Не удалось создать аккаунт. Попробуйте /start позже.',
+                                              '⚠️ No se pudo registrar tu cuenta. Prueba /start después.'),
+ '🎵 TikTok الرسمي لمشروع EN96': ('🎵 Official EN96 TikTok', '🎵 Официальный TikTok EN96', '🎵 TikTok oficial de EN96'),
+ '▶️ قناة YouTube الرسمية لـ EN96': ('▶️ Official EN96 YouTube channel',
+                                     '▶️ Официальный канал EN96 на YouTube',
+                                     '▶️ Canal oficial de YouTube de EN96'),
+ '📢 تابع أخبار المملكة الرسمية.': ('📢 Follow official kingdom news.',
+                                   '📢 Следите за официальными новостями королевства.',
+                                   '📢 Sigue las noticias oficiales del reino.'),
+ '🎁 تعرف على الهدايا والمكافآت.': ('🎁 Discover gifts and rewards.',
+                                   '🎁 Узнавайте о подарках и наградах.',
+                                   '🎁 Descubre regalos y recompensas.'),
+ '🌍 تابع تطور مشروع EN96.': ('🌍 Follow EN96 project progress.',
+                             '🌍 Следите за развитием проекта EN96.',
+                             '🌍 Sigue la evolución del proyecto EN96.'),
+ 'اضغط الزر أدناه لفتح القناة.': ('Tap below to open the channel.',
+                                  'Нажмите кнопку ниже, чтобы открыть канал.',
+                                  'Pulsa abajo para abrir el canal.'),
+ 'افتح EN96 في محادثة خاصة.': ('Open EN96 in a private chat.',
+                               'Откройте EN96 в личном чате.',
+                               'Abre EN96 en un chat privado.'),
+ '⚠️ تعذر تأكيد حسابك.': ('⚠️ Could not verify your account.',
+                          '⚠️ Не удалось подтвердить аккаунт.',
+                          '⚠️ No se pudo verificar tu cuenta.'),
+ 'حاول لاحقًا.': ('Try later.', 'Попробуйте позже.', 'Inténtalo más tarde.'),
+ '✅ تم إلغاء الإدخال الجاري.': ('✅ Current input canceled.', '✅ Текущий ввод отменён.', '✅ Entrada actual cancelada.'),
+ '⚠️ تعذر تنفيذ الأمر الآن.': ('⚠️ Could not perform this action.',
+                               '⚠️ Не удалось выполнить действие.',
+                               '⚠️ No se pudo completar esta acción.')}
+
+_ORIGINAL_SEND_MESSAGE = bot.send_message
+_ORIGINAL_EDIT_MESSAGE_TEXT = bot.edit_message_text
+_ORIGINAL_REPLY_TO = bot.reply_to
+
+def translate_legacy(text_value, user_id):
+    if not isinstance(text_value, str) or not any('\u0600' <= c <= '\u06ff' for c in text_value):
+        return text_value
+    language = get_language(user_id)
+    if language == 'ar':
+        return text_value
+    column = {'en': 0, 'ru': 1, 'es': 2}.get(language, 0)
+    result = text_value
+    for arabic in sorted(LOCALE_PHRASES, key=len, reverse=True):
+        if arabic in result:
+            result = result.replace(arabic, LOCALE_PHRASES[arabic][column])
+    return result
+
+def translate_inline_keyboard(markup, user_id):
+    if isinstance(markup, InlineKeyboardMarkup):
+        for line in markup.keyboard:
+            for key in line:
+                if getattr(key, 'text', None):
+                    key.text = translate_legacy(key.text, user_id)
+    return markup
+
+def localized_send_message(chat_id, text, *args, **kwargs):
+    if 'reply_markup' in kwargs:
+        kwargs['reply_markup'] = translate_inline_keyboard(kwargs['reply_markup'], chat_id)
+    return _ORIGINAL_SEND_MESSAGE(chat_id, translate_legacy(text, chat_id), *args, **kwargs)
+
+def localized_edit_message_text(text, *args, **kwargs):
+    chat_id = kwargs.get('chat_id')
+    if chat_id is None and args:
+        chat_id = args[0]
+    if chat_id is not None:
+        text = translate_legacy(text, chat_id)
+        if 'reply_markup' in kwargs:
+            kwargs['reply_markup'] = translate_inline_keyboard(kwargs['reply_markup'], chat_id)
+    return _ORIGINAL_EDIT_MESSAGE_TEXT(text, *args, **kwargs)
+
+def localized_reply_to(message, text, *args, **kwargs):
+    uid = message.from_user.id if getattr(message, 'from_user', None) else message.chat.id
+    return _ORIGINAL_REPLY_TO(message, translate_legacy(text, uid), *args, **kwargs)
+
+bot.send_message = localized_send_message
+bot.edit_message_text = localized_edit_message_text
+bot.reply_to = localized_reply_to
+
+
+# Extra localized replies for legacy workflows
+LOCALE_PHRASES.update({'افتح LOBSTR واختر Receive، ثم انسخ عنوانك العام الذي يبدأ بحرف G.': ('Open LOBSTR, choose Receive, and copy your public address starting with G.', 'Откройте LOBSTR, выберите Receive и скопируйте публичный адрес, начинающийся с G.', 'Abre LOBSTR, elige Receive y copia tu dirección pública que empieza con G.'), 'أرسله هنا لحفظ عنوان الاستلام.': ('Send it here to save your receiving address.', 'Отправьте его сюда, чтобы сохранить адрес получения.', 'Envíala aquí para guardar tu dirección de recepción.'), '⚠️ لا ترسل المفتاح السري أو كلمات الاسترداد.': ('⚠️ Never send your secret key or recovery phrase.', '⚠️ Не отправляйте секретный ключ или фразу восстановления.', '⚠️ Nunca envíes la clave secreta ni la frase de recuperación.'), '⚠️ لديك طلب سحب معلق.': ('⚠️ You have a pending withdrawal.', '⚠️ У вас есть ожидающий вывод.', '⚠️ Tienes un retiro pendiente.'), '⚠️ لم يكتمل تأكيد طلب السحب.': ('⚠️ Withdrawal confirmation was not completed.', '⚠️ Подтверждение вывода не завершено.', '⚠️ La confirmación del retiro no se completó.'), 'افتح «📋 طلبات السحب» وتحقق من وجود طلب معلق قبل المحاولة مجددًا.': ('Open Withdrawals and check pending requests before trying again.', 'Откройте «Запросы на вывод» и проверьте заявки перед повтором.', 'Abre Retiros y revisa las solicitudes pendientes antes de reintentar.'), 'لم يتم إرسال أي عملات Stellar.': ('No Stellar assets were sent.', 'Активы Stellar не отправлялись.', 'No se enviaron activos Stellar.'), 'لم يتم إلغاء أي طلب سحب مسجل في Supabase.': ('No withdrawal request stored in Supabase was canceled.', 'Ни одна заявка на вывод в Supabase не была отменена.', 'No se canceló ninguna solicitud de retiro guardada en Supabase.'), 'اضغط زر تأكيد السحب أو تراجع من الرسالة السابقة.': ('Use the confirmation or back button in the previous message.', 'Нажмите подтверждение или отмену в предыдущем сообщении.', 'Usa el botón de confirmación o volver del mensaje anterior.'), '⏳ طلبك قيد المعالجة.': ('⏳ Your request is being processed.', '⏳ Ваш запрос обрабатывается.', '⏳ Tu solicitud se está procesando.'), 'تحقق من طلبات السحب.': ('Check your withdrawals.', 'Проверьте запросы на вывод.', 'Consulta tus retiros.'), '✅ تراجعت. لم يتغير الطلب.': ('✅ Canceled the action; the request is unchanged.', '✅ Действие отменено, заявка не изменена.', '✅ Acción cancelada; la solicitud no cambió.'), '✅ لم يتم إلغاء الطلب.': ('✅ The request was not canceled.', '✅ Заявка не была отменена.', '✅ No se canceló la solicitud.'), 'هذا الأمر مخصص للمسؤول.': ('This command is for administrators only.', 'Эта команда доступна только администратору.', 'Este comando es solo para administradores.'), '🔒 هذا القسم خاص بإدارة EN96.': ('🔒 This area is for EN96 administrators only.', '🔒 Раздел доступен только администрации EN96.', '🔒 Esta sección es solo para administradores de EN96.'), 'تعذر الحصول على رصيد Stars.': ('Could not retrieve Stars balance.', 'Не удалось получить баланс Stars.', 'No se pudo obtener el saldo de Stars.'), 'تحقق من Render وحاول مجددًا.': ('Check Render and try again.', 'Проверьте Render и повторите попытку.', 'Comprueba Render e inténtalo de nuevo.'), 'تعذر فتح تأكيد الدفع.': ('Could not open payment confirmation.', 'Не удалось открыть подтверждение оплаты.', 'No se pudo abrir la confirmación de pago.'), 'تعذر فتح تأكيد المعالجة.': ('Could not open processing confirmation.', 'Не удалось открыть подтверждение обработки.', 'No se pudo abrir la confirmación de procesamiento.'), 'تعذر فتح تأكيد الإلغاء.': ('Could not open cancellation confirmation.', 'Не удалось открыть подтверждение отмены.', 'No se pudo abrir la confirmación de cancelación.'), 'الطلب غير موجود.': ('Request not found.', 'Заявка не найдена.', 'Solicitud no encontrada.'), 'تعذر فحص المحفظة.': ('Could not check the wallet.', 'Не удалось проверить кошелёк.', 'No se pudo comprobar la billetera.'), 'لا يمكن إلغاء هذا الطلب.': ('This request cannot be canceled.', 'Эту заявку нельзя отменить.', 'Esta solicitud no se puede cancelar.'), 'تعذر تأكيد الإلغاء.': ('Could not confirm cancellation.', 'Не удалось подтвердить отмену.', 'No se pudo confirmar la cancelación.'), 'تعذر تأكيد نتيجة المعالجة.': ('Could not confirm processing result.', 'Не удалось подтвердить результат обработки.', 'No se pudo confirmar el resultado del procesamiento.'), 'تحقق من Supabase قبل إعادة المحاولة.': ('Check Supabase before trying again.', 'Проверьте Supabase перед повторной попыткой.', 'Revisa Supabase antes de reintentar.'), 'انتهت صلاحية زر التأكيد؛ افتح الطلب مجددًا.': ('Confirmation expired; open the request again.', 'Подтверждение устарело; откройте заявку снова.', 'La confirmación caducó; abre la solicitud de nuevo.'), 'انتهى تأكيد الإلغاء.': ('Cancellation confirmation expired.', 'Срок подтверждения отмены истёк.', 'La confirmación de cancelación caducó.'), 'تم التراجع دون تغيير الطلب.': ('Went back without changing the request.', 'Возврат без изменения заявки.', 'Se volvió sin cambiar la solicitud.'), 'أرسل رابط فيديو الهدية.': ('Send the gift video URL.', 'Отправьте ссылку на видео с подарком.', 'Envía el enlace del vídeo de regalo.'), 'أرسل مقدار المكافأة، مثل 1.': ('Send the reward amount, for example 1.', 'Отправьте размер награды, например 1.', 'Envía el importe de la recompensa, por ejemplo 1.'), 'أرسل كود الهدية الجديد.': ('Send the new gift code.', 'Отправьте новый подарочный код.', 'Envía el nuevo código de regalo.'), 'أرسل الكود المطلوب.': ('Send the relevant code.', 'Отправьте нужный код.', 'Envía el código correspondiente.'), 'الكود غير صالح.': ('Invalid code.', 'Неверный код.', 'Código no válido.'), 'رابط الفيديو غير صالح.': ('Invalid video link.', 'Неверная ссылка на видео.', 'Enlace de vídeo no válido.'), 'بيانات الهدية ناقصة.': ('Gift details are incomplete.', 'Данные подарка неполные.', 'Faltan datos del regalo.'), 'أرسل رقمًا موجبًا.': ('Send a positive number.', 'Отправьте положительное число.', 'Envía un número positivo.'), 'تعذر إنشاء كود الهدية.': ('Could not create gift code.', 'Не удалось создать подарочный код.', 'No se pudo crear el código de regalo.'), 'لا توجد أكواد هدايا.': ('There are no gift codes.', 'Подарочных кодов нет.', 'No hay códigos de regalo.'), 'تعذر عرض الأكواد.': ('Could not display gift codes.', 'Не удалось показать подарочные коды.', 'No se pudieron mostrar los códigos.'), '✅ تم تغيير حالة الكود.': ('✅ Code status updated.', '✅ Статус кода изменён.', '✅ Estado del código actualizado.'), 'لم أجد هذا الكود.': ('Code not found.', 'Код не найден.', 'No se encontró el código.'), 'تعذر تغيير حالة الكود.': ('Could not update code status.', 'Не удалось изменить статус кода.', 'No se pudo cambiar el estado del código.'), '👑 لوحة سحوبات EN96': ('👑 EN96 withdrawal dashboard', '👑 Панель выводов EN96', '👑 Panel de retiros EN96'), 'لا تُرسل العملات مرتين. راجع كل طلب ورقم المعاملة.': ('Do not send coins twice. Verify each request and transaction ID.', 'Не отправляйте монеты дважды. Проверяйте заявки и хеши транзакций.', 'No envíes monedas dos veces. Verifica solicitudes e identificadores de transacción.'), '⚠️ تعذر تحميل لوحة السحوبات.': ('⚠️ Could not load withdrawal dashboard.', '⚠️ Не удалось загрузить панель выводов.', '⚠️ No se pudo cargar el panel de retiros.'), '⚠️ الطلب ليس قيد المعالجة.': ('⚠️ Request is not being processed.', '⚠️ Заявка не находится в обработке.', '⚠️ La solicitud no está en procesamiento.'), '⚠️ الطلب غير موجود أو لم يعد معلّقًا.': ('⚠️ Request not found or no longer pending.', '⚠️ Заявка не найдена или уже не ожидает.', '⚠️ La solicitud no existe o ya no está pendiente.'), '🛠️ إدارة الهدايا': ('🛠️ Manage gifts', '🛠️ Управление подарками', '🛠️ Administrar regalos')})
 
 # ==========================================
 # COMMON HELPERS
@@ -489,7 +838,7 @@ def menu(user_id=None):
         kb.row(
             KeyboardButton(local_button("🛠️ إدارة الهدايا", user_id)),
             KeyboardButton(
-                "⭐ رصيد Stars للإدارة"
+                local_button("⭐ رصيد Stars للإدارة", user_id)
             )
         )
 
@@ -4035,12 +4384,7 @@ def menu_handler(message):
         )
 
     elif text_value == "🏆 المكافآت":
-        bot.send_message(
-            chat_id,
-            "🏆 مكافآت EN96 الافتراضية.\n"
-            "يمكنك جمع هدايا الفيديو "
-            "ومكافآت القبيلة المؤهلة."
-        )
+        bot.send_message(chat_id, extra_text("rewards", uid))
 
     elif text_value == "🎵 TikTok EN96":
         show_tiktok(chat_id)
@@ -4075,24 +4419,7 @@ def menu_handler(message):
     elif text_value == "ℹ️ معلومات EN96":
         bot.send_message(
             chat_id,
-            "🐻 EN96 Ice Bear Mining\n\n"
-
-            "⛏️ التعدين افتراضي.\n"
-            "⚡ 0.001 EN96 في الثانية.\n"
-            "⏱️ الجلسة: 24 ساعة.\n"
-            "💎 مكافأة الجلسة: 86.4 EN96.\n\n"
-
-            "🎁 دعوة مؤهلة: 50 EN96.\n"
-            "👥 عمولة تعدين الأصدقاء: 5%.\n\n"
-
-            "💸 الحد الأدنى للسحب: 500 EN96.\n"
-            "🌐 Stellar Mainnet.\n\n"
-
-            "📢 القناة الرسمية:\n"
-            f"{TELEGRAM_CHANNEL_URL}\n\n"
-
-            "⚠️ ليس تعدين أجهزة حقيقيًا.\n"
-            "السحب يحتاج مراجعة يدوية.",
+            extra_text("about", uid) + "\n\n" + TELEGRAM_CHANNEL_URL,
             disable_web_page_preview=True
         )
 
