@@ -1,4 +1,3 @@
-
 import os
 import json
 import time
@@ -59,6 +58,13 @@ ROYAL_APP_URL = (
 )
 
 BOT_USERNAME = "EN96_IceDragon_2026_Bot"
+
+# Royal welcome video: managed by admin through /setintro.
+# Stored in Supabase so it survives Render restarts.
+INTRO_SETTING_KEY = "royal_welcome_video_file_id"
+INTRO_VIDEO_FILE_ID = os.getenv("EN96_INTRO_VIDEO_FILE_ID", "").strip()
+INTRO_VIDEO_LOCK = threading.RLock()
+
 
 TIKTOK_URL = (
     "https://www.tiktok.com/@en96mining"
@@ -3708,6 +3714,91 @@ def admin_stars_balance(
 
 
 # ==========================================
+# ROYAL INTRO VIDEO (ADMIN CONTROL)
+# ==========================================
+
+def get_intro_video_file_id():
+    """Read saved Telegram file_id; gracefully fall back if DB is unavailable."""
+    global INTRO_VIDEO_FILE_ID
+    with INTRO_VIDEO_LOCK:
+        if INTRO_VIDEO_FILE_ID:
+            return INTRO_VIDEO_FILE_ID
+    try:
+        rows = (
+            db.table("en96_bot_settings")
+            .select("value")
+            .eq("key", INTRO_SETTING_KEY)
+            .limit(1)
+            .execute().data or []
+        )
+        if rows:
+            file_id = str(rows[0].get("value") or "").strip()
+            with INTRO_VIDEO_LOCK:
+                INTRO_VIDEO_FILE_ID = file_id
+            return file_id
+    except Exception:
+        log.warning("Intro video setting unavailable; /start will continue without video", exc_info=True)
+    return ""
+
+
+def send_royal_intro(chat_id):
+    file_id = get_intro_video_file_id()
+    if not file_id:
+        return
+    try:
+        bot.send_video(
+            chat_id,
+            file_id,
+            supports_streaming=True,
+        )
+    except Exception:
+        # Never block the mining menu if Telegram rejects the video.
+        log.exception("Could not send EN96 royal welcome video")
+
+
+def set_royal_intro_from_video(message, video):
+    global INTRO_VIDEO_FILE_ID
+    if not is_private(message) or not is_admin(message.from_user.id):
+        return
+    if video is None:
+        bot.reply_to(message, "⚠️ رد على رسالة فيديو الدب بالأمر /setintro، أو أرسل الفيديو مع التعليق /setintro.")
+        return
+    file_id = str(getattr(video, "file_id", "") or "").strip()
+    if not file_id:
+        bot.reply_to(message, "⚠️ لم أتمكن من قراءة معرّف الفيديو.")
+        return
+    try:
+        db.table("en96_bot_settings").upsert(
+            {"key": INTRO_SETTING_KEY, "value": file_id},
+            on_conflict="key"
+        ).execute()
+    except Exception:
+        log.exception("Failed to save royal intro video file_id")
+        bot.reply_to(message, "⚠️ تعذر حفظ الفيديو في Supabase. أنشئ جدول en96_bot_settings أولًا.")
+        return
+    with INTRO_VIDEO_LOCK:
+        INTRO_VIDEO_FILE_ID = file_id
+    bot.reply_to(message, "✅ تم حفظ فيديو الدب الملكي! أرسل /start لاختباره. سيظهر الفيديو ثم القائمة مباشرة.")
+
+
+@bot.message_handler(commands=["setintro"])
+def set_intro_command(message):
+    if not is_private(message) or not is_admin(message.from_user.id):
+        return
+    reply = getattr(message, "reply_to_message", None)
+    set_royal_intro_from_video(message, getattr(reply, "video", None))
+
+
+@bot.message_handler(content_types=["video"])
+def set_intro_video_caption(message):
+    if not is_private(message) or not is_admin(message.from_user.id):
+        return
+    caption = str(getattr(message, "caption", "") or "").strip()
+    if caption and caption.split(maxsplit=1)[0].split("@")[0] == "/setintro":
+        set_royal_intro_from_video(message, message.video)
+
+
+# ==========================================
 # BOT COMMANDS
 # ==========================================
 
@@ -3763,6 +3854,11 @@ def start(message):
             uid
         )
         return
+
+    # Send the welcome video first, without waiting for it to finish playing.
+    # /menu and /start mining preserve their existing behavior.
+    if command == "/start":
+        send_royal_intro(chat_id)
 
     if (
         command == "/start"
