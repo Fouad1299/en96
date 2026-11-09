@@ -23,3 +23,16 @@ jobs:
 
       - name: Verify EN96 on Stellar Mainnet
         run: python stellar_bridge_watcher.py
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Test EN96 bridge database connection
+        env:
+          PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
+          PGSSLMODE: verify-full
+        run: |
+          psql \
+            "host=aws-0-eu-west-1.pooler.supabase.com port=5432 dbname=postgres user=en96_bridge_writer.zfoanswefwufsifncrhl connect_timeout=10" \
+            -X -v ON_ERROR_STOP=1 \
+            -c "SELECT current_user, current_database();"
