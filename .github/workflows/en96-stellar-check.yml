@@ -25,12 +25,15 @@ jobs:
         run: python stellar_bridge_watcher.py
 
       - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client ca-certificates
 
       - name: Test EN96 bridge database connection
         env:
           PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
           PGSSLMODE: verify-full
+          PGSSLROOTCERT: /etc/ssl/certs/ca-certificates.crt
         run: |
           psql \
             "host=aws-0-eu-west-1.pooler.supabase.com port=5432 dbname=postgres user=en96_bridge_writer.zfoanswefwufsifncrhl connect_timeout=10" \
