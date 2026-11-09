@@ -1,201 +1,107 @@
 
-import os
-import json
-import time
-import logging
-from decimal import Decimal
-from pathlib import Path
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
-
 # EN96 Ice Bear Kingdom
-# Stellar Bridge Watcher - Read Only
-# No private keys, no minting, no transfers
+# Stellar Mainnet - Read Only Verification
+# No private keys, no transfers, no minting
 
-HORIZON_URL = "https://horizon.stellar.org"
+import json
+from urllib.request import Request, urlopen
+from urllib.parse import urlencode
+from decimal import Decimal
 
-ESCROW_ADDRESS = (
+HORIZON = "https://horizon.stellar.org"
+
+ISSUER = (
+    "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB"
+)
+
+ESCROW = (
     "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O"
 )
 
 ASSET_CODE = "EN96"
-
-# Set this to the verified EN96 Stellar issuer.
-# Never use an unverified issuer.
-ASSET_ISSUER = os.getenv(
-    "EN96_STELLAR_ISSUER", ""
-).strip()
-
-STATE_FILE = Path("stellar_bridge_state.json")
-POLL_SECONDS = 30
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-
-log = logging.getLogger("EN96BridgeWatcher")
+MAX_SUPPLY = Decimal("90000000000")
 
 
-def horizon_get(path, params=None):
-    query = urlencode(params or {})
-    url = HORIZON_URL + path
-
-    if query:
-        url += "?" + query
+def get_json(path, params=None):
+    url = HORIZON + path
+    if params:
+        url += "?" + urlencode(params)
 
     request = Request(
         url,
-        headers={
-            "Accept": "application/json",
-            "User-Agent": "EN96BridgeWatcher/0.1"
-        }
+        headers={"Accept": "application/json"}
     )
 
     with urlopen(request, timeout=20) as response:
-        return json.loads(response.read().decode("utf-8"))
+        return json.load(response)
 
 
-def load_state():
-    if not STATE_FILE.exists():
-        return {
-            "cursor": None,
-            "deposits": {}
+def check_asset():
+    data = get_json(
+        "/assets",
+        {
+            "asset_code": ASSET_CODE,
+            "asset_issuer": ISSUER,
+            "limit": 1
         }
+    )
 
-    with STATE_FILE.open("r", encoding="utf-8") as file:
-        return json.load(file)
+    records = data.get("_embedded", {}).get(
+        "records", []
+    )
 
-
-def save_state(state):
-    temp_file = STATE_FILE.with_suffix(".tmp")
-
-    with temp_file.open("w", encoding="utf-8") as file:
-        json.dump(
-            state,
-            file,
-            indent=2,
-            ensure_ascii=False
-        )
-
-    temp_file.replace(STATE_FILE)
-
-
-def is_valid_deposit(operation):
-    if operation.get("type") != "payment":
+    if not records:
+        print("EN96 asset not found for this issuer")
         return False
 
-    if operation.get("to") != ESCROW_ADDRESS:
-        return False
+    asset = records[0]
+    amount = Decimal(asset["amount"])
 
-    if operation.get("asset_type") != "credit_alphanum4":
-        return False
+    print("EN96 asset found")
+    print("Issuer:", ISSUER)
+    print("Stellar supply:", amount)
+    print("Maximum planned supply:", MAX_SUPPLY)
 
-    if operation.get("asset_code") != ASSET_CODE:
-        return False
-
-    if operation.get("asset_issuer") != ASSET_ISSUER:
-        return False
-
-    try:
-        amount = Decimal(operation.get("amount", "0"))
-    except Exception:
-        return False
-
-    if not amount.is_finite() or amount <= 0:
-        return False
-
-    if amount.as_tuple().exponent < -7:
+    if amount > MAX_SUPPLY:
+        print("WARNING: Stellar supply exceeds cap")
         return False
 
     return True
 
 
-def record_deposit(operation, state):
-    operation_id = str(operation["id"])
+def check_escrow():
+    account = get_json("/accounts/" + ESCROW)
 
-    if operation_id in state["deposits"]:
-        return
+    print("Escrow account exists:", ESCROW)
 
-    transaction_hash = operation.get("transaction_hash")
+    for balance in account.get("balances", []):
+        if (
+            balance.get("asset_code") == ASSET_CODE
+            and balance.get("asset_issuer") == ISSUER
+        ):
+            print(
+                "Escrow EN96 balance:",
+                balance["balance"]
+            )
+            return True
 
-    if not transaction_hash:
-        log.warning("Missing transaction hash: %s", operation_id)
-        return
-
-    deposit = {
-        "operation_id": operation_id,
-        "transaction_hash": transaction_hash,
-        "source_account": operation.get("from"),
-        "destination": operation.get("to"),
-        "asset_code": ASSET_CODE,
-        "asset_issuer": ASSET_ISSUER,
-        "amount": operation.get("amount"),
-        "created_at": operation.get("created_at"),
-        "status": "observed_unverified"
-    }
-
-    state["deposits"][operation_id] = deposit
-
-    log.info(
-        "Observed EN96 payment: operation=%s amount=%s",
-        operation_id,
-        deposit["amount"]
-    )
-
-
-def poll_once(state):
-    params = {
-        "limit": 100,
-        "order": "asc",
-        "include_failed": "false"
-    }
-
-    if state["cursor"]:
-        params["cursor"] = state["cursor"]
-    else:
-        # Start at the latest ledger, not historical deposits.
-        params["cursor"] = "now"
-
-    data = horizon_get(
-        f"/accounts/{ESCROW_ADDRESS}/operations",
-        params
-    )
-
-    records = data.get("_embedded", {}).get("records", [])
-
-    for operation in records:
-        if is_valid_deposit(operation):
-            record_deposit(operation, state)
-
-        state["cursor"] = operation["paging_token"]
-        save_state(state)
-
-    return len(records)
+    print("Escrow has no matching EN96 trustline")
+    return False
 
 
 def main():
-    if not ASSET_ISSUER:
-        raise RuntimeError(
-            "EN96_STELLAR_ISSUER is missing. "
-            "Configure the verified Stellar issuer first."
-        )
+    print("EN96 Stellar verification started")
+    print("READ ONLY - NO TRANSFERS")
 
-    state = load_state()
+    asset_ok = check_asset()
+    escrow_ok = check_escrow()
 
-    log.info("EN96 Stellar watcher started")
-    log.info("Escrow: %s", ESCROW_ADDRESS)
-    log.info("Issuer: %s", ASSET_ISSUER)
-    log.info("Read-only monitoring enabled")
+    if asset_ok and escrow_ok:
+        print("Basic asset and escrow checks passed")
+    else:
+        print("Verification incomplete")
 
-    while True:
-        try:
-            count = poll_once(state)
-            log.info("Checked %s operations", count)
-        except Exception:
-            log.exception("Watcher error")
-
-        time.sleep(POLL_SECONDS)
+    print("No minting or bridge actions performed")
 
 
 if __name__ == "__main__":
