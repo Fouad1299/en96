@@ -29,12 +29,25 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client ca-certificates
 
+      - name: Prepare trusted Supabase CA
+        env:
+          SUPABASE_CA: ${{ secrets.EN96_SUPABASE_CA_CERT }}
+        run: |
+          if [ -z "$SUPABASE_CA" ]; then
+            echo "::error::Missing EN96_SUPABASE_CA_CERT GitHub secret"
+            exit 1
+          fi
+
+          printf '%s\n' "$SUPABASE_CA" > "$RUNNER_TEMP/supabase-ca.crt"
+          chmod 600 "$RUNNER_TEMP/supabase-ca.crt"
+
       - name: Test EN96 bridge database connection
         env:
           PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
           PGSSLMODE: verify-full
-          PGSSLROOTCERT: /etc/ssl/certs/ca-certificates.crt
         run: |
+          export PGSSLROOTCERT="$RUNNER_TEMP/supabase-ca.crt"
+
           psql \
             "host=aws-0-eu-west-1.pooler.supabase.com port=5432 dbname=postgres user=en96_bridge_writer.zfoanswefwufsifncrhl connect_timeout=10" \
             -X -v ON_ERROR_STOP=1 \
