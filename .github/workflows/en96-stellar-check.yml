@@ -41,11 +41,25 @@ jobs:
           printf '%s\n' "$SUPABASE_CA" > "$RUNNER_TEMP/supabase-ca.crt"
           chmod 600 "$RUNNER_TEMP/supabase-ca.crt"
 
+          if ! openssl x509 \
+            -in "$RUNNER_TEMP/supabase-ca.crt" \
+            -noout > /dev/null 2>&1; then
+            echo "::error::Invalid Supabase CA certificate"
+            exit 1
+          fi
+
+          echo "Supabase CA certificate prepared successfully"
+
       - name: Test EN96 bridge database connection
         env:
           PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
           PGSSLMODE: verify-full
         run: |
+          if [ -z "$PGPASSWORD" ]; then
+            echo "::error::Missing EN96_BRIDGE_DB_PASSWORD GitHub secret"
+            exit 1
+          fi
+
           export PGSSLROOTCERT="$RUNNER_TEMP/supabase-ca.crt"
 
           psql \
