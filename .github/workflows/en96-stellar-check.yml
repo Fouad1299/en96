@@ -18,7 +18,7 @@ jobs:
       PGDATABASE: postgres
       PGUSER: en96_bridge_writer.zfoanswefwufsifncrhl
       PGSSLMODE: verify-full
-      PGSSLROOTCERT: ${{ runner.temp }}/supabase-ca.crt
+      PGSSLROOTCERT: /tmp/supabase-ca.crt
       PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
       EN96_RECORD_DEPOSITS: "0"
       EN96_ENABLE_BNB_MINT: "0"
