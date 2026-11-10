@@ -214,10 +214,7 @@ jobs:
 
                   cursor.execute(
                       """
-                      SELECT
-                          stellar_tx_hash,
-                          operation_index,
-                          stellar_operation_id
+                      SELECT stellar_tx_hash
                       FROM public.en96_bridge_deposits
                       WHERE stellar_tx_hash = %s
                       """,
@@ -260,9 +257,7 @@ jobs:
                       )
                   )
 
-                  inserted = cursor.fetchone()
-
-                  if inserted is None:
+                  if cursor.fetchone() is None:
                       raise RuntimeError(
                           "Test insert returned no row"
                       )
@@ -320,6 +315,207 @@ jobs:
 
                   print("PASS: No test deposit remains")
                   print("PASS: Deposit count unchanged")
+                  print("No permanent test deposits created")
+
+          finally:
+              connection.rollback()
+              connection.close()
+          PY
+
+      - name: Test EN96 duplicate prevention with rollback
+        env:
+          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
+          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
+        run: |
+          python - <<'PY'
+          import os
+          import uuid
+          import psycopg
+
+          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
+          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
+
+          if not password:
+              raise RuntimeError("Missing bridge database password")
+
+          test_id = uuid.uuid4().hex
+          tx_hash = "en96_duplicate_test_" + test_id
+          operation_id = "en96_operation_test_" + test_id
+
+          escrow = (
+              "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O"
+          )
+          issuer = (
+              "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB"
+          )
+
+          insert_sql = """
+              INSERT INTO public.en96_bridge_deposits (
+                  stellar_tx_hash,
+                  operation_index,
+                  stellar_operation_id,
+                  source_account,
+                  escrow_account,
+                  asset_code,
+                  asset_issuer,
+                  amount,
+                  status
+              )
+              VALUES (
+                  %s, %s, %s, %s, %s,
+                  'EN96', %s, %s, 'observed'
+              )
+              ON CONFLICT (
+                  stellar_tx_hash,
+                  operation_index
+              )
+              DO NOTHING
+              RETURNING id
+          """
+
+          connection = psycopg.connect(
+              host="aws-0-eu-west-1.pooler.supabase.com",
+              port=5432,
+              dbname="postgres",
+              user="en96_bridge_writer.zfoanswefwufsifncrhl",
+              password=password,
+              sslmode="verify-full",
+              sslrootcert=ca_file,
+              connect_timeout=10,
+              autocommit=False,
+          )
+
+          try:
+              with connection.cursor() as cursor:
+                  cursor.execute("SELECT current_user")
+                  role = cursor.fetchone()[0]
+
+                  if role != "en96_bridge_writer":
+                      raise RuntimeError("Unexpected database role")
+
+                  cursor.execute(
+                      """
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_deposits
+                      WHERE stellar_tx_hash = %s
+                         OR stellar_operation_id = %s
+                      """,
+                      (tx_hash, operation_id)
+                  )
+
+                  if cursor.fetchone()[0] != 0:
+                      raise RuntimeError(
+                          "Unexpected existing test data"
+                      )
+
+                  values = (
+                      tx_hash,
+                      0,
+                      operation_id,
+                      escrow,
+                      escrow,
+                      issuer,
+                      "0.0000001",
+                  )
+
+                  cursor.execute(insert_sql, values)
+
+                  if cursor.fetchone() is None:
+                      raise RuntimeError(
+                          "Initial test deposit was not inserted"
+                      )
+
+                  print("PASS: First test deposit inserted")
+
+                  cursor.execute(insert_sql, values)
+
+                  if cursor.fetchone() is not None:
+                      raise RuntimeError(
+                          "Duplicate transaction was inserted"
+                      )
+
+                  print(
+                      "PASS: Duplicate transaction and "
+                      "operation index rejected"
+                  )
+
+                  cursor.execute(
+                      """
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_deposits
+                      WHERE stellar_tx_hash = %s
+                      """,
+                      (tx_hash,)
+                  )
+
+                  if cursor.fetchone()[0] != 1:
+                      raise RuntimeError(
+                          "Duplicate transaction count incorrect"
+                      )
+
+                  print("PASS: Only one test deposit visible")
+
+                  # Test the independent unique operation ID.
+                  # A failed INSERT is isolated by a savepoint.
+                  cursor.execute("SAVEPOINT duplicate_operation_test")
+
+                  alternate_values = (
+                      "en96_alternate_tx_" + test_id,
+                      1,
+                      operation_id,
+                      escrow,
+                      escrow,
+                      issuer,
+                      "0.0000001",
+                  )
+
+                  try:
+                      cursor.execute(
+                          insert_sql,
+                          alternate_values
+                      )
+                  except psycopg.errors.UniqueViolation as error:
+                      if error.diag.constraint_name != (
+                          "en96_bridge_deposits_stellar_operation_id_key"
+                      ):
+                          raise
+
+                      cursor.execute(
+                          "ROLLBACK TO SAVEPOINT duplicate_operation_test"
+                      )
+
+                      print(
+                          "PASS: Duplicate Stellar operation ID rejected"
+                      )
+                  else:
+                      raise RuntimeError(
+                          "Duplicate Stellar operation ID accepted"
+                      )
+
+                  cursor.execute(
+                      "RELEASE SAVEPOINT duplicate_operation_test"
+                  )
+
+              connection.rollback()
+              print("PASS: Duplicate test transaction rolled back")
+
+              with connection.cursor() as cursor:
+                  cursor.execute(
+                      """
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_deposits
+                      WHERE stellar_tx_hash = %s
+                         OR stellar_operation_id = %s
+                      """,
+                      (tx_hash, operation_id)
+                  )
+
+                  if cursor.fetchone()[0] != 0:
+                      raise RuntimeError(
+                          "Test deposit remains after rollback"
+                      )
+
+                  print("PASS: No duplicate test deposits remain")
                   print("No permanent test deposits created")
 
           finally:
