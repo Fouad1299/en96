@@ -169,6 +169,164 @@ jobs:
           print("No database writes performed")
           PY
 
+      - name: Test EN96 deposit insert with rollback
+        env:
+          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
+          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg
+
+          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
+          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
+
+          if not password:
+              raise RuntimeError("Missing bridge database password")
+
+          connection = psycopg.connect(
+              host="aws-0-eu-west-1.pooler.supabase.com",
+              port=5432,
+              dbname="postgres",
+              user="en96_bridge_writer.zfoanswefwufsifncrhl",
+              password=password,
+              sslmode="verify-full",
+              sslrootcert=ca_file,
+              connect_timeout=10,
+              autocommit=False,
+          )
+
+          try:
+              with connection.cursor() as cursor:
+                  cursor.execute("SELECT current_user")
+                  role = cursor.fetchone()[0]
+
+                  if role != "en96_bridge_writer":
+                      raise RuntimeError("Unexpected database role")
+
+                  cursor.execute(
+                      """
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_deposits
+                      """
+                  )
+                  before_count = cursor.fetchone()[0]
+
+                  cursor.execute(
+                      """
+                      SELECT
+                          stellar_tx_hash,
+                          operation_index,
+                          stellar_operation_id
+                      FROM public.en96_bridge_deposits
+                      WHERE stellar_tx_hash = %s
+                      """,
+                      ("en96_rollback_test_only",)
+                  )
+
+                  if cursor.fetchone() is not None:
+                      raise RuntimeError(
+                          "Test identifier already exists"
+                      )
+
+                  cursor.execute(
+                      """
+                      INSERT INTO public.en96_bridge_deposits (
+                          stellar_tx_hash,
+                          operation_index,
+                          stellar_operation_id,
+                          source_account,
+                          escrow_account,
+                          asset_code,
+                          asset_issuer,
+                          amount,
+                          status
+                      )
+                      VALUES (
+                          %s, %s, %s, %s, %s,
+                          %s, %s, %s, 'observed'
+                      )
+                      RETURNING id
+                      """,
+                      (
+                          "en96_rollback_test_only",
+                          0,
+                          "en96_rollback_operation_only",
+                          "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O",
+                          "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O",
+                          "EN96",
+                          "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB",
+                          "0.0000001",
+                      )
+                  )
+
+                  inserted = cursor.fetchone()
+
+                  if inserted is None:
+                      raise RuntimeError(
+                          "Test insert returned no row"
+                      )
+
+                  print("PASS: Insert permission and RLS policy")
+
+                  cursor.execute(
+                      """
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_deposits
+                      WHERE stellar_tx_hash = %s
+                        AND operation_index = 0
+                      """,
+                      ("en96_rollback_test_only",)
+                  )
+
+                  if cursor.fetchone()[0] != 1:
+                      raise RuntimeError(
+                          "Test row not visible"
+                      )
+
+                  print("PASS: Test row visible in transaction")
+
+              connection.rollback()
+              print("PASS: Transaction rolled back")
+
+              with connection.cursor() as cursor:
+                  cursor.execute(
+                      """
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_deposits
+                      WHERE stellar_tx_hash = %s
+                      """,
+                      ("en96_rollback_test_only",)
+                  )
+                  remaining = cursor.fetchone()[0]
+
+                  cursor.execute(
+                      """
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_deposits
+                      """
+                  )
+                  after_count = cursor.fetchone()[0]
+
+                  if remaining != 0:
+                      raise RuntimeError(
+                          "Rollback verification failed"
+                      )
+
+                  if after_count != before_count:
+                      raise RuntimeError(
+                          "Unexpected deposit count change"
+                      )
+
+                  print("PASS: No test deposit remains")
+                  print("PASS: Deposit count unchanged")
+                  print("No permanent test deposits created")
+
+          finally:
+              connection.rollback()
+              connection.close()
+          PY
+
       - name: Confirm bridge remains disabled
         run: |
           echo "PASS: EN96 watcher tested in read-only mode"
