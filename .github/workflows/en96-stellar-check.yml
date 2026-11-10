@@ -10,7 +10,18 @@ permissions:
 jobs:
   verify-stellar:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+
+    env:
+      PGHOST: aws-0-eu-west-1.pooler.supabase.com
+      PGPORT: "5432"
+      PGDATABASE: postgres
+      PGUSER: en96_bridge_writer.zfoanswefwufsifncrhl
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: ${{ runner.temp }}/supabase-ca.crt
+      PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
+      EN96_RECORD_DEPOSITS: "0"
+      EN96_ENABLE_BNB_MINT: "0"
 
     steps:
       - name: Checkout EN96 repository
@@ -19,328 +30,138 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install PostgreSQL Python driver
+      - name: Install PostgreSQL tools
         run: |
-          python -m pip install --upgrade pip
           python -m pip install "psycopg[binary]>=3.2,<4"
-          python -c "import psycopg; print('PASS: psycopg installed')"
-
-      - name: Verify EN96 on Stellar Mainnet
-        env:
-          EN96_RECORD_DEPOSITS: "0"
-        run: |
-          python stellar_bridge_watcher.py
-
-      - name: Install PostgreSQL client
-        run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client ca-certificates
+          python -c "import psycopg; print('PASS: psycopg installed')"
 
       - name: Prepare trusted Supabase CA
         env:
           SUPABASE_CA: ${{ secrets.EN96_SUPABASE_CA_CERT }}
         run: |
           if [ -z "$SUPABASE_CA" ]; then
-            echo "::error::Missing EN96_SUPABASE_CA_CERT GitHub secret"
+            echo "::error::Missing Supabase CA certificate"
             exit 1
           fi
 
-          printf '%s\n' "$SUPABASE_CA" > "$RUNNER_TEMP/supabase-ca.crt"
-          chmod 600 "$RUNNER_TEMP/supabase-ca.crt"
-
-          if ! openssl x509 \
-            -in "$RUNNER_TEMP/supabase-ca.crt" \
-            -noout > /dev/null 2>&1; then
-            echo "::error::Invalid Supabase CA certificate"
-            exit 1
-          fi
-
-          echo "Supabase CA certificate prepared successfully"
-
-      - name: Test EN96 bridge database connection
-        env:
-          PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
-          PGSSLMODE: verify-full
-        run: |
           if [ -z "$PGPASSWORD" ]; then
-            echo "::error::Missing EN96_BRIDGE_DB_PASSWORD GitHub secret"
+            echo "::error::Missing database password"
             exit 1
           fi
 
-          export PGSSLROOTCERT="$RUNNER_TEMP/supabase-ca.crt"
+          printf '%s\n' "$SUPABASE_CA" > "$PGSSLROOTCERT"
+          chmod 600 "$PGSSLROOTCERT"
 
-          psql \
-            "host=aws-0-eu-west-1.pooler.supabase.com port=5432 dbname=postgres user=en96_bridge_writer.zfoanswefwufsifncrhl connect_timeout=10" \
-            -X -v ON_ERROR_STOP=1 \
+          openssl x509 \
+            -in "$PGSSLROOTCERT" \
+            -noout
+
+          echo "PASS: Supabase CA prepared"
+
+      - name: Verify database connection
+        run: |
+          psql -X -v ON_ERROR_STOP=1 \
             -c "SELECT current_user, current_database();"
 
-      - name: Test Python PostgreSQL connection
-        env:
-          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
-          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
+      - name: Verify database role and permissions
         run: |
           python - <<'PY'
           import os
           import psycopg
 
-          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
-          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
-
-          if not password:
-              raise RuntimeError("Missing bridge database password")
-
           with psycopg.connect(
-              host="aws-0-eu-west-1.pooler.supabase.com",
-              port=5432,
-              dbname="postgres",
-              user="en96_bridge_writer.zfoanswefwufsifncrhl",
-              password=password,
+              host=os.environ["PGHOST"],
+              port=os.environ["PGPORT"],
+              dbname=os.environ["PGDATABASE"],
+              user=os.environ["PGUSER"],
+              password=os.environ["PGPASSWORD"],
               sslmode="verify-full",
-              sslrootcert=ca_file,
-              connect_timeout=10,
-          ) as connection:
-              with connection.cursor() as cursor:
-                  cursor.execute(
-                      "SELECT current_user, current_database()"
-                  )
-                  user, database = cursor.fetchone()
-
-                  if user != "en96_bridge_writer":
-                      raise RuntimeError("Unexpected database role")
-
-                  print("PASS: Python PostgreSQL connection")
-                  print("Connected role:", user)
-                  print("Database:", database)
-
-          print("No database writes performed")
-          PY
-
-      - name: Test EN96 deposit table read access
-        env:
-          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
-          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
-        run: |
-          python - <<'PY'
-          import os
-          import psycopg
-
-          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
-          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
-
-          if not password:
-              raise RuntimeError("Missing bridge database password")
-
-          with psycopg.connect(
-              host="aws-0-eu-west-1.pooler.supabase.com",
-              port=5432,
-              dbname="postgres",
-              user="en96_bridge_writer.zfoanswefwufsifncrhl",
-              password=password,
-              sslmode="verify-full",
-              sslrootcert=ca_file,
-              connect_timeout=10,
-          ) as connection:
-              with connection.cursor() as cursor:
-                  cursor.execute("SELECT current_user")
-                  role = cursor.fetchone()[0]
+              sslrootcert=os.environ["PGSSLROOTCERT"],
+              connect_timeout=15,
+          ) as conn:
+              with conn.cursor() as cur:
+                  cur.execute("SELECT current_user")
+                  role = cur.fetchone()[0]
 
                   if role != "en96_bridge_writer":
-                      raise RuntimeError("Unexpected database role")
+                      raise RuntimeError(
+                          "Unexpected database role"
+                      )
 
-                  cursor.execute(
-                      """
+                  cur.execute("""
                       SELECT
-                          COUNT(*) AS total_deposits,
+                          COUNT(*),
                           COUNT(*) FILTER (
                               WHERE status = 'observed'
-                          ) AS observed_deposits
+                          )
                       FROM public.en96_bridge_deposits
-                      """
-                  )
+                  """)
+                  total, observed = cur.fetchone()
 
-                  total, observed = cursor.fetchone()
-
-                  print("PASS: EN96 deposit table read access")
+                  print("PASS: Correct database role")
                   print("Visible deposits:", total)
                   print("Observed deposits:", observed)
 
-          print("No database writes performed")
+                  cur.execute("""
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_checkpoints
+                      WHERE watcher_name = 'stellar_escrow_v1'
+                  """)
+                  checkpoints = cur.fetchone()[0]
+
+                  print("PASS: Checkpoint table readable")
+                  print("Stored checkpoints:", checkpoints)
+
+                  cur.execute("""
+                      SELECT
+                          has_table_privilege(
+                              current_user,
+                              'public.en96_bridge_deposits',
+                              'UPDATE'
+                          ),
+                          has_table_privilege(
+                              current_user,
+                              'public.en96_bridge_deposits',
+                              'DELETE'
+                          ),
+                          has_table_privilege(
+                              current_user,
+                              'public.en96_bridge_checkpoints',
+                              'UPDATE'
+                          ),
+                          has_table_privilege(
+                              current_user,
+                              'public.en96_bridge_checkpoints',
+                              'DELETE'
+                          )
+                  """)
+
+                  permissions = cur.fetchone()
+
+                  if any(permissions):
+                      raise RuntimeError(
+                          "Unexpected UPDATE or DELETE permission"
+                      )
+
+                  print("PASS: No UPDATE or DELETE grants")
+
+          print("PASS: Database access checks completed")
           PY
 
-      - name: Test EN96 deposit insert with rollback
-        env:
-          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
-          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
-        run: |
-          python - <<'PY'
-          import os
-          import psycopg
-
-          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
-          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
-
-          if not password:
-              raise RuntimeError("Missing bridge database password")
-
-          connection = psycopg.connect(
-              host="aws-0-eu-west-1.pooler.supabase.com",
-              port=5432,
-              dbname="postgres",
-              user="en96_bridge_writer.zfoanswefwufsifncrhl",
-              password=password,
-              sslmode="verify-full",
-              sslrootcert=ca_file,
-              connect_timeout=10,
-              autocommit=False,
-          )
-
-          try:
-              with connection.cursor() as cursor:
-                  cursor.execute("SELECT current_user")
-                  role = cursor.fetchone()[0]
-
-                  if role != "en96_bridge_writer":
-                      raise RuntimeError("Unexpected database role")
-
-                  cursor.execute(
-                      """
-                      SELECT COUNT(*)
-                      FROM public.en96_bridge_deposits
-                      """
-                  )
-                  before_count = cursor.fetchone()[0]
-
-                  cursor.execute(
-                      """
-                      SELECT stellar_tx_hash
-                      FROM public.en96_bridge_deposits
-                      WHERE stellar_tx_hash = %s
-                      """,
-                      ("en96_rollback_test_only",)
-                  )
-
-                  if cursor.fetchone() is not None:
-                      raise RuntimeError(
-                          "Test identifier already exists"
-                      )
-
-                  cursor.execute(
-                      """
-                      INSERT INTO public.en96_bridge_deposits (
-                          stellar_tx_hash,
-                          operation_index,
-                          stellar_operation_id,
-                          source_account,
-                          escrow_account,
-                          asset_code,
-                          asset_issuer,
-                          amount,
-                          status
-                      )
-                      VALUES (
-                          %s, %s, %s, %s, %s,
-                          %s, %s, %s, 'observed'
-                      )
-                      RETURNING id
-                      """,
-                      (
-                          "en96_rollback_test_only",
-                          0,
-                          "en96_rollback_operation_only",
-                          "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O",
-                          "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O",
-                          "EN96",
-                          "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB",
-                          "0.0000001",
-                      )
-                  )
-
-                  if cursor.fetchone() is None:
-                      raise RuntimeError(
-                          "Test insert returned no row"
-                      )
-
-                  print("PASS: Insert permission and RLS policy")
-
-                  cursor.execute(
-                      """
-                      SELECT COUNT(*)
-                      FROM public.en96_bridge_deposits
-                      WHERE stellar_tx_hash = %s
-                        AND operation_index = 0
-                      """,
-                      ("en96_rollback_test_only",)
-                  )
-
-                  if cursor.fetchone()[0] != 1:
-                      raise RuntimeError(
-                          "Test row not visible"
-                      )
-
-                  print("PASS: Test row visible in transaction")
-
-              connection.rollback()
-              print("PASS: Transaction rolled back")
-
-              with connection.cursor() as cursor:
-                  cursor.execute(
-                      """
-                      SELECT COUNT(*)
-                      FROM public.en96_bridge_deposits
-                      WHERE stellar_tx_hash = %s
-                      """,
-                      ("en96_rollback_test_only",)
-                  )
-                  remaining = cursor.fetchone()[0]
-
-                  cursor.execute(
-                      """
-                      SELECT COUNT(*)
-                      FROM public.en96_bridge_deposits
-                      """
-                  )
-                  after_count = cursor.fetchone()[0]
-
-                  if remaining != 0:
-                      raise RuntimeError(
-                          "Rollback verification failed"
-                      )
-
-                  if after_count != before_count:
-                      raise RuntimeError(
-                          "Unexpected deposit count change"
-                      )
-
-                  print("PASS: No test deposit remains")
-                  print("PASS: Deposit count unchanged")
-                  print("No permanent test deposits created")
-
-          finally:
-              connection.rollback()
-              connection.close()
-          PY
-
-      - name: Test EN96 duplicate prevention with rollback
-        env:
-          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
-          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
+      - name: Test deposit insert and duplicate protection
         run: |
           python - <<'PY'
           import os
           import uuid
           import psycopg
 
-          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
-          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
-
-          if not password:
-              raise RuntimeError("Missing bridge database password")
-
           test_id = uuid.uuid4().hex
-          tx_hash = "en96_duplicate_test_" + test_id
-          operation_id = "en96_operation_test_" + test_id
+          tx_hash = "en96_rollback_" + test_id
+          operation_id = "en96_operation_" + test_id
 
           escrow = (
               "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O"
@@ -349,7 +170,7 @@ jobs:
               "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB"
           )
 
-          insert_sql = """
+          sql = """
               INSERT INTO public.en96_bridge_deposits (
                   stellar_tx_hash,
                   operation_index,
@@ -373,40 +194,24 @@ jobs:
               RETURNING id
           """
 
-          connection = psycopg.connect(
-              host="aws-0-eu-west-1.pooler.supabase.com",
-              port=5432,
-              dbname="postgres",
-              user="en96_bridge_writer.zfoanswefwufsifncrhl",
-              password=password,
+          conn = psycopg.connect(
+              host=os.environ["PGHOST"],
+              port=os.environ["PGPORT"],
+              dbname=os.environ["PGDATABASE"],
+              user=os.environ["PGUSER"],
+              password=os.environ["PGPASSWORD"],
               sslmode="verify-full",
-              sslrootcert=ca_file,
-              connect_timeout=10,
+              sslrootcert=os.environ["PGSSLROOTCERT"],
+              connect_timeout=15,
               autocommit=False,
           )
 
           try:
-              with connection.cursor() as cursor:
-                  cursor.execute("SELECT current_user")
-                  role = cursor.fetchone()[0]
-
-                  if role != "en96_bridge_writer":
-                      raise RuntimeError("Unexpected database role")
-
-                  cursor.execute(
-                      """
-                      SELECT COUNT(*)
-                      FROM public.en96_bridge_deposits
-                      WHERE stellar_tx_hash = %s
-                         OR stellar_operation_id = %s
-                      """,
-                      (tx_hash, operation_id)
+              with conn.cursor() as cur:
+                  cur.execute(
+                      "SELECT COUNT(*) FROM public.en96_bridge_deposits"
                   )
-
-                  if cursor.fetchone()[0] != 0:
-                      raise RuntimeError(
-                          "Unexpected existing test data"
-                      )
+                  before_count = cur.fetchone()[0]
 
                   values = (
                       tx_hash,
@@ -418,49 +223,30 @@ jobs:
                       "0.0000001",
                   )
 
-                  cursor.execute(insert_sql, values)
+                  cur.execute(sql, values)
 
-                  if cursor.fetchone() is None:
+                  if cur.fetchone() is None:
                       raise RuntimeError(
-                          "Initial test deposit was not inserted"
+                          "Initial test insert failed"
                       )
 
-                  print("PASS: First test deposit inserted")
+                  print("PASS: Test deposit inserted")
 
-                  cursor.execute(insert_sql, values)
+                  cur.execute(sql, values)
 
-                  if cursor.fetchone() is not None:
+                  if cur.fetchone() is not None:
                       raise RuntimeError(
-                          "Duplicate transaction was inserted"
+                          "Duplicate transaction accepted"
                       )
 
-                  print(
-                      "PASS: Duplicate transaction and "
-                      "operation index rejected"
+                  print("PASS: Duplicate transaction rejected")
+
+                  cur.execute(
+                      "SAVEPOINT duplicate_operation_test"
                   )
 
-                  cursor.execute(
-                      """
-                      SELECT COUNT(*)
-                      FROM public.en96_bridge_deposits
-                      WHERE stellar_tx_hash = %s
-                      """,
-                      (tx_hash,)
-                  )
-
-                  if cursor.fetchone()[0] != 1:
-                      raise RuntimeError(
-                          "Duplicate transaction count incorrect"
-                      )
-
-                  print("PASS: Only one test deposit visible")
-
-                  # Test the independent unique operation ID.
-                  # A failed INSERT is isolated by a savepoint.
-                  cursor.execute("SAVEPOINT duplicate_operation_test")
-
-                  alternate_values = (
-                      "en96_alternate_tx_" + test_id,
+                  alternate = (
+                      "en96_alternate_" + test_id,
                       1,
                       operation_id,
                       escrow,
@@ -470,62 +256,149 @@ jobs:
                   )
 
                   try:
-                      cursor.execute(
-                          insert_sql,
-                          alternate_values
-                      )
+                      cur.execute(sql, alternate)
+
                   except psycopg.errors.UniqueViolation as error:
                       if error.diag.constraint_name != (
                           "en96_bridge_unique_stellar_id"
                       ):
                           raise
 
-                      cursor.execute(
+                      cur.execute(
                           "ROLLBACK TO SAVEPOINT duplicate_operation_test"
                       )
 
                       print(
-                          "PASS: Duplicate Stellar operation ID rejected"
-                      )
-                  else:
-                      raise RuntimeError(
-                          "Duplicate Stellar operation ID accepted"
+                          "PASS: Duplicate operation ID rejected"
                       )
 
-                  cursor.execute(
+                  else:
+                      raise RuntimeError(
+                          "Duplicate operation ID accepted"
+                      )
+
+                  cur.execute(
                       "RELEASE SAVEPOINT duplicate_operation_test"
                   )
 
-              connection.rollback()
-              print("PASS: Duplicate test transaction rolled back")
+              conn.rollback()
 
-              with connection.cursor() as cursor:
-                  cursor.execute(
+              print("PASS: Test transaction rolled back")
+
+              with conn.cursor() as cur:
+                  cur.execute(
                       """
                       SELECT COUNT(*)
                       FROM public.en96_bridge_deposits
                       WHERE stellar_tx_hash = %s
                          OR stellar_operation_id = %s
                       """,
-                      (tx_hash, operation_id)
+                      (tx_hash, operation_id),
                   )
 
-                  if cursor.fetchone()[0] != 0:
+                  if cur.fetchone()[0] != 0:
                       raise RuntimeError(
-                          "Test deposit remains after rollback"
+                          "Test deposit remains"
                       )
 
-                  print("PASS: No duplicate test deposits remain")
-                  print("No permanent test deposits created")
+                  cur.execute(
+                      "SELECT COUNT(*) FROM public.en96_bridge_deposits"
+                  )
+
+                  if cur.fetchone()[0] != before_count:
+                      raise RuntimeError(
+                          "Deposit count changed"
+                      )
+
+              print("PASS: No permanent test deposits")
 
           finally:
-              connection.rollback()
-              connection.close()
+              conn.rollback()
+              conn.close()
           PY
+
+      - name: Test checkpoint insert with rollback
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg
+
+          conn = psycopg.connect(
+              host=os.environ["PGHOST"],
+              port=os.environ["PGPORT"],
+              dbname=os.environ["PGDATABASE"],
+              user=os.environ["PGUSER"],
+              password=os.environ["PGPASSWORD"],
+              sslmode="verify-full",
+              sslrootcert=os.environ["PGSSLROOTCERT"],
+              connect_timeout=15,
+              autocommit=False,
+          )
+
+          try:
+              with conn.cursor() as cur:
+                  cur.execute("""
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_checkpoints
+                      WHERE watcher_name = 'stellar_escrow_v1'
+                  """)
+                  before = cur.fetchone()[0]
+
+                  cur.execute("""
+                      INSERT INTO public.en96_bridge_checkpoints (
+                          watcher_name,
+                          paging_token
+                      )
+                      VALUES (%s, %s)
+                      ON CONFLICT (
+                          watcher_name,
+                          paging_token
+                      )
+                      DO NOTHING
+                      RETURNING id
+                  """, (
+                      "stellar_escrow_v1",
+                      "999999999999999999999999999999999999999",
+                  ))
+
+                  if cur.fetchone() is None:
+                      raise RuntimeError(
+                          "Checkpoint test insert failed"
+                      )
+
+                  print("PASS: Checkpoint insert permitted")
+
+              conn.rollback()
+
+              with conn.cursor() as cur:
+                  cur.execute("""
+                      SELECT COUNT(*)
+                      FROM public.en96_bridge_checkpoints
+                      WHERE watcher_name = 'stellar_escrow_v1'
+                  """)
+                  after = cur.fetchone()[0]
+
+                  if after != before:
+                      raise RuntimeError(
+                          "Checkpoint rollback failed"
+                      )
+
+              print("PASS: Checkpoint test rolled back")
+
+          finally:
+              conn.rollback()
+              conn.close()
+          PY
+
+      - name: Run EN96 Stellar watcher version 0.7
+        run: |
+          python stellar_bridge_watcher.py
 
       - name: Confirm bridge remains disabled
         run: |
-          echo "PASS: EN96 watcher tested in read-only mode"
-          echo "Database deposit recording is disabled"
+          echo "PASS: EN96 watcher verification completed"
+          echo "Database checkpoint testing enabled"
+          echo "Deposit recording remains disabled"
           echo "No Stellar transfers performed"
           echo "No BNB minting performed"
+          echo "Bridge remains disabled"
