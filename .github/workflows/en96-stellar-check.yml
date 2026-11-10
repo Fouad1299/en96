@@ -476,7 +476,7 @@ jobs:
                       )
                   except psycopg.errors.UniqueViolation as error:
                       if error.diag.constraint_name != (
-                          "en96_bridge_deposits_stellar_operation_id_key"
+                          "en96_bridge_unique_stellar_id"
                       ):
                           raise
 
