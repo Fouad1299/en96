@@ -390,7 +390,7 @@ jobs:
               conn.close()
           PY
 
-      - name: Run EN96 Stellar watcher version 0.7
+      - name: Run EN96 Stellar watcher version 0.8
         run: |
           python stellar_bridge_watcher.py
 
