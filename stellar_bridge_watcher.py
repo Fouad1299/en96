@@ -4,6 +4,7 @@ import re
 import json
 import logging
 from decimal import Decimal, InvalidOperation
+from datetime import datetime, timezone
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
@@ -11,19 +12,19 @@ from urllib.error import HTTPError, URLError
 import psycopg
 
 
-# ============================================
+# ==============================================
 # EN96 ICE BEAR KINGDOM
-# Stellar Mainnet Watcher - Version 0.7
+# Stellar Mainnet Watcher - Version 0.8
 #
-# READ-ONLY STELLAR SCAN
-# PERSISTENT DATABASE CHECKPOINT
+# Verified deposit detection / dry-run
+# Persistent checkpoint
 #
-# Deposit recording: DISABLED
-# BNB minting: DISABLED
-# Stellar transfers: DISABLED
-# ============================================
+# NO deposit database recording
+# NO Stellar transfers
+# NO BNB minting
+# ==============================================
 
-VERSION = "0.7"
+VERSION = "0.8"
 
 HORIZON = "https://horizon.stellar.org"
 
@@ -43,9 +44,8 @@ MAX_SUPPLY = Decimal("90000000000")
 
 PAGE_SIZE = 100
 MAX_PAGES = 5
-
-RECORDING_SUPPORTED = False
-BNB_MINTING_SUPPORTED = False
+TX_PAGE_SIZE = 200
+MAX_TX_PAGES = 20
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,74 +55,22 @@ logging.basicConfig(
 log = logging.getLogger("EN96-WATCHER")
 
 
-def get_json(path, params=None):
-    url = HORIZON + path
-
-    if params:
-        url += "?" + urlencode(params)
-
-    request = Request(
-        url,
-        headers={
-            "Accept": "application/json",
-            "User-Agent": "EN96-Stellar-Watcher/0.7"
-        }
-    )
-
-    try:
-        with urlopen(request, timeout=30) as response:
-            data = json.load(response)
-
-    except (HTTPError, URLError, TimeoutError) as exc:
+def require_disabled_features():
+    if os.getenv("EN96_RECORD_DEPOSITS") == "1":
         raise RuntimeError(
-            "Horizon request failed: " + str(exc)
-        ) from exc
+            "Deposit recording is not supported"
+        )
 
-    if not isinstance(data, dict):
-        raise RuntimeError("Invalid Horizon response")
-
-    return data
-
-
-def get_records(data):
-    embedded = data.get("_embedded")
-
-    if not isinstance(embedded, dict):
-        raise RuntimeError("Missing embedded data")
-
-    records = embedded.get("records")
-
-    if not isinstance(records, list):
-        raise RuntimeError("Missing records list")
-
-    return records
+    if os.getenv("EN96_ENABLE_BNB_MINT") == "1":
+        raise RuntimeError(
+            "BNB minting is not supported"
+        )
 
 
-def parse_amount(value):
-    try:
-        amount = Decimal(str(value))
-    except (InvalidOperation, TypeError, ValueError):
-        raise RuntimeError("Invalid amount")
-
-    if not amount.is_finite():
-        raise RuntimeError("Non-finite amount")
-
-    if amount < 0:
-        raise RuntimeError("Negative amount")
-
-    if amount.as_tuple().exponent < -7:
-        raise RuntimeError("Too many decimal places")
-
-    return amount
-
-
-def valid_address(value):
+def valid_token(value):
     return (
         isinstance(value, str)
-        and re.fullmatch(
-            r"G[A-Z2-7]{55}",
-            value
-        ) is not None
+        and re.fullmatch(r"[0-9]+", value) is not None
     )
 
 
@@ -136,14 +84,112 @@ def valid_hash(value):
     )
 
 
-def valid_token(value):
+def valid_address(value):
     return (
         isinstance(value, str)
         and re.fullmatch(
-            r"[0-9]+",
+            r"G[A-Z2-7]{55}",
             value
         ) is not None
     )
+
+
+def parse_amount(value):
+    try:
+        amount = Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        raise RuntimeError("Invalid amount")
+
+    if not amount.is_finite():
+        raise RuntimeError("Non-finite amount")
+
+    if amount < 0:
+        raise RuntimeError("Negative amount")
+
+    if amount.as_tuple().exponent < -7:
+        raise RuntimeError(
+            "Amount exceeds seven decimal places"
+        )
+
+    return amount
+
+
+def parse_timestamp(value):
+    if not isinstance(value, str):
+        raise RuntimeError("Missing timestamp")
+
+    try:
+        result = datetime.fromisoformat(
+            value.replace("Z", "+00:00")
+        )
+    except ValueError as exc:
+        raise RuntimeError(
+            "Invalid timestamp"
+        ) from exc
+
+    if result.tzinfo is None:
+        raise RuntimeError(
+            "Timestamp has no timezone"
+        )
+
+    return result.astimezone(timezone.utc)
+
+
+def get_json(path, params=None):
+    url = HORIZON + path
+
+    if params:
+        url += "?" + urlencode(params)
+
+    request = Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "EN96-Watcher/0.8"
+        }
+    )
+
+    try:
+        with urlopen(
+            request,
+            timeout=30
+        ) as response:
+            data = json.load(response)
+
+    except (
+        HTTPError,
+        URLError,
+        TimeoutError,
+        ValueError
+    ) as exc:
+        raise RuntimeError(
+            "Horizon request failed: " + str(exc)
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise RuntimeError(
+            "Invalid Horizon response"
+        )
+
+    return data
+
+
+def get_records(data):
+    embedded = data.get("_embedded")
+
+    if not isinstance(embedded, dict):
+        raise RuntimeError(
+            "Missing Horizon embedded data"
+        )
+
+    records = embedded.get("records")
+
+    if not isinstance(records, list):
+        raise RuntimeError(
+            "Missing Horizon records"
+        )
+
+    return records
 
 
 def check_asset():
@@ -159,22 +205,26 @@ def check_asset():
     records = get_records(data)
 
     matching = [
-        item for item in records
-        if item.get("asset_code") == ASSET_CODE
-        and item.get("asset_issuer") == ASSET_ISSUER
+        record
+        for record in records
+        if (
+            record.get("asset_code") == ASSET_CODE
+            and record.get("asset_issuer")
+            == ASSET_ISSUER
+        )
     ]
 
     if not matching:
         raise RuntimeError(
-            "EN96 asset not found on Stellar Mainnet"
+            "EN96 asset not found"
         )
 
-    asset = matching[0]
-
-    balances = asset.get("balances", {})
+    balances = matching[0].get("balances")
 
     if not isinstance(balances, dict):
-        raise RuntimeError("Invalid asset balances")
+        raise RuntimeError(
+            "Invalid asset balances"
+        )
 
     total = Decimal("0")
 
@@ -184,7 +234,7 @@ def check_asset():
 
     if total > MAX_SUPPLY:
         raise RuntimeError(
-            "Reported Stellar amount exceeds planned cap"
+            "Stellar reported total exceeds cap"
         )
 
     print("PASS: EN96 asset found")
@@ -197,21 +247,26 @@ def check_asset():
 
 def check_escrow():
     if not valid_address(ESCROW_ACCOUNT):
-        raise RuntimeError("Invalid escrow address")
+        raise RuntimeError(
+            "Invalid escrow address"
+        )
 
-    data = get_json(
+    account = get_json(
         "/accounts/" + ESCROW_ACCOUNT
     )
 
-    balances = data.get("balances")
+    balances = account.get("balances")
 
     if not isinstance(balances, list):
-        raise RuntimeError("Invalid escrow balances")
+        raise RuntimeError(
+            "Invalid account balances"
+        )
 
     for balance in balances:
         if (
             balance.get("asset_code") == ASSET_CODE
-            and balance.get("asset_issuer") == ASSET_ISSUER
+            and balance.get("asset_issuer")
+            == ASSET_ISSUER
         ):
             amount = parse_amount(
                 balance.get("balance")
@@ -219,11 +274,10 @@ def check_escrow():
 
             print("PASS: Escrow trustline exists")
             print("Escrow EN96 balance:", amount)
-
             return
 
     raise RuntimeError(
-        "Escrow EN96 trustline missing"
+        "Escrow trustline not found"
     )
 
 
@@ -233,23 +287,6 @@ def database_connection():
         or os.getenv("EN96_BRIDGE_DB_PASSWORD")
     )
 
-    host = os.getenv(
-        "PGHOST",
-        "aws-0-eu-west-1.pooler.supabase.com"
-    )
-
-    port = os.getenv("PGPORT", "5432")
-
-    database = os.getenv(
-        "PGDATABASE",
-        "postgres"
-    )
-
-    user = os.getenv(
-        "PGUSER",
-        "en96_bridge_writer.zfoanswefwufsifncrhl"
-    )
-
     certificate = (
         os.getenv("PGSSLROOTCERT")
         or os.getenv("EN96_CA_CERT_PATH")
@@ -257,25 +294,33 @@ def database_connection():
 
     if not password:
         raise RuntimeError(
-            "Database password environment "
-            "variable is missing"
+            "Database password missing"
         )
 
     if not certificate:
         raise RuntimeError(
-            "Database CA certificate path is missing"
+            "Database CA path missing"
         )
 
     if not os.path.isfile(certificate):
         raise RuntimeError(
-            "Database CA certificate file not found"
+            "Database CA file missing"
         )
 
     return psycopg.connect(
-        host=host,
-        port=port,
-        dbname=database,
-        user=user,
+        host=os.getenv(
+            "PGHOST",
+            "aws-0-eu-west-1.pooler.supabase.com"
+        ),
+        port=os.getenv("PGPORT", "5432"),
+        dbname=os.getenv(
+            "PGDATABASE",
+            "postgres"
+        ),
+        user=os.getenv(
+            "PGUSER",
+            "en96_bridge_writer.zfoanswefwufsifncrhl"
+        ),
         password=password,
         sslmode="verify-full",
         sslrootcert=certificate,
@@ -306,7 +351,7 @@ def read_checkpoint(conn):
     if row is None:
         print(
             "NOTICE: No checkpoint found. "
-            "Starting from earliest history."
+            "Starting from earliest available history."
         )
         return "0"
 
@@ -326,7 +371,7 @@ def read_checkpoint(conn):
 def save_checkpoint(conn, token):
     if not valid_token(token):
         raise RuntimeError(
-            "Refusing invalid checkpoint"
+            "Invalid checkpoint token"
         )
 
     with conn.cursor() as cur:
@@ -345,6 +390,117 @@ def save_checkpoint(conn, token):
     conn.commit()
 
     print("PASS: Checkpoint saved:", token)
+
+
+def get_transaction(tx_hash):
+    if not valid_hash(tx_hash):
+        raise RuntimeError(
+            "Invalid transaction hash"
+        )
+
+    transaction = get_json(
+        "/transactions/" + tx_hash
+    )
+
+    if (
+        str(transaction.get("hash", "")).lower()
+        != tx_hash.lower()
+    ):
+        raise RuntimeError(
+            "Transaction hash mismatch"
+        )
+
+    if transaction.get("successful") is not True:
+        raise RuntimeError(
+            "Transaction was not successful"
+        )
+
+    ledger = transaction.get("ledger")
+
+    if (
+        not isinstance(ledger, int)
+        or isinstance(ledger, bool)
+        or ledger <= 0
+    ):
+        raise RuntimeError(
+            "Invalid transaction ledger"
+        )
+
+    created_at = parse_timestamp(
+        transaction.get("created_at")
+    )
+
+    return transaction, ledger, created_at
+
+
+def get_transaction_operations(tx_hash):
+    all_operations = []
+    cursor = "0"
+    complete = False
+
+    for _ in range(MAX_TX_PAGES):
+        data = get_json(
+            "/transactions/"
+            + tx_hash
+            + "/operations",
+            {
+                "cursor": cursor,
+                "order": "asc",
+                "limit": TX_PAGE_SIZE,
+                "include_failed": "false"
+            }
+        )
+
+        records = get_records(data)
+
+        if not records:
+            complete = True
+            break
+
+        previous = cursor
+
+        for record in records:
+            token = record.get("paging_token")
+
+            if not valid_token(token):
+                raise RuntimeError(
+                    "Invalid transaction operation token"
+                )
+
+            if int(token) <= int(previous):
+                raise RuntimeError(
+                    "Non-increasing transaction cursor"
+                )
+
+            previous = token
+
+            if (
+                record.get("transaction_hash", "").lower()
+                != tx_hash.lower()
+            ):
+                raise RuntimeError(
+                    "Transaction operation mismatch"
+                )
+
+            all_operations.append(record)
+
+        cursor = previous
+
+        if len(records) < TX_PAGE_SIZE:
+            complete = True
+            break
+
+    if not complete:
+        raise RuntimeError(
+            "Transaction operation history incomplete"
+        )
+
+    if not all_operations:
+        raise RuntimeError(
+            "Transaction has no operations"
+        )
+
+    return all_operations
 
 
 def is_en96_deposit(operation):
@@ -369,7 +525,7 @@ def is_en96_deposit(operation):
 
     if amount <= 0:
         raise RuntimeError(
-            "Invalid EN96 deposit amount"
+            "EN96 deposit must be positive"
         )
 
     return True
@@ -377,70 +533,130 @@ def is_en96_deposit(operation):
 
 def verify_deposit(operation):
     tx_hash = operation.get("transaction_hash")
-
     operation_id = operation.get("id")
-
     source = operation.get("from")
 
     if not valid_hash(tx_hash):
         raise RuntimeError(
-            "Invalid transaction hash"
+            "Invalid deposit transaction hash"
         )
 
     if not valid_token(operation_id):
         raise RuntimeError(
-            "Invalid operation ID"
+            "Invalid deposit operation ID"
         )
 
     if not valid_address(source):
         raise RuntimeError(
-            "Invalid deposit source address"
+            "Invalid deposit source"
         )
 
-    transaction = get_json(
-        "/transactions/" + tx_hash
+    if source == ESCROW_ACCOUNT:
+        raise RuntimeError(
+            "Self-transfer cannot be bridged"
+        )
+
+    amount = parse_amount(
+        operation.get("amount")
     )
 
-    if (
-        str(transaction.get("hash", "")).lower()
-        != tx_hash.lower()
-    ):
+    if amount <= 0:
         raise RuntimeError(
-            "Transaction hash mismatch"
+            "Invalid deposit amount"
         )
 
-    if transaction.get("successful") is not True:
+    transaction, ledger, tx_time = (
+        get_transaction(tx_hash)
+    )
+
+    operations = get_transaction_operations(
+        tx_hash
+    )
+
+    operation_index = None
+
+    for index, candidate in enumerate(operations):
+        if candidate.get("id") == operation_id:
+            operation_index = index
+
+            if not is_en96_deposit(candidate):
+                raise RuntimeError(
+                    "Operation is not an EN96 deposit"
+                )
+
+            if candidate.get("from") != source:
+                raise RuntimeError(
+                    "Source account mismatch"
+                )
+
+            if (
+                parse_amount(candidate.get("amount"))
+                != amount
+            ):
+                raise RuntimeError(
+                    "Deposit amount mismatch"
+                )
+
+            if (
+                candidate.get("paging_token")
+                != operation.get("paging_token")
+            ):
+                raise RuntimeError(
+                    "Paging token mismatch"
+                )
+
+            op_time = parse_timestamp(
+                candidate.get("created_at")
+            )
+
+            if op_time != tx_time:
+                raise RuntimeError(
+                    "Operation timestamp mismatch"
+                )
+
+            break
+
+    if operation_index is None:
         raise RuntimeError(
-            "Deposit transaction not successful"
+            "Deposit operation not found in transaction"
         )
 
-    ledger = transaction.get("ledger")
+    result = {
+        "stellar_tx_hash": tx_hash.lower(),
+        "operation_index": operation_index,
+        "stellar_operation_id": operation_id,
+        "source_account": source,
+        "escrow_account": ESCROW_ACCOUNT,
+        "asset_code": ASSET_CODE,
+        "asset_issuer": ASSET_ISSUER,
+        "amount": str(amount),
+        "stellar_ledger": ledger,
+        "stellar_created_at": tx_time.isoformat(),
+        "status": "observed"
+    }
 
-    if (
-        not isinstance(ledger, int)
-        or isinstance(ledger, bool)
-        or ledger <= 0
-    ):
-        raise RuntimeError(
-            "Invalid transaction ledger"
-        )
-
+    print("PASS: EN96 deposit verified")
+    print("Transaction:", result["stellar_tx_hash"])
+    print("Operation index:", operation_index)
+    print("Operation ID:", operation_id)
+    print("Amount:", amount)
+    print("Ledger:", ledger)
     print(
-        "EN96 deposit detected:",
-        "operation =", operation_id,
-        "amount =", operation.get("amount"),
-        "ledger =", ledger
+        "NOTICE: Deposit is NOT recorded "
+        "or minted"
     )
+
+    return result
 
 
 def scan_escrow(conn):
     cursor = read_checkpoint(conn)
 
-    total_scanned = 0
-    pages_scanned = 0
+    scanned = 0
+    pages = 0
     reached_end = False
 
-    while pages_scanned < MAX_PAGES:
+    while pages < MAX_PAGES:
         data = get_json(
             "/accounts/"
             + ESCROW_ACCOUNT
@@ -459,63 +675,68 @@ def scan_escrow(conn):
             reached_end = True
             break
 
-        previous_token = cursor
-        deposits_in_page = 0
+        previous = cursor
+        deposits = []
 
         for operation in records:
             token = operation.get("paging_token")
 
             if not valid_token(token):
                 raise RuntimeError(
-                    "Operation has invalid paging token"
+                    "Invalid operation paging token"
                 )
 
-            if int(token) <= int(previous_token):
+            if int(token) <= int(previous):
                 raise RuntimeError(
-                    "Non-increasing operation cursor"
+                    "Non-increasing escrow cursor"
                 )
 
-            previous_token = token
-
-            total_scanned += 1
+            previous = token
+            scanned += 1
 
             if is_en96_deposit(operation):
-                deposits_in_page += 1
-                verify_deposit(operation)
+                deposit = verify_deposit(operation)
+                deposits.append(deposit)
 
-        if deposits_in_page:
+        # Never advance beyond a page containing
+        # EN96 deposits while recording is disabled.
+        if deposits:
+            print(
+                "NOTICE: Verified deposits found:",
+                len(deposits)
+            )
+            print(
+                "Checkpoint NOT advanced "
+                "past these deposits"
+            )
             raise RuntimeError(
-                "EN96 deposit found. "
-                "Checkpoint NOT advanced. "
-                "Deposit recording remains disabled. "
-                "Manual review required."
+                "Manual deposit review required. "
+                "Bridge remains disabled."
             )
 
-        # Save only after every operation in the
-        # page was checked successfully.
-        #
-        # Pages containing EN96 deposits are
-        # deliberately NOT checkpointed.
-        save_checkpoint(conn, previous_token)
+        save_checkpoint(conn, previous)
 
-        cursor = previous_token
-        pages_scanned += 1
+        cursor = previous
+        pages += 1
 
         if len(records) < PAGE_SIZE:
             reached_end = True
             break
 
-    print("Operations scanned:", total_scanned)
-    print("Pages scanned:", pages_scanned)
-    print("Reached available history end:", reached_end)
+    print("Operations scanned:", scanned)
+    print("Pages scanned:", pages)
+    print(
+        "Reached available history end:",
+        reached_end
+    )
 
     if not reached_end:
         print(
-            "NOTICE: Page limit reached. "
-            "Next run will resume from checkpoint."
+            "NOTICE: Page limit reached; "
+            "next run resumes from checkpoint"
         )
 
-    return total_scanned, reached_end
+    return scanned, reached_end
 
 
 def main():
@@ -526,15 +747,7 @@ def main():
     )
     print("=" * 48)
 
-    if os.getenv("EN96_RECORD_DEPOSITS") == "1":
-        raise RuntimeError(
-            "Deposit recording is disabled"
-        )
-
-    if os.getenv("EN96_ENABLE_BNB_MINT") == "1":
-        raise RuntimeError(
-            "BNB minting is disabled"
-        )
+    require_disabled_features()
 
     check_asset()
     check_escrow()
@@ -543,10 +756,10 @@ def main():
         scanned, completed = scan_escrow(conn)
 
     print("=" * 48)
-    print("RESULT: CHECKPOINT SCAN COMPLETED")
+    print("RESULT: SAFE SCAN COMPLETED")
     print("Operations scanned:", scanned)
     print("History end reached:", completed)
-    print("Database checkpoint enabled")
+    print("Persistent checkpoint enabled")
     print("Deposit recording disabled")
     print("No Stellar transfers performed")
     print("No BNB minting performed")
