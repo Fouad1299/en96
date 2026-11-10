@@ -117,6 +117,58 @@ jobs:
           print("No database writes performed")
           PY
 
+      - name: Test EN96 deposit table read access
+        env:
+          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
+          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg
+
+          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
+          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
+
+          if not password:
+              raise RuntimeError("Missing bridge database password")
+
+          with psycopg.connect(
+              host="aws-0-eu-west-1.pooler.supabase.com",
+              port=5432,
+              dbname="postgres",
+              user="en96_bridge_writer.zfoanswefwufsifncrhl",
+              password=password,
+              sslmode="verify-full",
+              sslrootcert=ca_file,
+              connect_timeout=10,
+          ) as connection:
+              with connection.cursor() as cursor:
+                  cursor.execute("SELECT current_user")
+                  role = cursor.fetchone()[0]
+
+                  if role != "en96_bridge_writer":
+                      raise RuntimeError("Unexpected database role")
+
+                  cursor.execute(
+                      """
+                      SELECT
+                          COUNT(*) AS total_deposits,
+                          COUNT(*) FILTER (
+                              WHERE status = 'observed'
+                          ) AS observed_deposits
+                      FROM public.en96_bridge_deposits
+                      """
+                  )
+
+                  total, observed = cursor.fetchone()
+
+                  print("PASS: EN96 deposit table read access")
+                  print("Visible deposits:", total)
+                  print("Observed deposits:", observed)
+
+          print("No database writes performed")
+          PY
+
       - name: Confirm bridge remains disabled
         run: |
           echo "PASS: EN96 watcher tested in read-only mode"
