@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: en96-stellar-verification
+  cancel-in-progress: false
+
 jobs:
   verify-stellar:
     runs-on: ubuntu-latest
@@ -38,6 +42,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client ca-certificates
           python -c "import psycopg; print('PASS: psycopg installed')"
+
+      - name: Run EN96 Stellar safety tests v0.9
+        run: |
+          python -m unittest -v test_stellar_bridge_watcher.py
 
       - name: Prepare trusted Supabase CA
         env:
