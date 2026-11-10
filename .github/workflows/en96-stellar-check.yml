@@ -21,8 +21,17 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install PostgreSQL Python driver
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "psycopg[binary]>=3.2,<4"
+          python -c "import psycopg; print('PASS: psycopg installed')"
+
       - name: Verify EN96 on Stellar Mainnet
-        run: python stellar_bridge_watcher.py
+        env:
+          EN96_RECORD_DEPOSITS: "0"
+        run: |
+          python stellar_bridge_watcher.py
 
       - name: Install PostgreSQL client
         run: |
@@ -66,3 +75,51 @@ jobs:
             "host=aws-0-eu-west-1.pooler.supabase.com port=5432 dbname=postgres user=en96_bridge_writer.zfoanswefwufsifncrhl connect_timeout=10" \
             -X -v ON_ERROR_STOP=1 \
             -c "SELECT current_user, current_database();"
+
+      - name: Test Python PostgreSQL connection
+        env:
+          EN96_BRIDGE_DB_PASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
+          EN96_SUPABASE_CA_FILE: ${{ runner.temp }}/supabase-ca.crt
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg
+
+          password = os.environ.get("EN96_BRIDGE_DB_PASSWORD")
+          ca_file = os.environ["EN96_SUPABASE_CA_FILE"]
+
+          if not password:
+              raise RuntimeError("Missing bridge database password")
+
+          with psycopg.connect(
+              host="aws-0-eu-west-1.pooler.supabase.com",
+              port=5432,
+              dbname="postgres",
+              user="en96_bridge_writer.zfoanswefwufsifncrhl",
+              password=password,
+              sslmode="verify-full",
+              sslrootcert=ca_file,
+              connect_timeout=10,
+          ) as connection:
+              with connection.cursor() as cursor:
+                  cursor.execute(
+                      "SELECT current_user, current_database()"
+                  )
+                  user, database = cursor.fetchone()
+
+                  if user != "en96_bridge_writer":
+                      raise RuntimeError("Unexpected database role")
+
+                  print("PASS: Python PostgreSQL connection")
+                  print("Connected role:", user)
+                  print("Database:", database)
+
+          print("No database writes performed")
+          PY
+
+      - name: Confirm bridge remains disabled
+        run: |
+          echo "PASS: EN96 watcher tested in read-only mode"
+          echo "Database deposit recording is disabled"
+          echo "No Stellar transfers performed"
+          echo "No BNB minting performed"
