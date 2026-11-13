@@ -3,6 +3,12 @@ name: EN96 Stellar Verification
 
 on:
   workflow_dispatch:
+    inputs:
+      record_verified_deposit:
+        description: "Record the verified 1 EN96 deposit in Supabase"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -26,6 +32,8 @@ jobs:
       PGPASSWORD: ${{ secrets.EN96_BRIDGE_DB_PASSWORD }}
       EN96_RECORD_DEPOSITS: "0"
       EN96_ENABLE_BNB_MINT: "0"
+      EN96_ENABLE_SIGNING: "0"
+      EN96_ENABLE_STELLAR_PAYOUT: "0"
 
     steps:
       - name: Checkout EN96 repository
@@ -148,9 +156,7 @@ jobs:
                           )
                   """)
 
-                  permissions = cur.fetchone()
-
-                  if any(permissions):
+                  if any(cur.fetchone()):
                       raise RuntimeError(
                           "Unexpected UPDATE or DELETE permission"
                       )
@@ -290,19 +296,15 @@ jobs:
                   )
 
               conn.rollback()
-
               print("PASS: Test transaction rolled back")
 
               with conn.cursor() as cur:
-                  cur.execute(
-                      """
+                  cur.execute("""
                       SELECT COUNT(*)
                       FROM public.en96_bridge_deposits
                       WHERE stellar_tx_hash = %s
                          OR stellar_operation_id = %s
-                      """,
-                      (tx_hash, operation_id),
-                  )
+                  """, (tx_hash, operation_id))
 
                   if cur.fetchone()[0] != 0:
                       raise RuntimeError(
@@ -454,11 +456,118 @@ jobs:
           sys.exit(result.returncode or 1)
           PY
 
+      - name: Record only the verified 1 EN96 Stellar deposit
+        if: ${{ inputs.record_verified_deposit == true }}
+        run: |
+          python - <<'PY'
+          import os
+          from decimal import Decimal
+
+          from stellar_bridge_watcher import (
+              ASSET_CODE,
+              ASSET_ISSUER,
+              ESCROW_ACCOUNT,
+              check_features,
+              check_asset,
+              check_escrow,
+              database_connection,
+              get_transaction_operations,
+              is_en96_deposit,
+              verify_deposit,
+              record_deposit,
+          )
+
+          TX_HASH = (
+              "7a58fb081984b7dfdeda7ec1577ae55"
+              "b126cb0c28e78dbd82662071ab5c94ecd"
+          )
+
+          EXPECTED_AMOUNT = Decimal("1")
+          EXPECTED_OPERATION_INDEX = 0
+
+          if os.environ.get("EN96_RECORD_DEPOSITS") != "0":
+              raise RuntimeError(
+                  "Global recording must remain disabled"
+              )
+
+          if check_features() is not False:
+              raise RuntimeError(
+                  "Unexpected recording configuration"
+              )
+
+          check_asset()
+          check_escrow()
+
+          operations = get_transaction_operations(TX_HASH)
+
+          if len(operations) <= EXPECTED_OPERATION_INDEX:
+              raise RuntimeError(
+                  "Expected Stellar operation missing"
+              )
+
+          operation = operations[EXPECTED_OPERATION_INDEX]
+
+          if not is_en96_deposit(operation):
+              raise RuntimeError(
+                  "Expected operation is not an EN96 deposit"
+              )
+
+          deposit = verify_deposit(operation)
+
+          if deposit["stellar_tx_hash"] != TX_HASH:
+              raise RuntimeError(
+                  "Unexpected transaction hash"
+              )
+
+          if deposit["operation_index"] != EXPECTED_OPERATION_INDEX:
+              raise RuntimeError(
+                  "Unexpected operation index"
+              )
+
+          if deposit["amount"] != EXPECTED_AMOUNT:
+              raise RuntimeError(
+                  "Unexpected deposit amount"
+              )
+
+          if deposit["asset_code"] != ASSET_CODE:
+              raise RuntimeError(
+                  "Unexpected asset code"
+              )
+
+          if deposit["asset_issuer"] != ASSET_ISSUER:
+              raise RuntimeError(
+                  "Unexpected asset issuer"
+              )
+
+          if deposit["escrow_account"] != ESCROW_ACCOUNT:
+              raise RuntimeError(
+                  "Unexpected escrow account"
+              )
+
+          with database_connection() as conn:
+              try:
+                  inserted = record_deposit(conn, deposit)
+                  conn.commit()
+              except Exception:
+                  conn.rollback()
+                  raise
+
+          if inserted:
+              print("PASS: Verified 1 EN96 deposit recorded")
+          else:
+              print("PASS: Deposit already recorded; no duplicate")
+
+          print("PASS: Status remains observed")
+          print("PASS: Checkpoint unchanged by this step")
+          print("PASS: No BNB recipient assigned")
+          print("PASS: No BNB minting performed")
+          PY
+
       - name: Confirm bridge remains disabled
         run: |
           echo "PASS: EN96 watcher verification completed"
-          echo "Database checkpoint testing enabled"
-          echo "Deposit recording remains disabled"
-          echo "No Stellar transfers performed"
-          echo "No BNB minting performed"
-          echo "Bridge remains disabled"
+          echo "Global deposit recording remains disabled"
+          echo "BNB minting remains disabled"
+          echo "Validator signing remains disabled"
+          echo "Stellar payouts remain disabled"
+          echo "No Stellar transfers performed by this workflow"
