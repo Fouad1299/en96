@@ -239,9 +239,28 @@ def check_asset():
 
     total = Decimal("0")
 
+    # FIX:
+    # Zero balances are valid for asset statistics.
+    # Deposit amounts must still be positive.
     for value in balances.values():
         if value is not None:
-            total += parse_amount(value)
+            try:
+                balance = Decimal(str(value))
+            except (
+                InvalidOperation,
+                ValueError,
+                TypeError
+            ) as exc:
+                raise RuntimeError(
+                    "Invalid asset balance"
+                ) from exc
+
+            if not balance.is_finite() or balance < 0:
+                raise RuntimeError(
+                    "Invalid asset balance"
+                )
+
+            total += balance
 
     if total > MAX_SUPPLY:
         raise RuntimeError(
@@ -405,8 +424,6 @@ def save_checkpoint(conn, token):
             (WATCHER_NAME, token)
         )
 
-    # Important:
-    # Do not commit here.
     # Deposit records and checkpoint must
     # commit in the same transaction.
 
