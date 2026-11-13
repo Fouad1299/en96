@@ -3,18 +3,19 @@
 EN96 Ice Bear Kingdom
 Stellar Bridge Watcher - Safety Tests v0.9
 
-Tests use synthetic Stellar Horizon responses.
-
-NO real network requests
-NO database connections
-NO EN96 transfers
-NO BNB minting
+Synthetic tests only:
+- No real Horizon requests
+- No real database connections
+- No Stellar transfers
+- No BNB minting
 """
 
 import copy
+import os
 import unittest
+from datetime import datetime, timezone
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import stellar_bridge_watcher as watcher
 
@@ -78,126 +79,163 @@ def make_records(records):
     }
 
 
+def make_deposit():
+    return {
+        "stellar_tx_hash": TX_HASH,
+        "operation_index": 0,
+        "stellar_operation_id": OPERATION_ID,
+        "source_account": SOURCE,
+        "escrow_account": ESCROW,
+        "asset_code": "EN96",
+        "asset_issuer": ISSUER,
+        "amount": Decimal("5"),
+        "stellar_ledger": 12345,
+        "stellar_created_at": datetime(
+            2026, 11, 10, 12, 0,
+            tzinfo=timezone.utc
+        ),
+        "status": "observed",
+    }
+
+
+def make_existing_row(deposit):
+    return (
+        deposit["stellar_tx_hash"],
+        deposit["operation_index"],
+        deposit["stellar_operation_id"],
+        deposit["source_account"],
+        deposit["escrow_account"],
+        deposit["asset_code"],
+        deposit["asset_issuer"],
+        deposit["amount"],
+        deposit["stellar_ledger"],
+        deposit["stellar_created_at"],
+        deposit["status"],
+    )
+
+
+def fake_horizon(path, params=None):
+    payment = make_payment()
+
+    if path == "/transactions/" + TX_HASH:
+        return make_transaction()
+
+    if path == (
+        "/transactions/"
+        + TX_HASH
+        + "/operations"
+    ):
+        return make_records([payment])
+
+    if path == (
+        "/accounts/"
+        + ESCROW
+        + "/operations"
+    ):
+        return make_records([payment])
+
+    raise AssertionError(
+        "Unexpected Horizon request: " + path
+    )
+
+
 class FakeConnection:
-    """No real database connection is created."""
+    """Tracks transactions without using a database."""
 
     def __init__(self):
         self.saved_tokens = []
+        self.commits = 0
+        self.rollbacks = 0
+
+    def commit(self):
+        self.commits += 1
+
+    def rollback(self):
+        self.rollbacks += 1
 
 
 class TestEN96Watcher09(unittest.TestCase):
 
     def test_correct_en96_payment_detected(self):
-        payment = make_payment()
-
         self.assertTrue(
-            watcher.is_en96_deposit(payment)
+            watcher.is_en96_deposit(make_payment())
         )
 
     def test_wrong_asset_rejected(self):
-        payment = make_payment(
-            asset_code="FAKE"
-        )
-
         self.assertFalse(
-            watcher.is_en96_deposit(payment)
+            watcher.is_en96_deposit(
+                make_payment(asset_code="FAKE")
+            )
         )
 
     def test_wrong_issuer_rejected(self):
-        payment = make_payment(
-            asset_issuer=SOURCE
-        )
-
         self.assertFalse(
-            watcher.is_en96_deposit(payment)
+            watcher.is_en96_deposit(
+                make_payment(asset_issuer=SOURCE)
+            )
         )
 
     def test_wrong_destination_rejected(self):
-        payment = make_payment(
-            destination=SOURCE
-        )
-
         self.assertFalse(
-            watcher.is_en96_deposit(payment)
+            watcher.is_en96_deposit(
+                make_payment(destination=SOURCE)
+            )
         )
 
     def test_zero_deposit_rejected(self):
-        payment = make_payment(
-            amount="0"
-        )
-
         with self.assertRaises(RuntimeError):
-            watcher.is_en96_deposit(payment)
+            watcher.is_en96_deposit(
+                make_payment(amount="0")
+            )
 
     def test_negative_deposit_rejected(self):
+        with self.assertRaises(RuntimeError):
+            watcher.is_en96_deposit(
+                make_payment(amount="-1")
+            )
+
+    def test_too_many_decimals_rejected(self):
+        with self.assertRaises(RuntimeError):
+            watcher.is_en96_deposit(
+                make_payment(amount="1.12345678")
+            )
+
+    def test_deposit_limit_rejected(self):
         payment = make_payment(
-            amount="-1"
+            amount="1000000.0000001"
         )
 
         with self.assertRaises(RuntimeError):
-            watcher.is_en96_deposit(payment)
-
-    def test_more_than_seven_decimals_rejected(self):
-        payment = make_payment(
-            amount="1.12345678"
-        )
-
-        with self.assertRaises(RuntimeError):
-            watcher.is_en96_deposit(payment)
+            watcher.verify_deposit(payment)
 
     def test_successful_deposit_verification(self):
         payment = make_payment()
 
-        def fake_get_json(path, params=None):
-            if path == "/transactions/" + TX_HASH:
-                return make_transaction()
-
-            if path == (
-                "/transactions/"
-                + TX_HASH
-                + "/operations"
-            ):
-                return make_records([payment])
-
-            raise AssertionError(
-                "Unexpected Horizon request: " + path
-            )
-
         with patch.object(
             watcher,
             "get_json",
-            side_effect=fake_get_json,
+            side_effect=fake_horizon,
         ):
             result = watcher.verify_deposit(payment)
 
         self.assertEqual(
-            result["stellar_tx_hash"],
-            TX_HASH
+            result["stellar_tx_hash"], TX_HASH
         )
-
         self.assertEqual(
-            result["operation_index"],
-            0
+            result["operation_index"], 0
         )
-
         self.assertEqual(
             result["stellar_operation_id"],
             OPERATION_ID
         )
-
         self.assertEqual(
-            Decimal(result["amount"]),
-            Decimal("5")
+            result["amount"], Decimal("5")
         )
-
         self.assertEqual(
-            result["status"],
-            "observed"
+            result["status"], "observed"
         )
 
     def test_failed_transaction_rejected(self):
-        payment = make_payment()
-
         with patch.object(
             watcher,
             "get_json",
@@ -206,11 +244,9 @@ class TestEN96Watcher09(unittest.TestCase):
             ),
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(payment)
+                watcher.verify_deposit(make_payment())
 
     def test_transaction_hash_mismatch_rejected(self):
-        payment = make_payment()
-
         with patch.object(
             watcher,
             "get_json",
@@ -219,72 +255,164 @@ class TestEN96Watcher09(unittest.TestCase):
             ),
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(payment)
+                watcher.verify_deposit(make_payment())
 
     def test_operation_amount_mismatch_rejected(self):
-        payment = make_payment()
-        altered = copy.deepcopy(payment)
+        altered = make_payment()
         altered["amount"] = "999"
 
-        def fake_get_json(path, params=None):
+        def response(path, params=None):
             if path == "/transactions/" + TX_HASH:
                 return make_transaction()
-
             return make_records([altered])
 
         with patch.object(
-            watcher,
-            "get_json",
-            side_effect=fake_get_json,
+            watcher, "get_json",
+            side_effect=response
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(payment)
+                watcher.verify_deposit(make_payment())
 
     def test_operation_id_mismatch_rejected(self):
-        payment = make_payment()
-        altered = copy.deepcopy(payment)
+        altered = make_payment()
         altered["id"] = "987654321"
 
-        def fake_get_json(path, params=None):
+        def response(path, params=None):
             if path == "/transactions/" + TX_HASH:
                 return make_transaction()
-
             return make_records([altered])
 
         with patch.object(
-            watcher,
-            "get_json",
-            side_effect=fake_get_json,
+            watcher, "get_json",
+            side_effect=response
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(payment)
+                watcher.verify_deposit(make_payment())
 
-    def test_deposit_does_not_advance_checkpoint(self):
-        payment = make_payment()
-        connection = FakeConnection()
-
-        def fake_get_json(path, params=None):
-            if path.startswith(
-                "/accounts/" + ESCROW + "/operations"
-            ):
-                return make_records([payment])
-
-            if path == "/transactions/" + TX_HASH:
-                return make_transaction()
-
-            if path == (
-                "/transactions/"
-                + TX_HASH
-                + "/operations"
-            ):
-                return make_records([payment])
-
-            raise AssertionError(
-                "Unexpected Horizon request: " + path
+    def test_recording_disabled_by_default(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertFalse(
+                watcher.check_features()
             )
 
-        def fake_save_checkpoint(conn, token):
-            conn.saved_tokens.append(token)
+    def test_recording_flag_is_explicit(self):
+        with patch.dict(
+            os.environ,
+            {"EN96_RECORD_DEPOSITS": "1"},
+            clear=True,
+        ):
+            self.assertTrue(
+                watcher.check_features()
+            )
+
+    def test_minting_cannot_be_enabled(self):
+        with patch.dict(
+            os.environ,
+            {"EN96_ENABLE_BNB_MINT": "1"},
+            clear=True,
+        ):
+            with self.assertRaises(RuntimeError):
+                watcher.check_features()
+
+    def test_signing_cannot_be_enabled(self):
+        with patch.dict(
+            os.environ,
+            {"EN96_ENABLE_SIGNING": "1"},
+            clear=True,
+        ):
+            with self.assertRaises(RuntimeError):
+                watcher.check_features()
+
+    def test_payout_cannot_be_enabled(self):
+        with patch.dict(
+            os.environ,
+            {"EN96_ENABLE_STELLAR_PAYOUT": "1"},
+            clear=True,
+        ):
+            with self.assertRaises(RuntimeError):
+                watcher.check_features()
+
+    def test_invalid_recording_flag_rejected(self):
+        with patch.dict(
+            os.environ,
+            {"EN96_RECORD_DEPOSITS": "invalid"},
+            clear=True,
+        ):
+            with self.assertRaises(RuntimeError):
+                watcher.check_features()
+
+    def test_record_deposit_insert_success(self):
+        deposit = make_deposit()
+        conn = MagicMock()
+        cursor = conn.cursor.return_value.__enter__.return_value
+        cursor.fetchone.return_value = (42,)
+
+        result = watcher.record_deposit(conn, deposit)
+
+        self.assertTrue(result)
+        self.assertEqual(cursor.execute.call_count, 1)
+
+        sql = cursor.execute.call_args.args[0]
+
+        self.assertIn(
+            "INSERT INTO public.en96_bridge_deposits",
+            sql
+        )
+        self.assertIn("'observed', NULL, false", sql)
+        self.assertIn("ON CONFLICT DO NOTHING", sql)
+
+        conn.commit.assert_not_called()
+
+    def test_duplicate_deposit_is_idempotent(self):
+        deposit = make_deposit()
+        conn = MagicMock()
+        cursor = conn.cursor.return_value.__enter__.return_value
+
+        cursor.fetchone.side_effect = [
+            None,
+            make_existing_row(deposit),
+        ]
+
+        result = watcher.record_deposit(conn, deposit)
+
+        self.assertFalse(result)
+        self.assertEqual(cursor.execute.call_count, 2)
+        conn.commit.assert_not_called()
+
+    def test_conflicting_deposit_rejected(self):
+        deposit = make_deposit()
+        existing = list(make_existing_row(deposit))
+        existing[7] = Decimal("999")
+
+        conn = MagicMock()
+        cursor = conn.cursor.return_value.__enter__.return_value
+
+        cursor.fetchone.side_effect = [
+            None,
+            tuple(existing),
+        ]
+
+        with self.assertRaises(RuntimeError):
+            watcher.record_deposit(conn, deposit)
+
+        conn.commit.assert_not_called()
+
+    def test_inaccessible_conflict_rejected(self):
+        conn = MagicMock()
+        cursor = conn.cursor.return_value.__enter__.return_value
+
+        cursor.fetchone.side_effect = [
+            None,
+            None,
+        ]
+
+        with self.assertRaises(RuntimeError):
+            watcher.record_deposit(
+                conn, make_deposit()
+            )
+
+    def test_deposit_does_not_advance_when_disabled(self):
+        conn = FakeConnection()
 
         with (
             patch.object(
@@ -294,25 +422,27 @@ class TestEN96Watcher09(unittest.TestCase):
             ),
             patch.object(
                 watcher,
-                "save_checkpoint",
-                side_effect=fake_save_checkpoint,
+                "get_json",
+                side_effect=fake_horizon,
             ),
             patch.object(
                 watcher,
-                "get_json",
-                side_effect=fake_get_json,
-            ),
+                "save_checkpoint",
+            ) as save,
+            patch.object(
+                watcher,
+                "record_deposit",
+            ) as record,
         ):
             with self.assertRaises(RuntimeError):
-                watcher.scan_escrow(connection)
+                watcher.scan_escrow(conn, False)
 
-        self.assertEqual(
-            connection.saved_tokens,
-            []
-        )
+        save.assert_not_called()
+        record.assert_not_called()
+        self.assertEqual(conn.commits, 0)
 
-    def test_empty_history_does_not_save_checkpoint(self):
-        connection = FakeConnection()
+    def test_empty_history(self):
+        conn = FakeConnection()
 
         with (
             patch.object(
@@ -328,42 +458,156 @@ class TestEN96Watcher09(unittest.TestCase):
             patch.object(
                 watcher,
                 "save_checkpoint",
-                side_effect=lambda conn, token:
-                    conn.saved_tokens.append(token),
-            ),
+            ) as save,
         ):
-            scanned, reached_end = watcher.scan_escrow(
-                connection
+            scanned, recorded, ended = (
+                watcher.scan_escrow(conn, False)
             )
 
         self.assertEqual(scanned, 0)
-        self.assertTrue(reached_end)
-        self.assertEqual(
-            connection.saved_tokens,
-            []
+        self.assertEqual(recorded, 0)
+        self.assertTrue(ended)
+        save.assert_not_called()
+
+    def test_recording_page_commits_once(self):
+        conn = FakeConnection()
+
+        with (
+            patch.object(
+                watcher,
+                "read_checkpoint",
+                return_value="0",
+            ),
+            patch.object(
+                watcher,
+                "get_json",
+                side_effect=fake_horizon,
+            ),
+            patch.object(
+                watcher,
+                "record_deposit",
+                return_value=True,
+            ) as record,
+            patch.object(
+                watcher,
+                "save_checkpoint",
+            ) as save,
+        ):
+            scanned, recorded, ended = (
+                watcher.scan_escrow(conn, True)
+            )
+
+        self.assertEqual(scanned, 1)
+        self.assertEqual(recorded, 1)
+        self.assertTrue(ended)
+
+        record.assert_called_once()
+        save.assert_called_once_with(
+            conn, PAGING_TOKEN
         )
 
-    def test_bridge_flags_cannot_enable_minting(self):
-        with patch.dict(
-            "os.environ",
-            {
-                "EN96_ENABLE_BNB_MINT": "1",
-                "EN96_RECORD_DEPOSITS": "0",
-            },
-        ):
-            with self.assertRaises(RuntimeError):
-                watcher.require_disabled_features()
+        self.assertEqual(conn.commits, 1)
+        self.assertEqual(conn.rollbacks, 0)
 
-    def test_bridge_flags_cannot_enable_recording(self):
-        with patch.dict(
-            "os.environ",
-            {
-                "EN96_ENABLE_BNB_MINT": "0",
-                "EN96_RECORD_DEPOSITS": "1",
-            },
+    def test_recording_failure_rolls_back(self):
+        conn = FakeConnection()
+
+        with (
+            patch.object(
+                watcher,
+                "read_checkpoint",
+                return_value="0",
+            ),
+            patch.object(
+                watcher,
+                "get_json",
+                side_effect=fake_horizon,
+            ),
+            patch.object(
+                watcher,
+                "record_deposit",
+                side_effect=RuntimeError(
+                    "Simulated database failure"
+                ),
+            ),
+            patch.object(
+                watcher,
+                "save_checkpoint",
+            ) as save,
         ):
             with self.assertRaises(RuntimeError):
-                watcher.require_disabled_features()
+                watcher.scan_escrow(conn, True)
+
+        save.assert_not_called()
+        self.assertEqual(conn.commits, 0)
+        self.assertEqual(conn.rollbacks, 1)
+
+    def test_checkpoint_failure_rolls_back(self):
+        conn = FakeConnection()
+
+        with (
+            patch.object(
+                watcher,
+                "read_checkpoint",
+                return_value="0",
+            ),
+            patch.object(
+                watcher,
+                "get_json",
+                side_effect=fake_horizon,
+            ),
+            patch.object(
+                watcher,
+                "record_deposit",
+                return_value=True,
+            ),
+            patch.object(
+                watcher,
+                "save_checkpoint",
+                side_effect=RuntimeError(
+                    "Simulated checkpoint failure"
+                ),
+            ),
+        ):
+            with self.assertRaises(RuntimeError):
+                watcher.scan_escrow(conn, True)
+
+        self.assertEqual(conn.commits, 0)
+        self.assertEqual(conn.rollbacks, 1)
+
+    def test_duplicate_page_commits_without_new_record(self):
+        conn = FakeConnection()
+
+        with (
+            patch.object(
+                watcher,
+                "read_checkpoint",
+                return_value="0",
+            ),
+            patch.object(
+                watcher,
+                "get_json",
+                side_effect=fake_horizon,
+            ),
+            patch.object(
+                watcher,
+                "record_deposit",
+                return_value=False,
+            ),
+            patch.object(
+                watcher,
+                "save_checkpoint",
+            ) as save,
+        ):
+            scanned, recorded, ended = (
+                watcher.scan_escrow(conn, True)
+            )
+
+        self.assertEqual(scanned, 1)
+        self.assertEqual(recorded, 0)
+        self.assertTrue(ended)
+        self.assertEqual(conn.commits, 1)
+        save.assert_called_once()
 
 
 if __name__ == "__main__":
