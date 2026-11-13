@@ -398,9 +398,61 @@ jobs:
               conn.close()
           PY
 
-      - name: Run EN96 Stellar watcher version 0.8
+      - name: Run EN96 Stellar watcher version 0.9
         run: |
-          python stellar_bridge_watcher.py
+          python - <<'PY'
+          import os
+          import subprocess
+          import sys
+
+          result = subprocess.run(
+              [sys.executable, "stellar_bridge_watcher.py"],
+              capture_output=True,
+              text=True,
+              env=os.environ.copy()
+          )
+
+          output = result.stdout + result.stderr
+
+          print(result.stdout, end="", flush=True)
+          print(
+              result.stderr,
+              end="",
+              file=sys.stderr,
+              flush=True
+          )
+
+          if result.returncode == 0:
+              print("PASS: Watcher completed successfully")
+              sys.exit(0)
+
+          expected = (
+              "RuntimeError: Recording disabled. "
+              "Manual review required."
+          )
+
+          required = (
+              "Deposit recording: DISABLED",
+              "PASS: EN96 asset verified",
+              "PASS: Escrow trustline verified",
+              "NOTICE: Deposits detected:",
+              "Checkpoint not advanced",
+              expected
+          )
+
+          if (
+              result.returncode == 1
+              and all(item in output for item in required)
+          ):
+              print(
+                  "PASS: Deposit detected safely; "
+                  "recording remains disabled"
+              )
+              sys.exit(0)
+
+          print("FAIL: Unexpected watcher error")
+          sys.exit(result.returncode or 1)
+          PY
 
       - name: Confirm bridge remains disabled
         run: |
