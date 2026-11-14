@@ -20,6 +20,13 @@ from flask import (
 import bot as en96_bot
 from en96_accounts import RegistrationError, ensure_profile
 
+# BNB wallet signature verification
+from en96_bnb_security import (
+    normalize_bnb_address,
+    build_wallet_message,
+    verify_wallet_signature,
+)
+
 # ======================================
 # EN96 ICE BEAR KINGDOM
 # ======================================
@@ -63,6 +70,7 @@ RAW_IMAGE_BASE = (
     "https://raw.githubusercontent.com/"
     "Fouad1299/en96/main/"
 )
+
 
 # ======================================
 # SECURITY AND CORS
@@ -442,7 +450,7 @@ def mining_action():
 
 
 # ======================================
-# 5 EN96 GIFT - NEW
+# 5 EN96 GIFT
 # ======================================
 
 @app.get("/api/gift5/status")
