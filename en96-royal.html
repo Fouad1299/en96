@@ -1,597 +1,121 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#210909">
-<title>EN96 Ice Bear Kingdom | Wallet BNB v3</title>
-<meta name="en96-build" content="20261114-bnb-wallet-v3">
+<meta name="en96-build" content="20261114-royal-bnb-v4">
+<title>EN96 Ice Bear Kingdom | Royal Wallet</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="./en96-wallet.js"></script>
-
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;
- background:#160605;
- color:white;
- font-family:Arial,Tahoma,sans-serif;
-}
-button,input,a{font:inherit}
-button{cursor:pointer}
-button:disabled{opacity:.65;cursor:wait}
 [hidden]{display:none!important}
-
-.app{
- max-width:520px;
- min-height:100dvh;
- margin:auto;
- padding-bottom:105px;
- background:
- radial-gradient(ellipse at 50% 40%,#f88136,#a52d22 50%,transparent 75%),
- linear-gradient(#160607,#43110e,#c7472d);
-}
-header{
- padding:18px 10px;
- background:#1b0909;
- border-bottom:1px solid #98612c;
- text-align:center;
-}
+body{margin:0;background:#160605;color:#fff;font-family:Arial,Tahoma,sans-serif}
+button,input,select,a{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.app{max-width:520px;min-height:100dvh;margin:auto;padding-bottom:105px;background:radial-gradient(ellipse at 50% 40%,#f88136,#a52d22 50%,transparent 75%),linear-gradient(#160607,#43110e,#c7472d)}
+header{padding:18px 10px;background:#1b0909;border-bottom:1px solid #98612c;text-align:center}
 header strong{color:#ffe090;font-size:18px}
-header small{
- display:block;
- margin-top:5px;
- color:#e8c8b7;
- font-size:11px;
-}
-.gold,.card-button{
- border:1px solid #fff0a4;
- background:linear-gradient(#fff2a1,#ffdc58,#ffa917);
- color:#4f2300;
- font-weight:900;
- border-radius:16px;
- padding:14px;
-}
-.top{
- display:flex;
- gap:10px;
- align-items:center;
- padding:20px 16px;
-}
+header small{display:block;margin-top:5px;color:#e8c8b7;font-size:11px}
+.gold,.card-button{border:1px solid #fff0a4;background:linear-gradient(#fff2a1,#ffdc58,#ffa917);color:#4f2300;font-weight:900;border-radius:16px;padding:14px}
+.top{display:flex;gap:10px;align-items:center;padding:20px 16px}
 .top .gold{flex:1}
-.info{
- width:40px;
- height:40px;
- border:2px solid white;
- border-radius:50%;
- background:#3b130f;
- color:white;
- font-size:23px;
-}
+.info{width:40px;height:40px;border:2px solid white;border-radius:50%;background:#3b130f;color:white;font-size:23px}
 .pool{text-align:center;margin:12px}
-h1{
- text-align:center;
- color:#fff0c5;
- font-size:clamp(27px,8vw,45px);
- text-shadow:0 4px 15px #fd952a;
-}
-.stats{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:14px;
- padding:12px 17px;
- direction:ltr;
-}
+h1{text-align:center;color:#fff0c5;font-size:clamp(27px,8vw,45px);text-shadow:0 4px 15px #fd952a}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:12px 17px;direction:ltr}
 .stat{text-align:center}
 .stat strong{font-size:24px}
 .yellow{color:#ffdc55}
 .cyan{color:#12dcf7}
-.bar{
- height:13px;
- border-radius:20px;
- background:linear-gradient(90deg,#ffac1c,#fff285);
- margin:12px 0;
-}
-.bar.blue{
- background:linear-gradient(90deg,#05dce8,#119af5);
-}
-.stat small{
- color:#ffe1d1;
- font-size:11px;
-}
-.coin-area{
- position:relative;
- width:min(85vw,370px);
- aspect-ratio:1;
- margin:25px auto;
- display:grid;
- place-items:center;
- isolation:isolate;
-}
-.halo{
- position:absolute;
- inset:12%;
- background:#ffbb26;
- filter:blur(40px);
- border-radius:50%;
- z-index:-1;
-}
-.coin{
- width:94%;
- height:94%;
- border:8px ridge #ffe088;
- border-radius:50%;
- padding:0;
- overflow:hidden;
- background:#a46619;
- box-shadow:0 0 35px #ffb324;
- touch-action:manipulation;
-}
+.bar{height:13px;border-radius:20px;background:linear-gradient(90deg,#ffac1c,#fff285);margin:12px 0}
+.bar.blue{background:linear-gradient(90deg,#05dce8,#119af5)}
+.stat small{color:#ffe1d1;font-size:11px}
+.coin-area{position:relative;width:min(85vw,370px);aspect-ratio:1;margin:25px auto;display:grid;place-items:center;isolation:isolate}
+.halo{position:absolute;inset:12%;background:#ffbb26;filter:blur(40px);border-radius:50%;z-index:-1}
+.coin{width:94%;height:94%;border:8px ridge #ffe088;border-radius:50%;padding:0;overflow:hidden;background:#a46619;box-shadow:0 0 35px #ffb324;touch-action:manipulation}
 .coin.pressed{transform:scale(.96)}
-.coin img{
- width:100%;
- height:100%;
- object-fit:cover;
-}
-.tap-help,.tap-count{
- text-align:center;
- color:#ffebc2;
- margin:12px;
-}
+.coin img{width:100%;height:100%;object-fit:cover}
+.tap-help,.tap-count{text-align:center;color:#ffebc2;margin:12px}
 .tap-count{font-weight:bold}
-.tap-count small{
- display:block;
- font-size:11px;
- margin-top:6px;
-}
-.mini-coin{
- position:absolute;
- width:35px;
- height:35px;
- border-radius:50%;
- border:2px solid #ffe58b;
- pointer-events:none;
- animation:coin-fly .9s ease-out forwards;
-}
+.tap-count small{display:block;font-size:11px;margin-top:6px}
+.mini-coin{position:absolute;width:35px;height:35px;border-radius:50%;border:2px solid #ffe58b;pointer-events:none;animation:coin-fly .9s ease-out forwards}
 @keyframes coin-fly{
- from{
-  opacity:1;
-  transform:translate(-50%,-50%) scale(.55);
- }
- to{
-  opacity:0;
-  transform:translate(
-   calc(-50% + var(--dx)),
-   calc(-50% + var(--dy))
-  ) scale(1) rotate(var(--rot));
- }
+from{opacity:1;transform:translate(-50%,-50%) scale(.55)}
+to{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--rot))}
 }
-.start{
- display:block;
- width:88%;
- margin:20px auto;
- padding:19px;
- font-size:21px;
-}
-.mining-status,.card{
- margin:16px;
- padding:16px;
- border:1px solid #d8a24e;
- border-radius:18px;
- background:#3d1412ed;
-}
-.status-heading{
- font-weight:900;
- color:#ffe3a0;
- margin-bottom:12px;
-}
-.state{
- display:inline-block;
- padding:9px;
- background:#5a2a19;
- border-radius:20px;
- color:#ffe6b4;
- font-size:12px;
-}
-.status-grid{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px;
- margin-top:14px;
-}
-.status-cell{
- background:#230c0c;
- border:1px solid #80512b;
- border-radius:13px;
- padding:12px 5px;
- text-align:center;
-}
-.status-cell small{
- display:block;
- font-size:11px;
- color:#eac7b3;
- margin-bottom:8px;
-}
-.status-cell strong{
- color:#ffdb68;
- font-size:14px;
- direction:ltr;
- display:block;
-}
-.mining-meter{
- height:10px;
- background:#24100e;
- border-radius:15px;
- overflow:hidden;
- margin-top:14px;
-}
-#miningFill{
- height:100%;
- width:0%;
- background:linear-gradient(90deg,#f79720,#ffef80);
-}
-.status-note,.note{
- color:#ffe3ca;
- font-size:12px;
- line-height:1.8;
-}
-.refresh{
- width:100%;
- padding:12px;
- margin-top:12px;
- background:#542214;
- color:#ffe7a3;
- border:1px solid #ad7b36;
- border-radius:12px;
-}
+.start{display:block;width:88%;margin:20px auto;padding:19px;font-size:21px}
+.mining-status,.card{margin:16px;padding:16px;border:1px solid #d8a24e;border-radius:18px;background:#3d1412ed}
+.status-heading{font-weight:900;color:#ffe3a0;margin-bottom:12px}
+.state{display:inline-block;padding:9px;background:#5a2a19;border-radius:20px;color:#ffe6b4;font-size:12px}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.status-cell{background:#230c0c;border:1px solid #80512b;border-radius:13px;padding:12px 5px;text-align:center}
+.status-cell small{display:block;font-size:11px;color:#eac7b3;margin-bottom:8px}
+.status-cell strong{color:#ffdb68;font-size:14px;direction:ltr;display:block}
+.mining-meter{height:10px;background:#24100e;border-radius:15px;overflow:hidden;margin-top:14px}
+#miningFill{height:100%;width:0%;background:linear-gradient(90deg,#f79720,#ffef80)}
+.status-note,.note{color:#ffe3ca;font-size:12px;line-height:1.8}
+.refresh{width:100%;padding:12px;margin-top:12px;background:#542214;color:#ffe7a3;border:1px solid #ad7b36;border-radius:12px}
 .page{display:none}
 .page.active{display:block}
 .other-page{padding:15px 0}
-.page-title{
- text-align:center;
- color:#ffe2a0;
- font-size:24px;
-}
+.page-title{text-align:center;color:#ffe2a0;font-size:24px}
 .card h3{color:#ffe09c}
-.card p{
- color:#ffe5d6;
- font-size:13px;
- line-height:1.8;
-}
-.card-button{
- display:block;
- width:100%;
- text-align:center;
- text-decoration:none;
- margin-top:14px;
-}
-.social-row{
- display:flex;
- align-items:center;
- gap:8px;
- margin:14px 0;
-}
+.card p{color:#ffe5d6;font-size:13px;line-height:1.8}
+.card-button{display:block;width:100%;text-align:center;text-decoration:none;margin-top:14px}
+.social-row{display:flex;align-items:center;gap:8px;margin:14px 0}
 .social-row span{flex:1}
-.social-row a{
- padding:10px;
- background:#461e17;
- border:1px solid #a57e50;
- border-radius:10px;
- color:white;
- text-decoration:none;
- font-size:12px;
-}
-.nav{
- position:fixed;
- bottom:0;
- left:50%;
- transform:translateX(-50%);
- width:100%;
- max-width:520px;
- display:flex;
- direction:ltr;
- background:#3a1411f8;
- border-top:2px solid #b67834;
- padding:9px 6px max(12px,env(safe-area-inset-bottom));
- z-index:20;
-}
-.nav button{
- flex:1;
- min-width:0;
- background:none;
- color:white;
- border:0;
- border-radius:12px;
- padding:8px 0;
- font-size:11px;
-}
-.nav b{
- display:block;
- font-size:23px;
- margin-bottom:5px;
-}
-.nav button.active{
- background:linear-gradient(#ffe787,#ffbd23);
- color:#542400;
- font-weight:900;
-}
-.wallet-balance{
- background:linear-gradient(135deg,#271009,#674019,#2f110c);
- border:1px solid #ffdc78;
- border-radius:20px;
- padding:23px 15px;
- text-align:center;
- margin:16px;
-}
-.wallet-balance strong{
- display:block;
- font-size:27px;
- color:#ffe28c;
- margin:12px 0;
- overflow-wrap:anywhere;
-}
-.wallet-secondary{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px;
- margin:16px;
-}
-.wallet-tile{
- background:#29100d;
- border:1px solid #986e37;
- border-radius:14px;
- padding:15px 8px;
- text-align:center;
-}
-.wallet-tile small{
- display:block;
- margin-bottom:9px;
- color:#e8cbb3;
-}
+.social-row a{padding:10px;background:#461e17;border:1px solid #a57e50;border-radius:10px;color:white;text-decoration:none;font-size:12px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;display:flex;direction:ltr;background:#3a1411f8;border-top:2px solid #b67834;padding:9px 6px max(12px,env(safe-area-inset-bottom));z-index:20}
+.nav button{flex:1;min-width:0;background:none;color:white;border:0;border-radius:12px;padding:8px 0;font-size:11px}
+.nav b{display:block;font-size:23px;margin-bottom:5px}
+.nav button.active{background:linear-gradient(#ffe787,#ffbd23);color:#542400;font-weight:900}
+.wallet-balance{background:linear-gradient(135deg,#271009,#674019,#2f110c);border:1px solid #ffdc78;border-radius:20px;padding:23px 15px;text-align:center;margin:16px}
+.wallet-balance strong{display:block;font-size:27px;color:#ffe28c;margin:12px 0;overflow-wrap:anywhere}
+.wallet-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px}
+.wallet-tile{background:#29100d;border:1px solid #986e37;border-radius:14px;padding:15px 8px;text-align:center}
+.wallet-tile small{display:block;margin-bottom:9px;color:#e8cbb3}
 .wallet-tile strong{color:#ffe3a0}
-.wallet-input{
- width:100%;
- background:#210d0c;
- color:white;
- border:1px solid #dab16b;
- border-radius:12px;
- padding:14px;
- margin:12px 0;
- direction:ltr;
- text-align:left;
-}
-.wallet-message{
- padding:12px;
- margin-top:12px;
- background:#29100d;
- border:1px solid #976f45;
- border-radius:12px;
- font-size:12px;
- line-height:1.8;
- overflow-wrap:anywhere;
- white-space:pre-line;
-}
-.wallet-address{
- direction:ltr;
- text-align:left;
- overflow-wrap:anywhere;
- color:#ffe4a5;
- font-size:11px;
- margin-top:12px;
-}
-.wallet-links{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px;
- margin-top:14px;
-}
-.wallet-links a{
- padding:12px;
- text-align:center;
- color:#ffe6a7;
- background:#35140e;
- border:1px solid #9d753f;
- border-radius:12px;
- text-decoration:none;
-}
-.gift5-card{
- text-align:center;
- border:2px solid #ffe18b;
- background:linear-gradient(145deg,#572311,#29100c);
-}
+.wallet-input{width:100%;background:#210d0c;color:white;border:1px solid #dab16b;border-radius:12px;padding:14px;margin:12px 0;direction:ltr;text-align:left}
+.wallet-message{padding:12px;margin-top:12px;background:#29100d;border:1px solid #976f45;border-radius:12px;font-size:12px;line-height:1.8;overflow-wrap:anywhere;white-space:pre-line}
+.wallet-address{direction:ltr;text-align:left;overflow-wrap:anywhere;color:#ffe4a5;font-size:11px;margin-top:12px}
+.wallet-links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.wallet-links a{padding:12px;text-align:center;color:#ffe6a7;background:#35140e;border:1px solid #9d753f;border-radius:12px;text-decoration:none}
+.gift5-card{text-align:center;border:2px solid #ffe18b;background:linear-gradient(145deg,#572311,#29100c)}
 .gift5-icon{font-size:40px}
-.gift5-amount{
- font-size:32px;
- color:#ffe17c;
- font-weight:900;
-}
-.gift5-note{
- color:#ffe9ba;
- font-size:12px;
- line-height:1.8;
- margin-top:13px;
-}
-
-/* VIDEO INTRO */
-.royal-intro{
- position:fixed;
- inset:0;
- z-index:9999;
- background:#050505;
- display:flex;
- justify-content:center;
- align-items:center;
- overflow:hidden;
-}
-.royal-intro video{
- width:100%;
- height:100%;
- object-fit:contain;
- background:#000;
-}
-.intro-actions{
- position:absolute;
- left:0;
- right:0;
- bottom:max(35px,env(safe-area-inset-bottom));
- display:flex;
- flex-direction:column;
- align-items:center;
- gap:12px;
- padding:0 18px;
- pointer-events:none;
-}
-.intro-actions button{
- pointer-events:auto;
- width:100%;
- max-width:370px;
- padding:16px;
- border:2px solid #f6d782;
- border-radius:16px;
- background:linear-gradient(#ffe89d,#f6b628);
- color:#371800;
- font-size:17px;
- font-weight:900;
- box-shadow:0 5px 22px #000b;
-}
-.intro-message{
- background:#080808d9;
- border-radius:12px;
- padding:12px;
- color:#fff2cb;
- text-align:center;
- font-size:13px;
- line-height:1.6;
-}
-
-/* NEW BNB WALLET SELECTOR ONLY */
-.en96-connect-btn{
- display:block;
- width:100%;
- padding:17px;
- border:0;
- border-radius:18px;
- background:#087cb7;
- color:white;
- font-size:18px;
- font-weight:800;
- margin:12px 0;
-}
-.en96-wallet-overlay{
- position:fixed;
- inset:0;
- z-index:9000;
- background:rgba(0,0,0,.65);
- display:none;
- align-items:flex-end;
- justify-content:center;
-}
+.gift5-amount{font-size:32px;color:#ffe17c;font-weight:900}
+.gift5-note{color:#ffe9ba;font-size:12px;line-height:1.8;margin-top:13px}
+.royal-intro{position:fixed;inset:0;z-index:9999;background:#050505;display:flex;justify-content:center;align-items:center;overflow:hidden}
+.royal-intro video{width:100%;height:100%;object-fit:contain;background:#000}
+.intro-actions{position:absolute;left:0;right:0;bottom:max(35px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 18px;pointer-events:none}
+.intro-actions button{pointer-events:auto;width:100%;max-width:370px;padding:16px;border:2px solid #f6d782;border-radius:16px;background:linear-gradient(#ffe89d,#f6b628);color:#371800;font-size:17px;font-weight:900;box-shadow:0 5px 22px #000b}
+.intro-message{background:#080808d9;border-radius:12px;padding:12px;color:#fff2cb;text-align:center;font-size:13px;line-height:1.6}
+.en96-connect-btn{display:block;width:100%;padding:17px;border:0;border-radius:18px;background:#087cb7;color:white;font-size:18px;font-weight:800;margin:12px 0}
+.en96-wallet-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center}
 .en96-wallet-overlay.open{display:flex}
-.en96-wallet-sheet{
- width:100%;
- max-width:520px;
- max-height:85dvh;
- overflow-y:auto;
- background:#141417;
- color:white;
- border-radius:28px 28px 0 0;
- padding:24px 20px max(30px,env(safe-area-inset-bottom));
- text-align:center;
- box-shadow:0 -10px 45px #0008;
-}
-.en96-wallet-sheet h2{
- margin:14px 0;
- font-size:23px;
- color:white;
-}
-.en96-wallet-sheet p{
- color:#aaa;
- line-height:1.7;
-}
-.en96-wallet-close{
- float:right;
- border:0;
- background:#29292e;
- color:white;
- border-radius:50%;
- width:38px;
- height:38px;
- font-size:24px;
-}
-.en96-wallet-choice{
- width:100%;
- display:flex;
- align-items:center;
- gap:15px;
- text-align:left;
- direction:ltr;
- border:1px solid #34343b;
- border-radius:16px;
- background:#232329;
- color:white;
- padding:15px;
- margin-top:12px;
- font-size:16px;
-}
-.en96-wallet-logo{
- width:45px;
- height:45px;
- display:grid;
- place-items:center;
- border-radius:14px;
- background:#36363b;
- font-size:25px;
- flex-shrink:0;
-}
-.en96-wallet-choice small{
- display:block;
- color:#aaa;
- margin-top:4px;
- font-size:12px;
-}
-.en96-wallet-connect-status{
- white-space:pre-wrap;
- overflow-wrap:anywhere;
- text-align:center;
- line-height:1.7;
- font-size:13px;
- padding:12px;
-}
-.en96-wallet-note{
- font-size:12px;
- color:#aaa;
- margin-top:20px;
-}
+.en96-wallet-sheet{width:100%;max-width:520px;max-height:85dvh;overflow-y:auto;background:#141417;color:white;border-radius:28px 28px 0 0;padding:24px 20px max(30px,env(safe-area-inset-bottom));text-align:center;box-shadow:0 -10px 45px #0008}
+.en96-wallet-sheet h2{margin:14px 0;font-size:23px;color:white}
+.en96-wallet-sheet p{color:#aaa;line-height:1.7}
+.en96-wallet-close{float:right;border:0;background:#29292e;color:white;border-radius:50%;width:38px;height:38px;font-size:24px}
+.en96-wallet-choice{width:100%;display:flex;align-items:center;gap:15px;text-align:left;direction:ltr;border:1px solid #34343b;border-radius:16px;background:#232329;color:white;padding:15px;margin-top:12px;font-size:16px}
+.en96-wallet-logo{width:45px;height:45px;display:grid;place-items:center;border-radius:14px;background:#36363b;font-size:25px;flex-shrink:0}
+.en96-wallet-choice small{display:block;color:#aaa;margin-top:4px;font-size:12px}
+.en96-wallet-connect-status{white-space:pre-wrap;overflow-wrap:anywhere;text-align:center;line-height:1.7;font-size:13px;padding:12px}
+.en96-wallet-note{font-size:12px;color:#aaa;margin-top:20px}
 </style>
 </head>
-
 <body>
 
-<!-- VIDEO INTRO -->
 <div id="royalIntro" class="royal-intro">
- <video
-  id="royalIntroVideo"
-  playsinline
-  webkit-playsinline
-  preload="auto"
-  poster="./en96-welcome.jpg">
-  <source
-   id="introSource"
-   src="./gemini_generated_video_598bb512.mp4"
-   type="video/mp4">
+ <video id="royalIntroVideo" playsinline webkit-playsinline preload="auto" poster="./en96-welcome.jpg">
+  <source id="introSource" src="./gemini_generated_video_598bb512.mp4" type="video/mp4">
  </video>
-
  <div class="intro-actions">
-  <div id="introMessage" class="intro-message">
-   👑 مرحبًا بك في مملكة EN96
-   اضغط لتشغيل فيديو الدب الملكي بالصوت.
-  </div>
-  <button id="introPlay" type="button">
-   🔊 تشغيل فيديو الدب بالصوت
-  </button>
-  <button id="introEnter" type="button" hidden>
-   ⛏️ الدخول إلى التعدين
-  </button>
+  <div id="introMessage" class="intro-message">👑 مرحبًا بك في مملكة EN96. اضغط لتشغيل فيديو الدب الملكي بالصوت.</div>
+  <button id="introPlay" type="button">🔊 تشغيل فيديو الدب بالصوت</button>
+  <button id="introEnter" type="button" hidden>⛏️ الدخول إلى التعدين</button>
  </div>
 </div>
 
@@ -601,17 +125,14 @@ h1{
  <small>Telegram WebApp</small>
 </header>
 
-<!-- HOME -->
 <section id="home" class="page active">
  <div class="top">
   <button class="gold" onclick="invest()">🪙 Invest</button>
   <button class="info" onclick="showInfo()">ⓘ</button>
   <button class="gold" onclick="boost()">🚀 Boost</button>
  </div>
-
  <div class="pool">🌿 MINING POOL 🌿</div>
  <h1>EN96 MINING</h1>
-
  <div class="stats">
   <div class="stat">
    <strong class="yellow">💰 86.4</strong>
@@ -624,149 +145,62 @@ h1{
    <small>EN96 في الثانية</small>
   </div>
  </div>
-
  <div id="coinArea" class="coin-area">
   <div class="halo"></div>
-  <button
-   id="coin"
-   class="coin"
-   onclick="tapBear(event)"
-   aria-label="انقر على عملة EN96">
-   <img
-    id="bearImage"
-    src="https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png"
-    alt="EN96 Royal Bear"
-    onerror="this.style.display='none';document.getElementById('fallback').style.display='block'">
-   <span id="fallback" style="display:none;font-size:75px">
-    🐻👑
-   </span>
+  <button id="coin" class="coin" onclick="tapBear(event)" aria-label="انقر على عملة EN96">
+   <img id="bearImage" src="https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png" alt="EN96 Royal Bear" onerror="this.style.display='none';document.getElementById('fallback').style.display='block'">
+   <span id="fallback" style="display:none;font-size:75px">🐻👑</span>
   </button>
  </div>
-
- <div class="tap-help">
-  👆 انقر على وجه الدب الذهبي
- </div>
-
+ <div class="tap-help">👆 انقر على وجه الدب الذهبي</div>
  <div class="tap-count">
   🪙 النقرات: <span id="tapCount">0</span>
   <small>النقر تجريبي — لا يضيف رصيدًا</small>
  </div>
-
- <button class="gold start" onclick="startMining()">
-  ⛏️ بدء تشغيل التعدين
- </button>
-
+ <button class="gold start" onclick="startMining()">⛏️ بدء تشغيل التعدين</button>
  <div class="mining-status">
   <div class="status-heading">⛏️ تقدم تعدين EN96</div>
-  <div id="miningState" class="state">
-   ⏳ جارٍ التحقق من الاتصال
-  </div>
+  <div id="miningState" class="state">⏳ جارٍ التحقق من الاتصال</div>
   <div class="status-grid">
-   <div class="status-cell">
-    <small>💎 المكافأة التقديرية</small>
-    <strong id="earned">— EN96</strong>
-   </div>
-   <div class="status-cell">
-    <small>⏱️ الوقت المنقضي</small>
-    <strong id="elapsed">--:--:--</strong>
-   </div>
-   <div class="status-cell">
-    <small>⌛ الوقت المتبقي</small>
-    <strong id="remaining">--:--:--</strong>
-   </div>
-   <div class="status-cell">
-    <small>⚡ سرعة التعدين</small>
-    <strong>0.001 EN96/s</strong>
-   </div>
+   <div class="status-cell"><small>💎 المكافأة التقديرية</small><strong id="earned">— EN96</strong></div>
+   <div class="status-cell"><small>⏱️ الوقت المنقضي</small><strong id="elapsed">--:--:--</strong></div>
+   <div class="status-cell"><small>⌛ الوقت المتبقي</small><strong id="remaining">--:--:--</strong></div>
+   <div class="status-cell"><small>⚡ سرعة التعدين</small><strong>0.001 EN96/s</strong></div>
   </div>
-
-  <div class="mining-meter">
-   <div id="miningFill"></div>
-  </div>
-
-  <p id="miningNotice" class="status-note">
-   حالة التعدين محفوظة لدى Supabase.
-  </p>
-
-  <button class="refresh" onclick="checkMining()">
-   🔄 تحديث حالة التعدين
-  </button>
+  <div class="mining-meter"><div id="miningFill"></div></div>
+  <p id="miningNotice" class="status-note">حالة التعدين محفوظة لدى Supabase.</p>
+  <button class="refresh" onclick="checkMining()">🔄 تحديث حالة التعدين</button>
  </div>
 </section>
 
-<!-- GIFTS -->
 <section id="earn" class="page other-page">
  <h2 class="page-title">🎁 Earn EN96</h2>
-
  <div class="card gift5-card">
   <div class="gift5-icon">🎁🐻‍❄️</div>
   <h3>هدية مملكة EN96</h3>
   <div class="gift5-amount">5 EN96</div>
-
-  <p>
-   🎉 احصل على هدية 5 EN96
-   مرة واحدة فقط لكل حساب Telegram.
-  </p>
-  <p>
-   تُضاف المكافأة إلى رصيدك
-   الموجود في البوت وSupabase.
-  </p>
-
-  <button
-   id="gift5Button"
-   class="card-button"
-   onclick="claimGift5()">
-   🎁 استلام 5 EN96
-  </button>
-
-  <div id="gift5Message" class="gift5-note">
-   🔄 سيتم التحقق من حالة الهدية.
-  </div>
+  <p>🎉 احصل على هدية 5 EN96 مرة واحدة فقط لكل حساب Telegram.</p>
+  <p>تُضاف المكافأة إلى رصيدك الموجود في البوت وSupabase.</p>
+  <button id="gift5Button" class="card-button" onclick="claimGift5()">🎁 استلام 5 EN96</button>
+  <div id="gift5Message" class="gift5-note">🔄 سيتم التحقق من حالة الهدية.</div>
  </div>
-
  <div class="card">
   <h3>🎬 هدايا الفيديوهات</h3>
-  <p>
-   شاهد فيديوهات EN96 وابحث عن كود الهدية،
-   ثم أدخله داخل البوت.
-  </p>
-
+  <p>شاهد فيديوهات EN96 وابحث عن كود الهدية، ثم أدخله داخل البوت.</p>
   <div class="social-row">
    <span>تابع EN96</span>
-   <a
-    href="https://www.youtube.com/@EN96_Gold_Miner_bot"
-    target="_blank"
-    rel="noopener noreferrer">
-    ▶️ YouTube
-   </a>
-   <a
-    href="https://www.tiktok.com/@en96mining"
-    target="_blank"
-    rel="noopener noreferrer">
-    🎵 TikTok
-   </a>
+   <a href="https://www.youtube.com/@EN96_Gold_Miner_bot" target="_blank" rel="noopener noreferrer">▶️ YouTube</a>
+   <a href="https://www.tiktok.com/@en96mining" target="_blank" rel="noopener noreferrer">🎵 TikTok</a>
   </div>
-
-  <button class="card-button" onclick="openBot()">
-   🎁 إدخال كود الهدية
-  </button>
-
-  <p class="note">
-   🎁 مكافأة الكود الافتراضية 1 EN96،
-   وفترة الانتظار ساعتان وفق قواعد البوت.
-  </p>
+  <button class="card-button" onclick="openBot()">🎁 إدخال كود الهدية</button>
+  <p class="note">🎁 مكافأة الكود الافتراضية 1 EN96، وفترة الانتظار ساعتان وفق قواعد البوت.</p>
  </div>
-
  <div class="card">
   <h3>🐻 مكافآت القبيلة</h3>
-  <p>
-   ادعُ أصدقاءك إلى EN96.
-   يحسب البوت المكافآت المؤهلة عبر Supabase.
-  </p>
+  <p>ادعُ أصدقاءك إلى EN96. يحسب البوت المكافآت المؤهلة عبر Supabase.</p>
  </div>
 </section>
 
-<!-- EVENTS -->
 <section id="events" class="page other-page">
  <h2 class="page-title">🏆 Events</h2>
  <div class="card">
@@ -775,44 +209,33 @@ h1{
  </div>
 </section>
 
-<!-- INVITE -->
 <section id="invite" class="page other-page">
  <h2 class="page-title">👥 Invite</h2>
  <div class="card">
   <h3>🐻 قبيلة EN96</h3>
   <p>شارك رابطك الخاص مع الأصدقاء.</p>
-  <button class="card-button" onclick="copyInvite()">
-   🔗 نسخ رابط الدعوة
-  </button>
+  <button class="card-button" onclick="copyInvite()">🔗 نسخ رابط الدعوة</button>
   <p id="inviteStatus" class="note"></p>
  </div>
 </section>
 
-<!-- WALLET -->
 <section id="wallet" class="page other-page">
  <h2 class="page-title">👑 EN96 Royal Wallet</h2>
-  <div style="margin:12px 16px;text-align:center">
-   <label for="en96Language">🌐 لغة القوائم والمحفظة / Language</label>
-   <select id="en96Language" class="wallet-input" style="direction:ltr" onchange="setEN96Language(this.value)">
-    <option value="ar">العربية</option>
-    <option value="en">English</option>
-    <option value="ru">Русский</option>
-    <option value="es">Español</option>
-   </select>
-  </div>
-  <div class="card" id="en96BNBQuickConnect" style="border:2px solid #ffe18b;text-align:center">
-   <h3>🟡 BNB Smart Chain</h3>
-   <p>Binance Wallet · BNB Chain · محافظ EVM</p>
-   <button class="en96-connect-btn" type="button" onclick="openBNBWalletModal()">🔗 Connect Wallet — BNB</button>
-   <p class="note">ربط تجريبي داخل المتصفح؛ التوثيق بالتوقيع على الخادم لم يُفعّل بعد.</p>
-  </div>
+ <div style="margin:12px 16px;text-align:center">
+  <label for="en96Language">🌐 لغة القوائم والمحفظة / Language</label>
+  <select id="en96Language" class="wallet-input" onchange="setEN96Language(this.value)">
+   <option value="ar">العربية</option>
+   <option value="en">English</option>
+   <option value="ru">Русский</option>
+   <option value="es">Español</option>
+  </select>
+ </div>
 
  <div class="wallet-balance">
   <small>💎 الرصيد المتاح في EN96</small>
   <strong id="walletAvailable">— EN96</strong>
   <small>يُقرأ من حسابك في Supabase</small>
  </div>
-
  <div class="wallet-secondary">
   <div class="wallet-tile">
    <small>🔒 الرصيد المحجوز</small>
@@ -823,225 +246,77 @@ h1{
    <strong>500 EN96</strong>
   </div>
  </div>
-
  <div class="card">
-  <button
-   id="walletRefresh"
-   class="card-button"
-   onclick="loadRoyalWallet()">
-   🔄 تحديث الرصيد
-  </button>
-
-  <div id="walletLoadMessage" class="wallet-message">
-   افتح التطبيق من Telegram لعرض حسابك.
-  </div>
+  <button id="walletRefresh" class="card-button" onclick="loadRoyalWallet()">🔄 تحديث الرصيد</button>
+  <div id="walletLoadMessage" class="wallet-message">افتح التطبيق من Telegram لعرض حسابك.</div>
  </div>
 
- <!-- NEW BNB CONNECT WALLET -->
- <div class="card">
-  <h3>🔗 BNB Smart Chain Wallet</h3>
-  <p>
-   اربط محفظة Binance Wallet أو محفظة
-   متوافقة مع BNB Smart Chain.
-  </p>
-
-  <button
-   id="en96ConnectWallet"
-   class="en96-connect-btn"
-   type="button"
-   onclick="openBNBWalletModal()">
-   🔗 Connect Wallet
-  </button>
-
-  <div id="en96WalletStatus" class="wallet-message">
-   🔒 لا توجد محفظة BNB موثقة بعد.
-  </div>
-
-  <p class="note">
-   الاتصال بالمحفظة لا يفعّل سك EN96 أو
-   التحويل بين الشبكات. يلزم إثبات الملكية
-   بالتوقيع وتأكيده من الخادم.
-  </p>
+ <!-- SINGLE BNB WALLET CARD -->
+ <div class="card" style="border:2px solid #ffe18b">
+  <h3>🟡 BNB Smart Chain Wallet</h3>
+  <p>اربط Binance Wallet أو محفظة متوافقة مع BNB Smart Chain Mainnet.</p>
+  <button id="en96ConnectWallet" class="en96-connect-btn" type="button" onclick="openBNBWalletModal()">🔗 Connect Wallet — BNB</button>
+  <div id="en96WalletStatus" class="wallet-message">🔒 لا توجد محفظة BNB متصلة بعد.</div>
+  <p class="note">الاتصال محلي فقط. لا يفعّل سك EN96 أو الجسر أو التحويل بين الشبكات. إثبات الملكية بالتوقيع والتحقق على الخادم لم يُفعّلا بعد.</p>
  </div>
 
- <!-- STELLAR WALLET UNCHANGED -->
+ <!-- STELLAR WALLET -->
  <div class="card">
   <h3>🐻 ربط محفظة Stellar</h3>
-  <p>
-   نستخدم LOBSTR بصورة أساسية لاستلام
-   EN96 على شبكة Stellar Mainnet.
-   ويمكن استخدام StellarTerm أيضًا.
-  </p>
-
-  <p>🪙 LOBSTR Wallet</p>
-  <p>✦ StellarTerm</p>
-
-  <label for="stellarAddress">
-   عنوان Stellar العام
-  </label>
-
-  <input
-   id="stellarAddress"
-   class="wallet-input"
-   type="text"
-   maxlength="56"
-   spellcheck="false"
-   autocomplete="off"
-   placeholder="G...">
-
-  <button
-   id="stellarSave"
-   class="card-button"
-   onclick="saveRoyalStellarAddress()">
-   💾 حفظ عنوان Stellar
-  </button>
-
-  <div id="stellarStatus" class="wallet-message">
-   🔒 لم يُثبت امتلاك المحفظة بعد.
-   حفظ العنوان لا يفعّل التعدين المعزز.
-  </div>
-
+  <p>نستخدم LOBSTR بصورة أساسية لاستلام EN96 على شبكة Stellar Mainnet، ويمكن استخدام StellarTerm أيضًا.</p>
+  <label for="stellarAddress">عنوان Stellar العام</label>
+  <input id="stellarAddress" class="wallet-input" type="text" maxlength="56" spellcheck="false" autocomplete="off" placeholder="G...">
+  <button id="stellarSave" class="card-button" onclick="saveRoyalStellarAddress()">💾 حفظ عنوان Stellar</button>
+  <div id="stellarStatus" class="wallet-message">🔒 لم يُثبت امتلاك المحفظة بعد. حفظ العنوان لا يفعّل التعدين المعزز.</div>
   <div id="savedStellarAddress" class="wallet-address"></div>
-
   <div class="wallet-links">
-   <a href="https://lobstr.co/"
-      target="_blank"
-      rel="noopener noreferrer">
-    🪙 LOBSTR
-   </a>
-   <a href="https://stellarterm.com/"
-      target="_blank"
-      rel="noopener noreferrer">
-    ✦ StellarTerm
-   </a>
+   <a href="https://lobstr.co/" target="_blank" rel="noopener noreferrer">🪙 LOBSTR</a>
+   <a href="https://stellarterm.com/" target="_blank" rel="noopener noreferrer">✦ StellarTerm</a>
   </div>
-
-  <p class="note">
-   ⚠️ لا تدخل المفتاح السري أو عبارة الاسترداد.
-   اكتب عنوان المحفظة العام فقط.
-  </p>
+  <p class="note">⚠️ لا تدخل المفتاح السري أو عبارة الاسترداد. اكتب عنوان المحفظة العام فقط.</p>
  </div>
-
  <div class="card">
   <h3>🔐 إثبات ملكية المحفظة</h3>
-  <p>
-   إثبات ملكية LOBSTR بالتوقيع
-   لم يُربط بالخادم بعد.
-  </p>
-  <p>
-   لن تُمنح أي زيادة سرعة تعدين حتى
-   نتحقق من التوقيع ورصيد EN96 على Stellar.
-  </p>
-  <div class="wallet-message">
-   ⏳ WalletConnect: قيد التجهيز.
-  </div>
+  <p>إثبات ملكية LOBSTR بالتوقيع لم يُربط بالخادم بعد. لن تُمنح زيادة سرعة تعدين حتى نتحقق من التوقيع ورصيد EN96 على Stellar.</p>
+  <div class="wallet-message">⏳ WalletConnect: قيد التجهيز.</div>
  </div>
-
  <div class="card">
   <h3>💰 السحب والتحويل</h3>
-  <p>
-   الحد الأدنى للسحب 500 EN96.
-   تتم مراجعة الطلبات والتحويلات يدويًا
-   بعد التحقق من عنوان Stellar وخط الثقة.
-  </p>
-
-  <button class="card-button" onclick="openBot()">
-   💬 فتح بوت EN96
-  </button>
+  <p>الحد الأدنى للسحب 500 EN96. تتم مراجعة الطلبات والتحويلات وفق قواعد البوت والتحقق من عنوان Stellar وخط الثقة.</p>
+  <button class="card-button" onclick="openBot()">💬 فتح بوت EN96</button>
  </div>
- <p style="text-align:center;color:#ffe3a0;font-size:11px">EN96 Royal · BNB Wallet v3 · 2026-11-14</p>
+ <p style="text-align:center;color:#ffe3a0;font-size:11px">EN96 Royal · BNB Wallet v4 · 2026-11-14</p>
 </section>
 
-<!-- NAVIGATION -->
 <nav class="nav">
- <button id="nav-home" class="active" onclick="showPage('home')">
-  <b>🏠</b>Home
- </button>
- <button id="nav-earn" onclick="showPage('earn')">
-  <b>🎁</b>Earn
- </button>
- <button id="nav-events" onclick="showPage('events')">
-  <b>🏆</b>Events
- </button>
- <button id="nav-invite" onclick="showPage('invite')">
-  <b>👥</b>Invite
- </button>
- <button id="nav-wallet" onclick="showPage('wallet')">
-  <b>💳</b>Wallet
- </button>
+ <button id="nav-home" class="active" onclick="showPage('home')"><b>🏠</b><span>Home</span></button>
+ <button id="nav-earn" onclick="showPage('earn')"><b>🎁</b><span>Earn</span></button>
+ <button id="nav-events" onclick="showPage('events')"><b>🏆</b><span>Events</span></button>
+ <button id="nav-invite" onclick="showPage('invite')"><b>👥</b><span>Invite</span></button>
+ <button id="nav-wallet" onclick="showPage('wallet')"><b>💳</b><span>Wallet</span></button>
 </nav>
 </main>
 
-<!-- BNB WALLET BOTTOM SHEET -->
-<div
- id="en96WalletOverlay"
- class="en96-wallet-overlay"
- onclick="walletOverlayClick(event)">
-
- <div
-  class="en96-wallet-sheet"
-  role="dialog"
-  aria-modal="true"
-  aria-label="Connect BNB Wallet">
-
-  <button
-   class="en96-wallet-close"
-   type="button"
-   onclick="closeBNBWalletModal()"
-   aria-label="Close">
-   ×
-  </button>
-
-  <h2>Connect your wallet</h2>
-
-  <p>
-   اختر محفظتك المتوافقة مع
-   BNB Smart Chain
-  </p>
-
-  <button
-   class="en96-wallet-choice"
-   type="button"
-   onclick="connectBinanceWallet()">
+<!-- BNB WALLET MODAL -->
+<div id="en96WalletOverlay" class="en96-wallet-overlay" onclick="walletOverlayClick(event)">
+ <div class="en96-wallet-sheet" role="dialog" aria-modal="true" aria-label="Connect BNB Wallet">
+  <button class="en96-wallet-close" type="button" onclick="closeBNBWalletModal()" aria-label="Close">×</button>
+  <h2 id="bnbModalTitle">Connect your wallet</h2>
+  <p id="bnbModalSubtitle">اختر محفظتك المتوافقة مع BNB Smart Chain</p>
+  <button class="en96-wallet-choice" type="button" onclick="connectBinanceWallet()">
    <span class="en96-wallet-logo">🟡</span>
-   <span>
-    <strong>Binance Wallet</strong>
-    <small>BNB Smart Chain</small>
-   </span>
+   <span><strong>Binance Wallet</strong><small>BNB Smart Chain</small></span>
   </button>
-
-  <button
-   class="en96-wallet-choice"
-   type="button"
-   onclick="showTelegramWalletInfo()">
+  <button class="en96-wallet-choice" type="button" onclick="showTelegramWalletInfo()">
    <span class="en96-wallet-logo">✈️</span>
-   <span>
-    <strong>Telegram Wallet</strong>
-    <small>Check BNB compatibility</small>
-   </span>
+   <span><strong>Telegram Wallet</strong><small>Check BNB compatibility</small></span>
   </button>
-
-  <button
-   class="en96-wallet-choice"
-   type="button"
-   onclick="connectOtherWallet()">
+  <button class="en96-wallet-choice" type="button" onclick="connectOtherWallet()">
    <span class="en96-wallet-logo">💼</span>
-   <span>
-    <strong>Other Wallets</strong>
-    <small>EVM-compatible wallets</small>
-   </span>
+   <span><strong>Other Wallets</strong><small>EVM-compatible wallets</small></span>
   </button>
-
-  <div
-   id="en96WalletModalStatus"
-   class="en96-wallet-connect-status"
-   aria-live="polite">
-  </div>
-
-  <p class="en96-wallet-note">
-   🔒 لا تشارك مفتاحك الخاص أو عبارة الاسترداد.
-   الاتصال وحده لا يثبت ملكية المحفظة.
-  </p>
+  <div id="en96WalletModalStatus" class="en96-wallet-connect-status" aria-live="polite"></div>
+  <p class="en96-wallet-note">🔒 لا تشارك مفتاحك الخاص أو عبارة الاسترداد. الاتصال وحده لا يثبت ملكية المحفظة.</p>
  </div>
 </div>
 
@@ -1050,27 +325,23 @@ h1{
 
 const BOT="https://t.me/EN96_IceDragon_2026_Bot";
 const API_BASE="https://en96.onrender.com";
-const COIN_IMAGE=
-"https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png";
-
+const COIN_IMAGE="https://raw.githubusercontent.com/Fouad1299/en96/main/assets/a_crisp_high_resolution_photoreal_cgi_style_clos.png";
 const tg=window.Telegram&&window.Telegram.WebApp;
 
 if(tg){
- try{
-  tg.ready();
-  tg.expand();
- }catch(e){}
+ try{tg.ready();tg.expand()}catch(e){}
 }
 
-/* VIDEO INTRO */
-(function(){
- const overlay=document.getElementById("royalIntro");
- const video=document.getElementById("royalIntroVideo");
- const source=document.getElementById("introSource");
- const play=document.getElementById("introPlay");
- const enterButton=document.getElementById("introEnter");
- const message=document.getElementById("introMessage");
+const $=id=>document.getElementById(id);
 
+/* ROYAL INTRO */
+(function(){
+ const overlay=$("royalIntro");
+ const video=$("royalIntroVideo");
+ const source=$("introSource");
+ const play=$("introPlay");
+ const enter=$("introEnter");
+ const message=$("introMessage");
  let finished=false;
  let fallbackUsed=false;
 
@@ -1082,99 +353,64 @@ if(tg){
   showPage("home");
   window.scrollTo(0,0);
  }
-
  function showPlay(){
   play.hidden=false;
   message.hidden=false;
-  message.textContent=
-   "🔊 اضغط لتشغيل فيديو الدب بالصوت، ثم تدخل التعدين تلقائيًا.";
+  message.textContent="🔊 اضغط لتشغيل فيديو الدب بالصوت، ثم تدخل التعدين تلقائيًا.";
  }
-
  function startVideo(){
   if(finished)return;
-
   video.muted=false;
   video.volume=1;
   message.textContent="⏳ جارٍ تشغيل الفيديو...";
-
-  let attempt;
   try{
-   attempt=video.play();
-  }catch(e){
-   showPlay();
-   return;
-  }
-
-  if(attempt&&typeof attempt.then==="function"){
-   attempt.then(()=>{
-    play.hidden=true;
-    message.hidden=true;
-   }).catch(()=>{
-    showPlay();
-   });
-  }
+   const attempt=video.play();
+   if(attempt&&typeof attempt.then==="function"){
+    attempt.then(()=>{
+     play.hidden=true;
+     message.hidden=true;
+    }).catch(showPlay);
+   }
+  }catch(e){showPlay()}
  }
-
  function videoFailed(){
   if(!fallbackUsed){
    fallbackUsed=true;
-   source.src=
-    "https://raw.githubusercontent.com/Fouad1299/en96/main/gemini_generated_video_598bb512.mp4";
+   source.src="https://raw.githubusercontent.com/Fouad1299/en96/main/gemini_generated_video_598bb512.mp4";
    video.load();
    showPlay();
    return;
   }
-
   message.hidden=false;
-  message.textContent=
-   "⚠️ تعذر تحميل الفيديو. يمكنك الدخول إلى التعدين.";
+  message.textContent="⚠️ تعذر تحميل الفيديو. يمكنك الدخول إلى التعدين.";
   play.hidden=true;
-  enterButton.hidden=false;
+  enter.hidden=false;
  }
-
  video.addEventListener("ended",enterMining);
-
  video.addEventListener("timeupdate",()=>{
-  if(video.currentTime>=10){
-   enterMining();
-  }
+  if(video.currentTime>=10)enterMining();
  });
-
  video.addEventListener("error",videoFailed);
  play.addEventListener("click",startVideo);
- enterButton.addEventListener("click",enterMining);
-
+ enter.addEventListener("click",enterMining);
  video.addEventListener("click",()=>{
   if(video.paused)startVideo();
  });
-
  setTimeout(()=>{
-  if(!finished&&video.paused&&!video.error){
-   showPlay();
-  }
+  if(!finished&&video.paused&&!video.error)showPlay();
  },4000);
-
  startVideo();
 })();
 
 /* NAVIGATION */
 function showPage(page){
- document.querySelectorAll(".page").forEach(el=>{
-  el.classList.remove("active");
- });
-
- document.querySelectorAll(".nav button").forEach(el=>{
-  el.classList.remove("active");
- });
-
- const current=document.getElementById(page);
- const nav=document.getElementById("nav-"+page);
-
+ document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
+ document.querySelectorAll(".nav button").forEach(el=>el.classList.remove("active"));
+ const current=$(page);
+ const nav=$("nav-"+page);
  if(current)current.classList.add("active");
  if(nav)nav.classList.add("active");
-
  window.scrollTo(0,0);
-
  if(page==="wallet")loadRoyalWallet();
  if(page==="home")checkMining();
  if(page==="earn")checkGift5Status();
@@ -1188,103 +424,84 @@ function openTelegram(url){
   window.location.href=url;
  }
 }
-
-function openBot(){
- openTelegram(BOT);
-}
-
-let miningStartBusy=false;
-async function startMining(){
- if(miningStartBusy)return;
- const state=document.getElementById("miningState");
- const notice=document.getElementById("miningNotice");
- miningStartBusy=true;
- state.textContent="⏳ جارٍ طلب بدء التعدين...";
- try{
-  const result=await apiRequest("/api/mining",{method:"POST",body:{}});
-  notice.textContent=result.message||"تم إرسال طلب التعدين إلى الخادم. جارٍ تحديث الحالة.";
-  await checkMining();
- }catch(error){
-  state.textContent="⚠️ لم يتم تأكيد بدء التعدين";
-  notice.textContent=(error.message||"تعذر الاتصال بالخادم")+" — يمكنك بدء التعدين من بوت Telegram.";
- }finally{miningStartBusy=false;}
-}
+function openBot(){openTelegram(BOT)}
 
 /* API */
 async function apiRequest(path,options={}){
  if(!tg||!tg.initData){
-  throw new Error(
-   "افتح تطبيق EN96 من داخل بوت Telegram."
-  );
+  throw new Error("افتح تطبيق EN96 من داخل بوت Telegram.");
  }
-
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),15000);
-
  try{
   const response=await fetch(API_BASE+path,{
    method:options.method||"GET",
    headers:{
     "Authorization":"tma "+tg.initData,
-    ...(options.body?{
-     "Content-Type":"application/json"
-    }:{})
+    ...(options.body?{"Content-Type":"application/json"}:{})
    },
-   body:options.body?
-    JSON.stringify(options.body):undefined,
+   body:options.body?JSON.stringify(options.body):undefined,
    cache:"no-store",
    signal:controller.signal
   });
-
   const data=await response.json();
-
   if(!response.ok){
-   throw new Error(
-    data.error||"تعذر الاتصال بخادم EN96."
-   );
+   throw new Error(data.error||"تعذر الاتصال بخادم EN96.");
   }
-
   return data;
  }finally{
   clearTimeout(timeout);
  }
 }
 
-/* GIFT 5 */
+/* START MINING */
+let miningStartBusy=false;
+async function startMining(){
+ if(miningStartBusy)return;
+ miningStartBusy=true;
+ const state=$("miningState");
+ const notice=$("miningNotice");
+ state.textContent="⏳ جارٍ طلب بدء التعدين...";
+ try{
+  const result=await apiRequest("/api/mining",{
+   method:"POST",
+   body:{}
+  });
+  notice.textContent=result.message||"تم إرسال طلب التعدين إلى الخادم.";
+  await checkMining();
+ }catch(error){
+  state.textContent="⚠️ لم يتم تأكيد بدء التعدين";
+  notice.textContent=(error.message||"تعذر الاتصال بالخادم.")+" — يمكنك بدء التعدين من بوت Telegram.";
+ }finally{
+  miningStartBusy=false;
+ }
+}
+
+/* GIFT 5 EN96 */
 let gift5Busy=false;
 let gift5Claimed=false;
 
 function gift5Message(text){
- document.getElementById("gift5Message").textContent=text;
+ $("gift5Message").textContent=text;
 }
-
 function gift5SetClaimed(){
  gift5Claimed=true;
- const button=document.getElementById("gift5Button");
+ const button=$("gift5Button");
  button.disabled=true;
  button.textContent="✅ تم استلام 5 EN96";
- gift5Message(
-  "✅ لقد استلمت هدية 5 EN96 بالفعل. هذه الهدية مرة واحدة لكل حساب."
- );
+ gift5Message("✅ لقد استلمت هدية 5 EN96 بالفعل. هذه الهدية مرة واحدة لكل حساب.");
 }
-
 async function checkGift5Status(){
- const button=document.getElementById("gift5Button");
-
+ const button=$("gift5Button");
  if(gift5Busy||gift5Claimed)return;
-
  button.disabled=true;
  gift5Message("🔄 جارٍ التحقق من حالة الهدية...");
-
  try{
   const data=await apiRequest("/api/gift5/status");
-
   if(data.claimed===true){
    gift5SetClaimed();
   }else{
-   gift5Message(
-    "🎁 الهدية متاحة لك. اضغط الزر لاستلام 5 EN96."
-   );
+   gift5Message("🎁 الهدية متاحة لك. اضغط الزر لاستلام 5 EN96.");
   }
  }catch(error){
   gift5Message("⚠️ "+(error.message||"تعذر التحقق."));
@@ -1292,35 +509,23 @@ async function checkGift5Status(){
   if(!gift5Claimed)button.disabled=false;
  }
 }
-
 async function claimGift5(){
  if(gift5Busy||gift5Claimed)return;
-
  gift5Busy=true;
- const button=document.getElementById("gift5Button");
+ const button=$("gift5Button");
  button.disabled=true;
  button.textContent="⏳ جارٍ تسجيل الهدية...";
-
- gift5Message(
-  "🔄 نتحقق من حساب Telegram ونسجل الهدية في Supabase."
- );
-
+ gift5Message("🔄 نتحقق من حساب Telegram ونسجل الهدية في Supabase.");
  try{
   const data=await apiRequest("/api/gift5/claim",{
    method:"POST",
    body:{}
   });
-
   if(data.success===true){
    gift5SetClaimed();
-   gift5Message(
-    "🎉 مبروك! تمت إضافة 5 EN96 إلى رصيدك بنجاح."
-   );
-
+   gift5Message("🎉 مبروك! تمت إضافة 5 EN96 إلى رصيدك بنجاح.");
    if(tg&&tg.HapticFeedback){
-    try{
-     tg.HapticFeedback.notificationOccurred("success");
-    }catch(e){}
+    try{tg.HapticFeedback.notificationOccurred("success")}catch(e){}
    }
   }else if(data.claimed===true){
    gift5SetClaimed();
@@ -1342,43 +547,27 @@ async function claimGift5(){
 
 /* OTHER BUTTONS */
 function boost(){
- alert(
-  "⚡ EN96 Boost\n\n"+
-  "سيتم تفعيل الترقيات بعد التحقق من ملكية محفظة Stellar."
- );
+ alert("⚡ EN96 Boost\n\nسيتم تفعيل الترقيات بعد التحقق من ملكية محفظة Stellar.");
 }
-
 function invest(){
  alert("🪙 شراء EN96 لم يُفعّل بعد.");
 }
-
 function showInfo(){
- alert(
-  "EN96 Ice Bear Kingdom\n\n"+
-  "⛏️ التعدين افتراضي\n"+
-  "⚡ 0.001 EN96 في الثانية\n"+
-  "⏱️ 24 ساعة لكل جلسة\n"+
-  "💎 86.4 EN96 لكل جلسة كاملة\n\n"+
-  "النقر على الدب تجريبي."
- );
+ alert("EN96 Ice Bear Kingdom\n\n⛏️ التعدين افتراضي\n⚡ 0.001 EN96 في الثانية\n⏱️ 24 ساعة لكل جلسة\n💎 86.4 EN96 لكل جلسة كاملة\n\nالنقر على الدب تجريبي.");
 }
 
-/* TAP */
+/* TAP EFFECTS */
 let taps=0;
 let lastTap=0;
-const coinArea=document.getElementById("coinArea");
-const coinButton=document.getElementById("coin");
+const coinArea=$("coinArea");
+const coinButton=$("coin");
 
 function tapBear(event){
  const now=performance.now();
  if(now-lastTap<130)return;
-
  lastTap=now;
  taps++;
-
- document.getElementById("tapCount").textContent=
-  taps.toLocaleString();
-
+ $("tapCount").textContent=taps.toLocaleString();
  coinButton.classList.add("pressed");
  setTimeout(()=>coinButton.classList.remove("pressed"),100);
 
@@ -1393,205 +582,124 @@ function tapBear(event){
   mini.className="mini-coin";
   mini.style.left=x+"px";
   mini.style.top=y+"px";
-
-  mini.style.setProperty(
-   "--dx",((Math.random()-.5)*175)+"px"
-  );
-  mini.style.setProperty(
-   "--dy",(-65-Math.random()*130)+"px"
-  );
-  mini.style.setProperty(
-   "--rot",((Math.random()-.5)*360)+"deg"
-  );
-
+  mini.style.setProperty("--dx",((Math.random()-.5)*175)+"px");
+  mini.style.setProperty("--dy",(-65-Math.random()*130)+"px");
+  mini.style.setProperty("--rot",((Math.random()-.5)*360)+"deg");
   coinArea.appendChild(mini);
-  mini.addEventListener("animationend",()=>{
-   mini.remove();
-  },{once:true});
+  mini.addEventListener("animationend",()=>mini.remove(),{once:true});
  }
-
  if(tg&&tg.HapticFeedback&&taps%3===0){
-  try{
-   tg.HapticFeedback.impactOccurred("light");
-  }catch(e){}
+  try{tg.HapticFeedback.impactOccurred("light")}catch(e){}
  }
 }
 
-/* MINING */
+/* MINING TIMER */
 function durationText(seconds){
  seconds=Math.max(0,Math.floor(Number(seconds)||0));
-
  const h=Math.floor(seconds/3600);
  const m=Math.floor((seconds%3600)/60);
  const s=seconds%60;
-
  return [h,m,s].map(n=>String(n).padStart(2,"0")).join(":");
 }
-
 let session=null;
 let sessionReadAt=0;
 
 function clearMiningValues(){
- document.getElementById("elapsed").textContent="--:--:--";
- document.getElementById("remaining").textContent="--:--:--";
- document.getElementById("earned").textContent="— EN96";
- document.getElementById("miningFill").style.width="0%";
+ $("elapsed").textContent="--:--:--";
+ $("remaining").textContent="--:--:--";
+ $("earned").textContent="— EN96";
+ $("miningFill").style.width="0%";
 }
-
 function renderMining(){
  if(!session)return;
-
  const delta=(Date.now()-sessionReadAt)/1000;
- const elapsed=Math.min(
-  86400,
-  Math.max(0,session.elapsed_seconds+delta)
- );
+ const elapsed=Math.min(86400,Math.max(0,session.elapsed_seconds+delta));
  const remaining=Math.max(0,86400-elapsed);
-
- document.getElementById("elapsed").textContent=
-  durationText(elapsed);
-
- document.getElementById("remaining").textContent=
-  durationText(remaining);
-
- document.getElementById("earned").textContent=
-  (elapsed*.001).toFixed(7)+" EN96";
-
- document.getElementById("miningFill").style.width=
-  (elapsed/86400*100)+"%";
-
+ $("elapsed").textContent=durationText(elapsed);
+ $("remaining").textContent=durationText(remaining);
+ $("earned").textContent=(elapsed*.001).toFixed(7)+" EN96";
+ $("miningFill").style.width=(elapsed/86400*100)+"%";
  if(remaining===0){
-  document.getElementById("miningState").textContent=
-   "⌛ انتهت المدة — المكافأة تحتاج تأكيدًا";
+  $("miningState").textContent="⌛ انتهت المدة — المكافأة تحتاج تأكيدًا";
  }
 }
-
 async function checkMining(){
- const state=document.getElementById("miningState");
- const notice=document.getElementById("miningNotice");
-
+ const state=$("miningState");
+ const notice=$("miningNotice");
  state.textContent="🔄 جارٍ التحقق...";
  session=null;
  clearMiningValues();
-
  try{
   const data=await apiRequest("/api/mining/status");
-
   if(data.status==="active"){
    const elapsed=Number(data.elapsed_seconds);
-
    if(!Number.isFinite(elapsed)){
     throw new Error("بيانات الجلسة غير صالحة.");
    }
-
-   session={
-    elapsed_seconds:Math.max(0,Math.min(86400,elapsed))
-   };
+   session={elapsed_seconds:Math.max(0,Math.min(86400,elapsed))};
    sessionReadAt=Date.now();
-
    state.textContent="✅ التعدين نشط";
-   notice.textContent=
-    "الجلسة مؤكدة من خادم EN96. الأرقام المتحركة تقديرية، والرصيد الفعلي تؤكده Supabase.";
-
+   notice.textContent="الجلسة مؤكدة من خادم EN96. الأرقام المتحركة تقديرية، والرصيد الفعلي تؤكده Supabase.";
    renderMining();
-
-  }else if(
-   data.status==="inactive"||
-   data.status==="not_started"
-  ){
+  }else if(data.status==="inactive"||data.status==="not_started"){
    state.textContent="⏸️ لا توجد جلسة نشطة";
    notice.textContent="اضغط بدء تشغيل التعدين.";
-
   }else if(data.status==="ready"){
    state.textContent="⌛ انتهت جلسة الـ24 ساعة";
-   notice.textContent=
-    "اضغط بدء التعدين داخل البوت للتحقق من المكافأة وبدء جلسة جديدة.";
-
-   document.getElementById("elapsed").textContent=
-    "24:00:00";
-   document.getElementById("remaining").textContent=
-    "00:00:00";
-   document.getElementById("earned").textContent=
-    "86.4000000 EN96 (تقديري)";
-   document.getElementById("miningFill").style.width=
-    "100%";
+   notice.textContent="اضغط بدء التعدين داخل البوت للتحقق من المكافأة وبدء جلسة جديدة.";
+   $("elapsed").textContent="24:00:00";
+   $("remaining").textContent="00:00:00";
+   $("earned").textContent="86.4000000 EN96 (تقديري)";
+   $("miningFill").style.width="100%";
   }else{
    throw new Error("حالة الجلسة غير معروفة.");
   }
  }catch(error){
   state.textContent="⚠️ تعذر التحقق من التعدين";
-  notice.textContent=
-   error.message||"تعذر الاتصال بالخادم.";
+  notice.textContent=error.message||"تعذر الاتصال بالخادم.";
  }
 }
-
 setInterval(renderMining,1000);
 checkMining();
 
-/* WALLET */
+/* WALLET BALANCE */
 function numberEN96(value){
+ if(value===null||value===undefined||value==="")return "— EN96";
  const num=Number(value);
  if(!Number.isFinite(num))return "— EN96";
-
  return num.toLocaleString("en-US",{
   minimumFractionDigits:0,
   maximumFractionDigits:7
  })+" EN96";
 }
-
 let walletLoading=false;
 
 async function loadRoyalWallet(){
  if(walletLoading)return;
  walletLoading=true;
-
- const button=document.getElementById("walletRefresh");
- const message=document.getElementById("walletLoadMessage");
-
+ const button=$("walletRefresh");
+ const message=$("walletLoadMessage");
  button.disabled=true;
  message.textContent="🔄 تحميل الرصيد من Supabase...";
-
  try{
   const data=await apiRequest("/api/me");
+  $("walletAvailable").textContent=numberEN96(data.available);
+  $("walletReserved").textContent=numberEN96(data.reserved);
+  message.textContent="✅ تم تحديث الأرصدة من خادم EN96.";
 
-  document.getElementById("walletAvailable").textContent=
-   numberEN96(data.available);
-
-  document.getElementById("walletReserved").textContent=
-   numberEN96(data.reserved);
-
-  message.textContent=
-   "✅ تم تحديث الأرصدة من خادم EN96.";
-
-  const address=String(
-   data.stellar_public_address||""
-  );
-
+  const address=String(data.stellar_public_address||"");
   if(/^G[A-Z2-7]{55}$/.test(address)){
-   document.getElementById("stellarAddress").value=
-    address;
-
-   document.getElementById("savedStellarAddress").textContent=
-    "العنوان المحفوظ: "+address;
-
-   document.getElementById("stellarStatus").textContent=
-    "✅ عنوان Stellar محفوظ في Supabase.\n"+
-    "🔒 ملكية المحفظة لم تُثبت بالتوقيع بعد.";
+   $("stellarAddress").value=address;
+   $("savedStellarAddress").textContent="العنوان المحفوظ: "+address;
+   $("stellarStatus").textContent="✅ عنوان Stellar محفوظ في Supabase.\n🔒 ملكية المحفظة لم تُثبت بالتوقيع بعد.";
   }else{
-   document.getElementById("savedStellarAddress").textContent=
-    "لا يوجد عنوان Stellar محفوظ.";
-
-   document.getElementById("stellarStatus").textContent=
-    "لم يتم حفظ عنوان Stellar بعد.";
+   $("savedStellarAddress").textContent="لا يوجد عنوان Stellar محفوظ.";
+   $("stellarStatus").textContent="لم يتم حفظ عنوان Stellar بعد.";
   }
  }catch(error){
-  document.getElementById("walletAvailable").textContent=
-   "— EN96";
-  document.getElementById("walletReserved").textContent=
-   "— EN96";
-
-  message.textContent=
-   "⚠️ "+(error.message||"تعذر تحميل المحفظة.");
+  $("walletAvailable").textContent="— EN96";
+  $("walletReserved").textContent="— EN96";
+  message.textContent="⚠️ "+(error.message||"تعذر تحميل المحفظة.");
  }finally{
   walletLoading=false;
   button.disabled=false;
@@ -1600,44 +708,29 @@ async function loadRoyalWallet(){
 
 /* STELLAR ADDRESS */
 async function saveRoyalStellarAddress(){
- const field=document.getElementById("stellarAddress");
- const button=document.getElementById("stellarSave");
- const status=document.getElementById("stellarStatus");
-
+ const field=$("stellarAddress");
+ const button=$("stellarSave");
+ const status=$("stellarStatus");
  const address=field.value.trim().toUpperCase();
 
  if(!/^G[A-Z2-7]{55}$/.test(address)){
-  status.textContent=
-   "⚠️ عنوان Stellar العام يجب أن يبدأ بحرف G ويتكون من 56 حرفًا.";
+  status.textContent="⚠️ عنوان Stellar العام يجب أن يبدأ بحرف G ويتكون من 56 حرفًا.";
   return;
  }
-
  button.disabled=true;
  status.textContent="🔄 حفظ عنوان Stellar...";
-
  try{
   const result=await apiRequest("/api/profile/stellar",{
    method:"POST",
-   body:{address:address}
+   body:{address}
   });
-
-  if(
-   !result.success||
-   result.stellar_public_address!==address
-  ){
+  if(!result.success||result.stellar_public_address!==address){
    throw new Error("لم يؤكد الخادم حفظ العنوان.");
   }
-
-  document.getElementById("savedStellarAddress").textContent=
-   "العنوان المحفوظ: "+address;
-
-  status.textContent=
-   "✅ تم حفظ العنوان العام بنجاح.\n"+
-   "🔒 لم يتم إثبات ملكية المحفظة بعد.\n"+
-   "⚡ ترقية التعدين غير مفعلة.";
+  $("savedStellarAddress").textContent="العنوان المحفوظ: "+address;
+  status.textContent="✅ تم حفظ العنوان العام بنجاح.\n🔒 لم يتم إثبات ملكية المحفظة بعد.\n⚡ ترقية التعدين غير مفعلة.";
  }catch(error){
-  status.textContent=
-   "⚠️ "+(error.message||"فشل حفظ العنوان.");
+  status.textContent="⚠️ "+(error.message||"فشل حفظ العنوان.");
  }finally{
   button.disabled=false;
  }
@@ -1645,19 +738,10 @@ async function saveRoyalStellarAddress(){
 
 /* INVITE */
 async function copyInvite(){
- let id=null;
-
- if(
-  tg&&
-  tg.initDataUnsafe&&
-  tg.initDataUnsafe.user
- ){
-  id=tg.initDataUnsafe.user.id;
- }
-
+ const id=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user
+  ?tg.initDataUnsafe.user.id:null;
  const link=id?BOT+"?start=ref_"+id:BOT;
- const output=document.getElementById("inviteStatus");
-
+ const output=$("inviteStatus");
  try{
   await navigator.clipboard.writeText(link);
   output.textContent="✅ تم نسخ رابط الدعوة.";
@@ -1666,169 +750,192 @@ async function copyInvite(){
  }
 }
 
-/* Language selector: wallet and bottom navigation; other text remains Arabic until fully translated. */
+/* LANGUAGE SELECTOR — NAVIGATION AND WALLET */
 const en96Translations={
- ar:{nav:["Home","Earn","Events","Invite","Wallet"],title:"👑 EN96 Royal Wallet",connect:"🔗 Connect Wallet — BNB",wallet:"Connect your wallet",subtitle:"اختر محفظتك المتوافقة مع BNB Smart Chain"},
- en:{nav:["Home","Earn","Events","Invite","Wallet"],title:"👑 EN96 Royal Wallet",connect:"🔗 Connect Wallet — BNB",wallet:"Connect your wallet",subtitle:"Choose a BNB Smart Chain compatible wallet"},
- ru:{nav:["Главная","Награды","События","Друзья","Кошелёк"],title:"👑 Кошелёк EN96",connect:"🔗 Подключить кошелёк BNB",wallet:"Подключить кошелёк",subtitle:"Выберите кошелёк BNB Smart Chain"},
- es:{nav:["Inicio","Premios","Eventos","Invitar","Billetera"],title:"👑 Billetera EN96",connect:"🔗 Conectar billetera BNB",wallet:"Conectar billetera",subtitle:"Elige una billetera compatible con BNB Smart Chain"}
+ ar:{
+  nav:["الرئيسية","الهدايا","الفعاليات","الدعوة","المحفظة"],
+  title:"👑 محفظة EN96 الملكية",
+  connect:"🔗 ربط محفظة BNB",
+  wallet:"ربط المحفظة",
+  subtitle:"اختر محفظتك المتوافقة مع BNB Smart Chain"
+ },
+ en:{
+  nav:["Home","Earn","Events","Invite","Wallet"],
+  title:"👑 EN96 Royal Wallet",
+  connect:"🔗 Connect Wallet — BNB",
+  wallet:"Connect your wallet",
+  subtitle:"Choose a BNB Smart Chain compatible wallet"
+ },
+ ru:{
+  nav:["Главная","Награды","События","Друзья","Кошелёк"],
+  title:"👑 Кошелёк EN96",
+  connect:"🔗 Подключить кошелёк BNB",
+  wallet:"Подключить кошелёк",
+  subtitle:"Выберите кошелёк BNB Smart Chain"
+ },
+ es:{
+  nav:["Inicio","Premios","Eventos","Invitar","Billetera"],
+  title:"👑 Billetera EN96",
+  connect:"🔗 Conectar billetera BNB",
+  wallet:"Conectar billetera",
+  subtitle:"Elige una billetera compatible con BNB Smart Chain"
+ }
 };
+
 function setEN96Language(lang){
  const t=en96Translations[lang]||en96Translations.ar;
- document.getElementById("en96Language").value=lang;
+ $("en96Language").value=lang;
  ["home","earn","events","invite","wallet"].forEach((id,i)=>{
-  const btn=document.getElementById("nav-"+id);
-  if(btn)btn.lastChild.textContent=t.nav[i];
+  const label=document.querySelector("#nav-"+id+" span");
+  if(label)label.textContent=t.nav[i];
  });
  const title=document.querySelector("#wallet .page-title");
  if(title)title.textContent=t.title;
- const quick=document.querySelector("#en96BNBQuickConnect .en96-connect-btn");
- if(quick)quick.textContent=t.connect;
- const modalTitle=document.querySelector(".en96-wallet-sheet h2");
- if(modalTitle)modalTitle.textContent=t.wallet;
- const modalSub=document.querySelector(".en96-wallet-sheet > p");
- if(modalSub)modalSub.textContent=t.subtitle;
- try{localStorage.setItem("en96_language",lang);}catch(e){}
+ if(!bnbConnectedAddress){
+  $("en96ConnectWallet").textContent=t.connect;
+ }
+ $("bnbModalTitle").textContent=t.wallet;
+ $("bnbModalSubtitle").textContent=t.subtitle;
+ try{localStorage.setItem("en96_language",lang)}catch(e){}
 }
 try{
- const selected=localStorage.getItem("en96_language") || ((tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code)||"ar").slice(0,2);
+ const selected=localStorage.getItem("en96_language")||
+  ((tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code)||"ar").slice(0,2);
  setEN96Language(en96Translations[selected]?selected:"ar");
-}catch(e){setEN96Language("ar");}
+}catch(e){
+ setEN96Language("ar");
+}
 
-/* ======================================
-   NEW BNB WALLET CONNECT
-   UI + LOCAL CONNECTION ONLY
-   ====================================== */
-
-const bnbOverlay=
- document.getElementById("en96WalletOverlay");
-
-const bnbModalStatus=
- document.getElementById("en96WalletModalStatus");
-
-const bnbWalletStatus=
- document.getElementById("en96WalletStatus");
-
-const bnbConnectButton=
- document.getElementById("en96ConnectWallet");
+/* BNB WALLET CONNECTION */
+const bnbOverlay=$("en96WalletOverlay");
+const bnbModalStatus=$("en96WalletModalStatus");
+const bnbWalletStatus=$("en96WalletStatus");
+const bnbConnectButton=$("en96ConnectWallet");
 
 let bnbConnecting=false;
+let bnbConnectedAddress="";
+let bnbConnectedProvider=null;
 
 function openBNBWalletModal(){
  bnbOverlay.classList.add("open");
  bnbModalStatus.textContent="";
 }
-
 function closeBNBWalletModal(){
  bnbOverlay.classList.remove("open");
 }
-
 function walletOverlayClick(event){
- if(event.target===bnbOverlay){
-  closeBNBWalletModal();
+ if(event.target===bnbOverlay)closeBNBWalletModal();
+}
+function validEvmAddress(address){
+ return typeof address==="string"&&/^0x[0-9a-fA-F]{40}$/.test(address);
+}
+function getEvmProviders(){
+ const providers=[
+  window.binancew3w&&window.binancew3w.ethereum,
+  window.BinanceChain,
+  ...(window.ethereum&&Array.isArray(window.ethereum.providers)?window.ethereum.providers:[]),
+  window.ethereum
+ ].filter(Boolean);
+ return [...new Set(providers)];
+}
+function findBinanceProvider(){
+ return getEvmProviders().find(p=>p.isBinance||p.isBinanceWallet)||null;
+}
+function findOtherProvider(){
+ return getEvmProviders().find(p=>typeof p.request==="function")||null;
+}
+function setBNBDisconnected(message){
+ bnbConnectedAddress="";
+ bnbConnectedProvider=null;
+ bnbWalletStatus.textContent=message||"🔒 لا توجد محفظة BNB متصلة.";
+ const lang=$("en96Language").value;
+ bnbConnectButton.textContent=(en96Translations[lang]||en96Translations.ar).connect;
+}
+function handleBNBAccountsChanged(accounts){
+ if(!Array.isArray(accounts)||!validEvmAddress(accounts[0])){
+  setBNBDisconnected("🔒 تم فصل المحفظة أو تغيير الحساب.");
+  return;
+ }
+ bnbConnectedAddress=accounts[0];
+ bnbWalletStatus.textContent="🔗 الحساب الحالي:\n"+bnbConnectedAddress+
+  "\n🔒 لم يتم إثبات ملكية المحفظة بالتوقيع أو حفظها على الخادم.";
+ bnbConnectButton.textContent="🔗 "+bnbConnectedAddress.slice(0,6)+"..."+bnbConnectedAddress.slice(-4);
+}
+function handleBNBChainChanged(chainId){
+ if(Number(chainId)!==56){
+  setBNBDisconnected("⚠️ الشبكة الحالية ليست BNB Smart Chain Mainnet. أعد الاتصال بعد اختيار Chain ID 56.");
  }
 }
-
-function validEvmAddress(address){
- return typeof address==="string" &&
-  /^0x[0-9a-fA-F]{40}$/.test(address);
-}
-
 async function connectBNBProvider(provider){
  if(bnbConnecting)return;
-
- if(!provider||
-    typeof provider.request!=="function"){
+ if(!provider||typeof provider.request!=="function"){
   bnbModalStatus.textContent=
    "⚠️ لم يتم العثور على محفظة BNB متوافقة داخل هذا المتصفح.\n"+
-   "افتح التطبيق من متصفح محفظة Binance Wallet، "+
-   "أو انتظر دعم الاتصال الخارجي عبر WalletConnect.";
+   "افتح EN96 من متصفح Binance Wallet أو استخدم محفظة EVM تدعم BNB Smart Chain.\n"+
+   "الاتصال الخارجي عبر WalletConnect لم يُفعّل بعد.";
   return;
  }
 
  bnbConnecting=true;
- bnbModalStatus.textContent=
-  "⏳ جارٍ طلب الاتصال بالمحفظة...";
-
+ bnbModalStatus.textContent="⏳ جارٍ طلب الاتصال بالمحفظة...";
  try{
   const accounts=await provider.request({
    method:"eth_requestAccounts"
   });
-
-  if(!Array.isArray(accounts)||
-     !accounts.length||
-     !validEvmAddress(accounts[0])){
-   throw new Error(
-    "لم تُرجع المحفظة عنوانًا صالحًا."
-   );
+  if(!Array.isArray(accounts)||!accounts.length||!validEvmAddress(accounts[0])){
+   throw new Error("لم تُرجع المحفظة عنوانًا صالحًا.");
   }
 
   const chainHex=await provider.request({
    method:"eth_chainId"
   });
-
-  const chainId=Number(chainHex);
-
-  if(chainId!==56){
+  if(Number(chainHex)!==56){
    bnbModalStatus.textContent=
-    "⚠️ اختر شبكة BNB Smart Chain Mainnet "+
-    "(Chain ID: 56) من داخل محفظتك، ثم أعد المحاولة.";
+    "⚠️ اختر شبكة BNB Smart Chain Mainnet (Chain ID: 56) من محفظتك ثم أعد المحاولة.";
    return;
   }
 
-  const address=accounts[0];
+  if(bnbConnectedProvider&&bnbConnectedProvider!==provider&&typeof bnbConnectedProvider.removeListener==="function"){
+   bnbConnectedProvider.removeListener("accountsChanged",handleBNBAccountsChanged);
+   bnbConnectedProvider.removeListener("chainChanged",handleBNBChainChanged);
+  }
+  bnbConnectedProvider=provider;
+  handleBNBAccountsChanged(accounts);
 
-  bnbWalletStatus.textContent=
-   "🔗 تم الاتصال بالمحفظة محليًا:\n"+
-   address+
-   "\n🔒 لم يتم إثبات ملكيتها بالتوقيع أو حفظها في Supabase بعد.";
-
-  bnbConnectButton.textContent=
-   "🔗 "+
-   address.slice(0,6)+
-   "..."+
-   address.slice(-4);
+  if(typeof provider.on==="function"){
+   if(typeof provider.removeListener==="function"){
+    provider.removeListener("accountsChanged",handleBNBAccountsChanged);
+    provider.removeListener("chainChanged",handleBNBChainChanged);
+   }
+   provider.on("accountsChanged",handleBNBAccountsChanged);
+   provider.on("chainChanged",handleBNBChainChanged);
+  }
 
   bnbModalStatus.textContent=
-   "✅ تم الاتصال بالمحفظة.\n"+
-   "⏳ التحقق بالتوقيع قيد التجهيز.";
-
+   "✅ تم الاتصال بمحفظة BNB محليًا.\n"+
+   "🔒 التوثيق بالتوقيع على الخادم لم يُفعّل بعد.";
   setTimeout(closeBNBWalletModal,1200);
-
  }catch(error){
-  bnbModalStatus.textContent=
-   "⚠️ "+
-   (error&&error.message
-    ?error.message
-    :"تعذر الاتصال بالمحفظة.");
+  bnbModalStatus.textContent="⚠️ "+(error&&error.message?error.message:"تعذر الاتصال بالمحفظة.");
  }finally{
   bnbConnecting=false;
  }
 }
-
 function connectBinanceWallet(){
- const provider=
-  (window.binancew3w&&window.binancew3w.ethereum)||
-  window.BinanceChain||
-  (window.ethereum&&Array.isArray(window.ethereum.providers)
-    ? (window.ethereum.providers.find(p=>p.isBinance)||window.ethereum)
-    : window.ethereum);
-
- connectBNBProvider(provider);
+ connectBNBProvider(findBinanceProvider());
 }
-
 function connectOtherWallet(){
- connectBNBProvider(window.ethereum);
+ connectBNBProvider(findOtherProvider());
 }
-
 function showTelegramWalletInfo(){
  bnbModalStatus.textContent=
   "ℹ️ محفظة TON داخل Telegram ليست محفظة BNB تلقائيًا.\n"+
-  "لربط EN96 على شبكة BNB يلزم استخدام "+
-  "محفظة تدعم EVM وBNB Smart Chain.\n"+
-  "سيُضاف دعم المحافظ الخارجية لاحقًا.";
+  "لربط EN96 على شبكة BNB يلزم استخدام محفظة تدعم EVM وBNB Smart Chain.\n"+
+  "لا تشارك المفتاح السري أو عبارة الاسترداد.";
 }
-
+document.addEventListener("keydown",event=>{
+ if(event.key==="Escape")closeBNBWalletModal();
+});
 </script>
 </body>
 </html>
