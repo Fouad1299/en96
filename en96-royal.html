@@ -1,11 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#210909">
-<title>EN96 Ice Bear Kingdom</title>
+<title>EN96 Ice Bear Kingdom | Wallet BNB v3</title>
+<meta name="en96-build" content="20261114-bnb-wallet-v3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="./en96-wallet.js"></script>
 
@@ -791,6 +791,21 @@ h1{
 <!-- WALLET -->
 <section id="wallet" class="page other-page">
  <h2 class="page-title">👑 EN96 Royal Wallet</h2>
+  <div style="margin:12px 16px;text-align:center">
+   <label for="en96Language">🌐 لغة القوائم والمحفظة / Language</label>
+   <select id="en96Language" class="wallet-input" style="direction:ltr" onchange="setEN96Language(this.value)">
+    <option value="ar">العربية</option>
+    <option value="en">English</option>
+    <option value="ru">Русский</option>
+    <option value="es">Español</option>
+   </select>
+  </div>
+  <div class="card" id="en96BNBQuickConnect" style="border:2px solid #ffe18b;text-align:center">
+   <h3>🟡 BNB Smart Chain</h3>
+   <p>Binance Wallet · BNB Chain · محافظ EVM</p>
+   <button class="en96-connect-btn" type="button" onclick="openBNBWalletModal()">🔗 Connect Wallet — BNB</button>
+   <p class="note">ربط تجريبي داخل المتصفح؛ التوثيق بالتوقيع على الخادم لم يُفعّل بعد.</p>
+  </div>
 
  <div class="wallet-balance">
   <small>💎 الرصيد المتاح في EN96</small>
@@ -934,6 +949,7 @@ h1{
    💬 فتح بوت EN96
   </button>
  </div>
+ <p style="text-align:center;color:#ffe3a0;font-size:11px">EN96 Royal · BNB Wallet v3 · 2026-11-14</p>
 </section>
 
 <!-- NAVIGATION -->
@@ -1177,8 +1193,21 @@ function openBot(){
  openTelegram(BOT);
 }
 
-function startMining(){
- openTelegram(BOT+"?start=mining");
+let miningStartBusy=false;
+async function startMining(){
+ if(miningStartBusy)return;
+ const state=document.getElementById("miningState");
+ const notice=document.getElementById("miningNotice");
+ miningStartBusy=true;
+ state.textContent="⏳ جارٍ طلب بدء التعدين...";
+ try{
+  const result=await apiRequest("/api/mining",{method:"POST",body:{}});
+  notice.textContent=result.message||"تم إرسال طلب التعدين إلى الخادم. جارٍ تحديث الحالة.";
+  await checkMining();
+ }catch(error){
+  state.textContent="⚠️ لم يتم تأكيد بدء التعدين";
+  notice.textContent=(error.message||"تعذر الاتصال بالخادم")+" — يمكنك بدء التعدين من بوت Telegram.";
+ }finally{miningStartBusy=false;}
 }
 
 /* API */
@@ -1637,6 +1666,35 @@ async function copyInvite(){
  }
 }
 
+/* Language selector: wallet and bottom navigation; other text remains Arabic until fully translated. */
+const en96Translations={
+ ar:{nav:["Home","Earn","Events","Invite","Wallet"],title:"👑 EN96 Royal Wallet",connect:"🔗 Connect Wallet — BNB",wallet:"Connect your wallet",subtitle:"اختر محفظتك المتوافقة مع BNB Smart Chain"},
+ en:{nav:["Home","Earn","Events","Invite","Wallet"],title:"👑 EN96 Royal Wallet",connect:"🔗 Connect Wallet — BNB",wallet:"Connect your wallet",subtitle:"Choose a BNB Smart Chain compatible wallet"},
+ ru:{nav:["Главная","Награды","События","Друзья","Кошелёк"],title:"👑 Кошелёк EN96",connect:"🔗 Подключить кошелёк BNB",wallet:"Подключить кошелёк",subtitle:"Выберите кошелёк BNB Smart Chain"},
+ es:{nav:["Inicio","Premios","Eventos","Invitar","Billetera"],title:"👑 Billetera EN96",connect:"🔗 Conectar billetera BNB",wallet:"Conectar billetera",subtitle:"Elige una billetera compatible con BNB Smart Chain"}
+};
+function setEN96Language(lang){
+ const t=en96Translations[lang]||en96Translations.ar;
+ document.getElementById("en96Language").value=lang;
+ ["home","earn","events","invite","wallet"].forEach((id,i)=>{
+  const btn=document.getElementById("nav-"+id);
+  if(btn)btn.lastChild.textContent=t.nav[i];
+ });
+ const title=document.querySelector("#wallet .page-title");
+ if(title)title.textContent=t.title;
+ const quick=document.querySelector("#en96BNBQuickConnect .en96-connect-btn");
+ if(quick)quick.textContent=t.connect;
+ const modalTitle=document.querySelector(".en96-wallet-sheet h2");
+ if(modalTitle)modalTitle.textContent=t.wallet;
+ const modalSub=document.querySelector(".en96-wallet-sheet > p");
+ if(modalSub)modalSub.textContent=t.subtitle;
+ try{localStorage.setItem("en96_language",lang);}catch(e){}
+}
+try{
+ const selected=localStorage.getItem("en96_language") || ((tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code)||"ar").slice(0,2);
+ setEN96Language(en96Translations[selected]?selected:"ar");
+}catch(e){setEN96Language("ar");}
+
 /* ======================================
    NEW BNB WALLET CONNECT
    UI + LOCAL CONNECTION ONLY
@@ -1752,7 +1810,9 @@ function connectBinanceWallet(){
  const provider=
   (window.binancew3w&&window.binancew3w.ethereum)||
   window.BinanceChain||
-  window.ethereum;
+  (window.ethereum&&Array.isArray(window.ethereum.providers)
+    ? (window.ethereum.providers.find(p=>p.isBinance)||window.ethereum)
+    : window.ethereum);
 
  connectBNBProvider(provider);
 }
