@@ -412,7 +412,7 @@ h1{
  margin-top:13px;
 }
 
-/* ROYAL VIDEO ENTRANCE */
+/* VIDEO INTRO */
 .royal-intro{
  position:fixed;
  inset:0;
@@ -463,6 +463,105 @@ h1{
  font-size:13px;
  line-height:1.6;
 }
+
+/* NEW BNB WALLET SELECTOR ONLY */
+.en96-connect-btn{
+ display:block;
+ width:100%;
+ padding:17px;
+ border:0;
+ border-radius:18px;
+ background:#087cb7;
+ color:white;
+ font-size:18px;
+ font-weight:800;
+ margin:12px 0;
+}
+.en96-wallet-overlay{
+ position:fixed;
+ inset:0;
+ z-index:9000;
+ background:rgba(0,0,0,.65);
+ display:none;
+ align-items:flex-end;
+ justify-content:center;
+}
+.en96-wallet-overlay.open{display:flex}
+.en96-wallet-sheet{
+ width:100%;
+ max-width:520px;
+ max-height:85dvh;
+ overflow-y:auto;
+ background:#141417;
+ color:white;
+ border-radius:28px 28px 0 0;
+ padding:24px 20px max(30px,env(safe-area-inset-bottom));
+ text-align:center;
+ box-shadow:0 -10px 45px #0008;
+}
+.en96-wallet-sheet h2{
+ margin:14px 0;
+ font-size:23px;
+ color:white;
+}
+.en96-wallet-sheet p{
+ color:#aaa;
+ line-height:1.7;
+}
+.en96-wallet-close{
+ float:right;
+ border:0;
+ background:#29292e;
+ color:white;
+ border-radius:50%;
+ width:38px;
+ height:38px;
+ font-size:24px;
+}
+.en96-wallet-choice{
+ width:100%;
+ display:flex;
+ align-items:center;
+ gap:15px;
+ text-align:left;
+ direction:ltr;
+ border:1px solid #34343b;
+ border-radius:16px;
+ background:#232329;
+ color:white;
+ padding:15px;
+ margin-top:12px;
+ font-size:16px;
+}
+.en96-wallet-logo{
+ width:45px;
+ height:45px;
+ display:grid;
+ place-items:center;
+ border-radius:14px;
+ background:#36363b;
+ font-size:25px;
+ flex-shrink:0;
+}
+.en96-wallet-choice small{
+ display:block;
+ color:#aaa;
+ margin-top:4px;
+ font-size:12px;
+}
+.en96-wallet-connect-status{
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+ text-align:center;
+ line-height:1.7;
+ font-size:13px;
+ padding:12px;
+}
+.en96-wallet-note{
+ font-size:12px;
+ color:#aaa;
+ margin-top:20px;
+}
 </style>
 </head>
 
@@ -487,11 +586,9 @@ h1{
    👑 مرحبًا بك في مملكة EN96
    اضغط لتشغيل فيديو الدب الملكي بالصوت.
   </div>
-
   <button id="introPlay" type="button">
    🔊 تشغيل فيديو الدب بالصوت
   </button>
-
   <button id="introEnter" type="button" hidden>
    ⛏️ الدخول إلى التعدين
   </button>
@@ -499,7 +596,6 @@ h1{
 </div>
 
 <main class="app">
-
 <header>
  <strong>👑 EN96 Mining | Ice Bear Kingdom</strong>
  <small>Telegram WebApp</small>
@@ -507,7 +603,6 @@ h1{
 
 <!-- HOME -->
 <section id="home" class="page active">
-
  <div class="top">
   <button class="gold" onclick="invest()">🪙 Invest</button>
   <button class="info" onclick="showInfo()">ⓘ</button>
@@ -563,11 +658,9 @@ h1{
 
  <div class="mining-status">
   <div class="status-heading">⛏️ تقدم تعدين EN96</div>
-
   <div id="miningState" class="state">
    ⏳ جارٍ التحقق من الاتصال
   </div>
-
   <div class="status-grid">
    <div class="status-cell">
     <small>💎 المكافأة التقديرية</small>
@@ -614,7 +707,6 @@ h1{
    🎉 احصل على هدية 5 EN96
    مرة واحدة فقط لكل حساب Telegram.
   </p>
-
   <p>
    تُضاف المكافأة إلى رصيدك
    الموجود في البوت وSupabase.
@@ -689,11 +781,9 @@ h1{
  <div class="card">
   <h3>🐻 قبيلة EN96</h3>
   <p>شارك رابطك الخاص مع الأصدقاء.</p>
-
   <button class="card-button" onclick="copyInvite()">
    🔗 نسخ رابط الدعوة
   </button>
-
   <p id="inviteStatus" class="note"></p>
  </div>
 </section>
@@ -732,9 +822,36 @@ h1{
   </div>
  </div>
 
+ <!-- NEW BNB CONNECT WALLET -->
+ <div class="card">
+  <h3>🔗 BNB Smart Chain Wallet</h3>
+  <p>
+   اربط محفظة Binance Wallet أو محفظة
+   متوافقة مع BNB Smart Chain.
+  </p>
+
+  <button
+   id="en96ConnectWallet"
+   class="en96-connect-btn"
+   type="button"
+   onclick="openBNBWalletModal()">
+   🔗 Connect Wallet
+  </button>
+
+  <div id="en96WalletStatus" class="wallet-message">
+   🔒 لا توجد محفظة BNB موثقة بعد.
+  </div>
+
+  <p class="note">
+   الاتصال بالمحفظة لا يفعّل سك EN96 أو
+   التحويل بين الشبكات. يلزم إثبات الملكية
+   بالتوقيع وتأكيده من الخادم.
+  </p>
+ </div>
+
+ <!-- STELLAR WALLET UNCHANGED -->
  <div class="card">
   <h3>🐻 ربط محفظة Stellar</h3>
-
   <p>
    نستخدم LOBSTR بصورة أساسية لاستلام
    EN96 على شبكة Stellar Mainnet.
@@ -837,8 +954,80 @@ h1{
   <b>💳</b>Wallet
  </button>
 </nav>
-
 </main>
+
+<!-- BNB WALLET BOTTOM SHEET -->
+<div
+ id="en96WalletOverlay"
+ class="en96-wallet-overlay"
+ onclick="walletOverlayClick(event)">
+
+ <div
+  class="en96-wallet-sheet"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Connect BNB Wallet">
+
+  <button
+   class="en96-wallet-close"
+   type="button"
+   onclick="closeBNBWalletModal()"
+   aria-label="Close">
+   ×
+  </button>
+
+  <h2>Connect your wallet</h2>
+
+  <p>
+   اختر محفظتك المتوافقة مع
+   BNB Smart Chain
+  </p>
+
+  <button
+   class="en96-wallet-choice"
+   type="button"
+   onclick="connectBinanceWallet()">
+   <span class="en96-wallet-logo">🟡</span>
+   <span>
+    <strong>Binance Wallet</strong>
+    <small>BNB Smart Chain</small>
+   </span>
+  </button>
+
+  <button
+   class="en96-wallet-choice"
+   type="button"
+   onclick="showTelegramWalletInfo()">
+   <span class="en96-wallet-logo">✈️</span>
+   <span>
+    <strong>Telegram Wallet</strong>
+    <small>Check BNB compatibility</small>
+   </span>
+  </button>
+
+  <button
+   class="en96-wallet-choice"
+   type="button"
+   onclick="connectOtherWallet()">
+   <span class="en96-wallet-logo">💼</span>
+   <span>
+    <strong>Other Wallets</strong>
+    <small>EVM-compatible wallets</small>
+   </span>
+  </button>
+
+  <div
+   id="en96WalletModalStatus"
+   class="en96-wallet-connect-status"
+   aria-live="polite">
+  </div>
+
+  <p class="en96-wallet-note">
+   🔒 لا تشارك مفتاحك الخاص أو عبارة الاسترداد.
+   الاتصال وحده لا يثبت ملكية المحفظة.
+  </p>
+ </div>
+</div>
 
 <script>
 "use strict";
@@ -890,7 +1079,6 @@ if(tg){
 
   video.muted=false;
   video.volume=1;
-
   message.textContent="⏳ جارٍ تشغيل الفيديو...";
 
   let attempt;
@@ -937,7 +1125,6 @@ if(tg){
  });
 
  video.addEventListener("error",videoFailed);
-
  play.addEventListener("click",startVideo);
  enterButton.addEventListener("click",enterMining);
 
@@ -985,9 +1172,11 @@ function openTelegram(url){
   window.location.href=url;
  }
 }
+
 function openBot(){
  openTelegram(BOT);
 }
+
 function startMining(){
  openTelegram(BOT+"?start=mining");
 }
@@ -1447,6 +1636,139 @@ async function copyInvite(){
   output.textContent=link;
  }
 }
+
+/* ======================================
+   NEW BNB WALLET CONNECT
+   UI + LOCAL CONNECTION ONLY
+   ====================================== */
+
+const bnbOverlay=
+ document.getElementById("en96WalletOverlay");
+
+const bnbModalStatus=
+ document.getElementById("en96WalletModalStatus");
+
+const bnbWalletStatus=
+ document.getElementById("en96WalletStatus");
+
+const bnbConnectButton=
+ document.getElementById("en96ConnectWallet");
+
+let bnbConnecting=false;
+
+function openBNBWalletModal(){
+ bnbOverlay.classList.add("open");
+ bnbModalStatus.textContent="";
+}
+
+function closeBNBWalletModal(){
+ bnbOverlay.classList.remove("open");
+}
+
+function walletOverlayClick(event){
+ if(event.target===bnbOverlay){
+  closeBNBWalletModal();
+ }
+}
+
+function validEvmAddress(address){
+ return typeof address==="string" &&
+  /^0x[0-9a-fA-F]{40}$/.test(address);
+}
+
+async function connectBNBProvider(provider){
+ if(bnbConnecting)return;
+
+ if(!provider||
+    typeof provider.request!=="function"){
+  bnbModalStatus.textContent=
+   "⚠️ لم يتم العثور على محفظة BNB متوافقة داخل هذا المتصفح.\n"+
+   "افتح التطبيق من متصفح محفظة Binance Wallet، "+
+   "أو انتظر دعم الاتصال الخارجي عبر WalletConnect.";
+  return;
+ }
+
+ bnbConnecting=true;
+ bnbModalStatus.textContent=
+  "⏳ جارٍ طلب الاتصال بالمحفظة...";
+
+ try{
+  const accounts=await provider.request({
+   method:"eth_requestAccounts"
+  });
+
+  if(!Array.isArray(accounts)||
+     !accounts.length||
+     !validEvmAddress(accounts[0])){
+   throw new Error(
+    "لم تُرجع المحفظة عنوانًا صالحًا."
+   );
+  }
+
+  const chainHex=await provider.request({
+   method:"eth_chainId"
+  });
+
+  const chainId=Number(chainHex);
+
+  if(chainId!==56){
+   bnbModalStatus.textContent=
+    "⚠️ اختر شبكة BNB Smart Chain Mainnet "+
+    "(Chain ID: 56) من داخل محفظتك، ثم أعد المحاولة.";
+   return;
+  }
+
+  const address=accounts[0];
+
+  bnbWalletStatus.textContent=
+   "🔗 تم الاتصال بالمحفظة محليًا:\n"+
+   address+
+   "\n🔒 لم يتم إثبات ملكيتها بالتوقيع أو حفظها في Supabase بعد.";
+
+  bnbConnectButton.textContent=
+   "🔗 "+
+   address.slice(0,6)+
+   "..."+
+   address.slice(-4);
+
+  bnbModalStatus.textContent=
+   "✅ تم الاتصال بالمحفظة.\n"+
+   "⏳ التحقق بالتوقيع قيد التجهيز.";
+
+  setTimeout(closeBNBWalletModal,1200);
+
+ }catch(error){
+  bnbModalStatus.textContent=
+   "⚠️ "+
+   (error&&error.message
+    ?error.message
+    :"تعذر الاتصال بالمحفظة.");
+ }finally{
+  bnbConnecting=false;
+ }
+}
+
+function connectBinanceWallet(){
+ const provider=
+  (window.binancew3w&&window.binancew3w.ethereum)||
+  window.BinanceChain||
+  window.ethereum;
+
+ connectBNBProvider(provider);
+}
+
+function connectOtherWallet(){
+ connectBNBProvider(window.ethereum);
+}
+
+function showTelegramWalletInfo(){
+ bnbModalStatus.textContent=
+  "ℹ️ محفظة TON داخل Telegram ليست محفظة BNB تلقائيًا.\n"+
+  "لربط EN96 على شبكة BNB يلزم استخدام "+
+  "محفظة تدعم EVM وBNB Smart Chain.\n"+
+  "سيُضاف دعم المحافظ الخارجية لاحقًا.";
+}
+
 </script>
 </body>
 </html>
