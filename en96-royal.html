@@ -5,7 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#210909">
-<meta name="en96-build" content="20261114-royal-bnb-v4">
+<meta name="en96-build" content="20261115-royal-bnb-v4-contact">
+<meta name="description" content="EN96 Ice Bear Kingdom official Royal WebApp. Virtual mining, community rewards and wallet information. Contact: fouadkhalouche92@gmail.com">
 <title>EN96 Ice Bear Kingdom | Royal Wallet</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -104,6 +105,10 @@ to{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) 
 .en96-wallet-choice small{display:block;color:#aaa;margin-top:4px;font-size:12px}
 .en96-wallet-connect-status{white-space:pre-wrap;overflow-wrap:anywhere;text-align:center;line-height:1.7;font-size:13px;padding:12px}
 .en96-wallet-note{font-size:12px;color:#aaa;margin-top:20px}
+.official-contact{margin:18px 16px 24px;padding:17px;border:1px solid #d8a24e;border-radius:16px;background:#29100ded;text-align:center;line-height:1.8}
+.official-contact h2{margin:0 0 8px;color:#ffe09c;font-size:18px}
+.official-contact p{margin:6px 0;color:#ffe5d6;font-size:13px}
+.official-contact a{color:#ffe08a;overflow-wrap:anywhere;direction:ltr;display:inline-block}
 </style>
 </head>
 <body>
@@ -295,6 +300,14 @@ to{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) 
  <button id="nav-invite" onclick="showPage('invite')"><b>👥</b><span>Invite</span></button>
  <button id="nav-wallet" onclick="showPage('wallet')"><b>💳</b><span>Wallet</span></button>
 </nav>
+
+<!-- OFFICIAL PROJECT CONTACT -->
+<section class="official-contact" aria-label="EN96 official contact information">
+ <h2>📧 EN96 Ice Bear Kingdom — Official Contact</h2>
+ <p>البريد الإلكتروني الرسمي للتواصل مع مشروع EN96</p>
+ <p><a href="mailto:fouadkhalouche92@gmail.com">fouadkhalouche92@gmail.com</a></p>
+ <p>Official project contact email for EN96 Ice Bear Kingdom.</p>
+</section>
 </main>
 
 <!-- BNB WALLET MODAL -->
@@ -798,13 +811,6 @@ function setEN96Language(lang){
  $("bnbModalSubtitle").textContent=t.subtitle;
  try{localStorage.setItem("en96_language",lang)}catch(e){}
 }
-try{
- const selected=localStorage.getItem("en96_language")||
-  ((tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code)||"ar").slice(0,2);
- setEN96Language(en96Translations[selected]?selected:"ar");
-}catch(e){
- setEN96Language("ar");
-}
 
 /* BNB WALLET CONNECTION */
 const bnbOverlay=$("en96WalletOverlay");
@@ -815,6 +821,14 @@ const bnbConnectButton=$("en96ConnectWallet");
 let bnbConnecting=false;
 let bnbConnectedAddress="";
 let bnbConnectedProvider=null;
+
+try{
+ const selected=localStorage.getItem("en96_language")||
+  ((tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code)||"ar").slice(0,2);
+ setEN96Language(en96Translations[selected]?selected:"ar");
+}catch(e){
+ setEN96Language("ar");
+}
 
 function openBNBWalletModal(){
  bnbOverlay.classList.add("open");
