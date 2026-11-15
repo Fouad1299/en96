@@ -1,0 +1,30 @@
+
+name: EN96 Validator Safety Tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validator-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout EN96 repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run EN96 validator safety tests
+        run: |
+          python -m unittest -v test_en96_validator_signer.py
+
+      - name: Confirm safe mode
+        run: |
+          python en96_validator_signer.py
