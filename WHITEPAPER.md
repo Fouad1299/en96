@@ -1,7 +1,8 @@
 
 # EN96 Ice Bear Kingdom
 ## Official Project Whitepaper
-**Version:** 1.0 — November 2026  
+
+**Version:** 1.1 — November 2026  
 **Project:** EN96 Ice Bear Kingdom  
 **Token Symbol:** EN96  
 **Networks:** Stellar Mainnet and BNB Smart Chain  
@@ -228,6 +229,14 @@ Participation should not be interpreted as an investment guarantee.
 
 **Project Founder:** Fouad Khalouche
 
+**Founder Professional Profile (LinkedIn):**
+
+https://www.linkedin.com/in/fouad-khalouche-96aa41357/
+
+**Official Project Contact Email:**
+
+fouadkhalouche92@gmail.com
+
 **Official Project Website:**
 
 https://fouad1299.github.io/en96/about.html
@@ -251,6 +260,18 @@ https://www.tiktok.com/@en96mining
 **BNB Token Explorer:**
 
 https://bscscan.com/token/0x0B743Ab46Ab4D58CA21F4E7e1bDfaf91Ab171177
+
+### Transparency and Communication
+
+EN96 Ice Bear Kingdom is an independently developed digital asset and community rewards project.
+
+The founder's public professional profile is available through the LinkedIn link above.
+
+The project publishes information about its token, community activities, development plans, and technical documentation through its official website and public GitHub repository.
+
+The contact email listed above is the project's publicly designated communication address. It is a Gmail address and is not an email account hosted on a dedicated EN96 domain.
+
+Project information and development status may be updated as the ecosystem evolves.
 
 ## 15. Disclaimer
 
