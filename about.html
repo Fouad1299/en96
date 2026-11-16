@@ -119,6 +119,18 @@ button.active {
   color: #111;
 }
 
+.contact-email {
+  display: inline-block;
+  padding: 10px 16px;
+  border: 1px solid #d5a94f;
+  border-radius: 9px;
+  font-weight: bold;
+  font-size: 16px;
+  direction: ltr;
+  unicode-bidi: isolate;
+  overflow-wrap: anywhere;
+}
+
 [dir="rtl"] section {
   text-align: right;
 }
@@ -138,6 +150,11 @@ button.active {
 
   section {
     padding: 16px;
+  }
+
+  .contact-email {
+    font-size: 14px;
+    max-width: 100%;
   }
 }
 </style>
@@ -303,6 +320,40 @@ button.active {
   </p>
 </section>
 
+<!-- OFFICIAL PROJECT CONTACT -->
+
+<section id="contact">
+  <h2 data-i18n="contactTitle">
+    Official Project Contact
+  </h2>
+
+  <p data-i18n="contactText">
+    For official inquiries about EN96 Ice Bear Kingdom,
+    project information, partnerships, and token details,
+    please contact the project through the email below.
+  </p>
+
+  <p>
+    <strong data-i18n="contactEmailLabel">
+      Official contact email:
+    </strong>
+  </p>
+
+  <p>
+    <a
+      class="contact-email"
+      href="mailto:fouadkhalouche92@gmail.com"
+    >
+      fouadkhalouche92@gmail.com
+    </a>
+  </p>
+
+  <p data-i18n="contactNotice">
+    This email is published as the official contact
+    address for EN96 Ice Bear Kingdom.
+  </p>
+</section>
+
 <section>
   <h2 data-i18n="linksTitle">
     Official Links
@@ -446,6 +497,18 @@ const translations = {
     founderLinkedIn:
       "View Founder Profile on LinkedIn",
 
+    contactTitle:
+      "Official Project Contact",
+
+    contactText:
+      "For official inquiries about EN96 Ice Bear Kingdom, project information, partnerships, and token details, please contact the project through the email below.",
+
+    contactEmailLabel:
+      "Official contact email:",
+
+    contactNotice:
+      "This email is published as the official contact address for EN96 Ice Bear Kingdom.",
+
     linksTitle: "Official Links",
 
     githubLink: "GitHub Repository",
@@ -514,6 +577,18 @@ const translations = {
 
     founderLinkedIn:
       "عرض الملف المهني للمؤسس على LinkedIn",
+
+    contactTitle:
+      "التواصل الرسمي مع المشروع",
+
+    contactText:
+      "للاستفسارات الرسمية عن مشروع EN96 Ice Bear Kingdom، ومعلومات المشروع، والشراكات، وتفاصيل العملة، يرجى التواصل عبر البريد الإلكتروني أدناه.",
+
+    contactEmailLabel:
+      "البريد الإلكتروني الرسمي للتواصل:",
+
+    contactNotice:
+      "هذا البريد الإلكتروني منشور باعتباره عنوان التواصل الرسمي لمشروع EN96 Ice Bear Kingdom.",
 
     linksTitle: "الروابط الرسمية",
 
