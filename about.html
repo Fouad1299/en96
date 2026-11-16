@@ -103,6 +103,22 @@ button.active {
   margin-top: 8px;
 }
 
+.founder-link {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border: 1px solid #d5a94f;
+  border-radius: 9px;
+  color: #f4cd79;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.founder-link:hover {
+  background: #d5a94f;
+  color: #111;
+}
+
 [dir="rtl"] section {
   text-align: right;
 }
@@ -269,8 +285,21 @@ button.active {
 
   <p data-i18n="founderText">
     The project is in development.
-    Public professional profiles and additional
-    documentation will be added when available.
+    The founder's public professional profile is
+    available on LinkedIn. Additional project
+    documentation will be published as it becomes available.
+  </p>
+
+  <p>
+    <a
+      class="founder-link"
+      href="https://www.linkedin.com/in/fouad-khalouche-96aa41357/"
+      target="_blank"
+      rel="noopener noreferrer"
+      data-i18n="founderLinkedIn"
+    >
+      View Founder Profile on LinkedIn
+    </a>
   </p>
 </section>
 
@@ -412,7 +441,10 @@ const translations = {
     founderLabel: "Founder:",
 
     founderText:
-      "The project is in development. Public professional profiles and additional documentation will be added when available.",
+      "The project is in development. The founder's public professional profile is available on LinkedIn. Additional project documentation will be published as it becomes available.",
+
+    founderLinkedIn:
+      "View Founder Profile on LinkedIn",
 
     linksTitle: "Official Links",
 
@@ -478,7 +510,10 @@ const translations = {
     founderLabel: "المؤسس:",
 
     founderText:
-      "المشروع قيد التطوير. ستتم إضافة الملفات المهنية العامة والوثائق الإضافية عند توفرها.",
+      "المشروع قيد التطوير. الملف المهني العام لمؤسس المشروع متاح على LinkedIn، وسيتم نشر وثائق إضافية للمشروع عند توفرها.",
+
+    founderLinkedIn:
+      "عرض الملف المهني للمؤسس على LinkedIn",
 
     linksTitle: "الروابط الرسمية",
 
