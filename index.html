@@ -1,7 +1,16 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<script>
+(function () {
+  const path = window.location.pathname;
+  if (path === "/" || path === "/index.html" ||
+      path === "/en96/" || path === "/en96/index.html") {
+    window.location.replace("en96-royal.html" + window.location.search + window.location.hash);
+  }
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#040913">
