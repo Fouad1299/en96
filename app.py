@@ -1,4 +1,3 @@
-
 import hashlib
 import hmac
 import json
@@ -43,7 +42,11 @@ RATE = 0.001
 TAP_LIMIT = 3650
 TAP_DAILY_REWARD = 15
 
-ROYAL_ORIGIN = "https://fouad1299.github.io"
+ROYAL_ORIGINS = {
+    "https://fouad1299.github.io",
+    "https://en96.top",
+    "https://www.en96.top",
+}
 
 IMAGE_ALIASES = {
     "en96-welcome.jpg": [
@@ -85,8 +88,8 @@ def security_headers(response):
 
     if request.path.startswith("/api/"):
         origin = request.headers.get("Origin", "")
-        if origin == ROYAL_ORIGIN:
-            response.headers["Access-Control-Allow-Origin"] = ROYAL_ORIGIN
+        if origin in ROYAL_ORIGINS:
+            response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Methods"] = (
                 "GET, POST, OPTIONS"
             )
