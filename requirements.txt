@@ -1,5 +1,5 @@
-
 pyTelegramBotAPI
 Flask
 supabase
 eth-account
+stellar-sdk
