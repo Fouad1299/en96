@@ -1,3 +1,4 @@
+
 import hashlib
 import hmac
 import json
@@ -17,6 +18,10 @@ from flask import (
 )
 
 import bot as en96_bot
+from en96_stellar_verifier import (
+    verify_deposit,
+    StellarVerificationError,
+)
 from en96_accounts import RegistrationError, ensure_profile
 
 # BNB wallet signature verification
