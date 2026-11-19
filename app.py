@@ -842,6 +842,48 @@ def tap_action():
 
 
 # ======================================
+# ADMIN-ONLY STELLAR DEPOSIT VERIFICATION
+# READ ONLY - NO MINTING OR DATABASE WRITES
+# ======================================
+
+@app.post("/api/admin/stellar/verify-deposit")
+def admin_verify_stellar_deposit():
+    user, auth_error = telegram_user()
+    if auth_error:
+        return jsonify(error=auth_error), 401
+
+    admin_id = os.getenv("ADMIN_TELEGRAM_ID", "8721009110")
+    if not hmac.compare_digest(user["id"], admin_id):
+        return jsonify(error="غير مصرح لك بالوصول."), 403
+
+    if request.content_length is not None and request.content_length > 2048:
+        return jsonify(error="حجم الطلب كبير جدًا."), 413
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify(error="بيانات الطلب غير صالحة."), 400
+
+    tx_hash = payload.get("stellar_tx_hash")
+    op_index = payload.get("operation_index")
+    if not isinstance(tx_hash, str) or not re.fullmatch(
+        r"[0-9a-fA-F]{64}", tx_hash
+    ):
+        return jsonify(error="معرّف معاملة Stellar غير صالح."), 400
+
+    if type(op_index) is not int or not 0 <= op_index <= 10000:
+        return jsonify(error="رقم العملية غير صالح."), 400
+
+    try:
+        result = verify_deposit(tx_hash, op_index)
+        return jsonify(success=True, read_only=True, deposit=result)
+    except StellarVerificationError as exc:
+        return jsonify(success=False, error=str(exc)), 422
+    except Exception:
+        log.exception("Admin Stellar deposit verification failed")
+        return jsonify(error="تعذر التحقق من المعاملة الآن."), 503
+
+
+# ======================================
 # STELLAR TOML
 # ======================================
 
