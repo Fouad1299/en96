@@ -1,51 +1,62 @@
-
-import hashlib
+ import hashlib
 import hmac
 import json
 import logging
 import os
 import re
+import secrets
 import threading
 import time
-from datetime import datetime, timezone
+
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl
 from uuid import UUID
 
 from flask import (
-    Flask, Response, abort, jsonify,
-    request, send_from_directory
+    Flask,
+    Response,
+    abort,
+    jsonify,
+    request,
+    send_from_directory,
 )
 
 import bot as en96_bot
-from en96_stellar_verifier import (
-    verify_deposit,
-    StellarVerificationError,
-)
-from en96_accounts import RegistrationError, ensure_profile
 
-# BNB wallet signature verification
+from en96_accounts import RegistrationError, ensure_profile
+from en96_stellar_verifier import (
+    StellarVerificationError,
+    verify_deposit,
+)
 from en96_bnb_security import (
     normalize_bnb_address,
     build_wallet_message,
     verify_wallet_signature,
 )
 
-# ======================================
+
+# ==========================================
 # EN96 ICE BEAR KINGDOM
-# ======================================
+# Stellar Mainnet + BNB Wallet Verification
+# No minting or token transfers
+# ==========================================
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("EN96")
 
 app = Flask(__name__)
 BASE = Path(__file__).resolve().parent
+
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 DURATION = 86400
 RATE = 0.001
 TAP_LIMIT = 3650
 TAP_DAILY_REWARD = 15
+
+BNB_CHAIN_ID = 56
+BNB_CHALLENGE_SECONDS = 300
 
 ROYAL_ORIGINS = {
     "https://fouad1299.github.io",
@@ -58,20 +69,20 @@ IMAGE_ALIASES = {
         "en96-welcome.jpg",
         "en96-welcome .jpg",
         "en96-welcome (1).jpg",
-        "en96-welcome (2).jpg"
+        "en96-welcome (2).jpg",
     ],
     "en96-bear-face.webp": [
         "en96-bear-face.webp",
         "en96-bear-face .webp",
         "en96-bear-face (1).webp",
-        "en96-bear-face (2).webp"
+        "en96-bear-face (2).webp",
     ],
     "en96-coin.webp": [
         "en96-coin.webp",
         "en96-coin .webp",
         "en96-coin (1).webp",
-        "en96-coin (2).webp"
-    ]
+        "en96-coin (2).webp",
+    ],
 }
 
 RAW_IMAGE_BASE = (
@@ -80,9 +91,9 @@ RAW_IMAGE_BASE = (
 )
 
 
-# ======================================
+# ==========================================
 # SECURITY AND CORS
-# ======================================
+# ==========================================
 
 @app.after_request
 def security_headers(response):
@@ -93,6 +104,7 @@ def security_headers(response):
 
     if request.path.startswith("/api/"):
         origin = request.headers.get("Origin", "")
+
         if origin in ROYAL_ORIGINS:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Methods"] = (
@@ -126,15 +138,20 @@ def wrong_method(error):
     return error
 
 
-# ======================================
+# ==========================================
 # TELEGRAM AUTHENTICATION
-# ======================================
+# ==========================================
 
 def telegram_user():
-    init_data = request.headers.get("X-Telegram-Init-Data", "")
+    init_data = request.headers.get(
+        "X-Telegram-Init-Data", ""
+    )
 
     if not init_data:
-        authorization = request.headers.get("Authorization", "")
+        authorization = request.headers.get(
+            "Authorization", ""
+        )
+
         if authorization.lower().startswith("tma "):
             init_data = authorization[4:].strip()
 
@@ -146,12 +163,18 @@ def telegram_user():
 
     try:
         fields = dict(
-            parse_qsl(init_data, keep_blank_values=True)
+            parse_qsl(
+                init_data,
+                keep_blank_values=True,
+            )
         )
 
         received_hash = fields.pop("hash", "")
 
-        if not re.fullmatch(r"[0-9a-fA-F]{64}", received_hash):
+        if not re.fullmatch(
+            r"[0-9a-fA-F]{64}",
+            received_hash,
+        ):
             return None, "توقيع Telegram غير صالح."
 
         check_string = "\n".join(
@@ -162,31 +185,36 @@ def telegram_user():
         secret_key = hmac.new(
             b"WebAppData",
             BOT_TOKEN.encode("utf-8"),
-            hashlib.sha256
+            hashlib.sha256,
         ).digest()
 
         expected_hash = hmac.new(
             secret_key,
             check_string.encode("utf-8"),
-            hashlib.sha256
+            hashlib.sha256,
         ).hexdigest()
 
         if not hmac.compare_digest(
             expected_hash,
-            received_hash.lower()
+            received_hash.lower(),
         ):
             return None, "فشل التحقق من هوية Telegram."
 
         now = int(time.time())
         auth_date = int(fields.get("auth_date", "0"))
 
-        if auth_date < now - 86400 or auth_date > now + 60:
+        if (
+            auth_date < now - 86400
+            or auth_date > now + 60
+        ):
             return None, (
                 "انتهت صلاحية الجلسة. "
                 "افتح التطبيق من البوت مجددًا."
             )
 
-        user = json.loads(fields.get("user", "{}"))
+        user = json.loads(
+            fields.get("user", "{}")
+        )
 
         if not isinstance(user, dict):
             return None, "بيانات المستخدم غير صالحة."
@@ -198,7 +226,9 @@ def telegram_user():
 
         return {
             "id": telegram_id,
-            "first_name": str(user.get("first_name", ""))[:80]
+            "first_name": str(
+                user.get("first_name", "")
+            )[:80],
         }, None
 
     except (TypeError, ValueError, KeyError):
@@ -209,32 +239,49 @@ def current_account():
     user, error = telegram_user()
 
     if error:
-        return None, None, (jsonify(error=error), 401)
+        return None, None, (
+            jsonify(error=error),
+            401,
+        )
 
     try:
-        profile = ensure_profile(en96_bot.db, user["id"])
+        profile = ensure_profile(
+            en96_bot.db,
+            user["id"],
+        )
+
         return user, profile, None
 
     except RegistrationError as exc:
-        return None, None, (jsonify(error=str(exc)), 409)
+        return None, None, (
+            jsonify(error=str(exc)),
+            409,
+        )
 
     except Exception:
         log.exception("EN96 profile error")
+
         return None, None, (
-            jsonify(error="تعذر تحميل حساب EN96."), 500
+            jsonify(
+                error="تعذر تحميل حساب EN96."
+            ),
+            500,
         )
 
 
-# ======================================
+# ==========================================
 # DATABASE HELPERS
-# ======================================
+# ==========================================
 
 def wallet_for(profile):
     rows = (
-        en96_bot.db.table("balances")
+        en96_bot.db
+        .table("balances")
         .select("available,reserved")
         .eq("user_id", profile["id"])
-        .limit(1).execute().data or []
+        .limit(1)
+        .execute()
+        .data or []
     )
 
     if not rows:
@@ -264,22 +311,27 @@ def parse_utc(value):
     )
 
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(
+            tzinfo=timezone.utc
+        )
 
     return parsed
 
 
-# ======================================
+# ==========================================
 # MINING SESSION
-# ======================================
+# ==========================================
 
 def mining_state(profile):
     rows = (
-        en96_bot.db.table("mining_sessions")
+        en96_bot.db
+        .table("mining_sessions")
         .select("started_at")
         .eq("user_id", profile["id"])
         .order("started_at", desc=True)
-        .limit(1).execute().data or []
+        .limit(1)
+        .execute()
+        .data or []
     )
 
     now = time.time()
@@ -291,18 +343,32 @@ def mining_state(profile):
             "remaining_seconds": DURATION,
             "duration": DURATION,
             "rate": RATE,
-            "server_time": now
+            "server_time": now,
         }
 
     started_str = rows[0]["started_at"]
     started = parse_utc(started_str)
-    raw_elapsed = max(0, now - started.timestamp())
-    elapsed = min(DURATION, raw_elapsed)
-    remaining = max(0, DURATION - elapsed)
+
+    raw_elapsed = max(
+        0,
+        now - started.timestamp(),
+    )
+
+    elapsed = min(
+        DURATION,
+        raw_elapsed,
+    )
+
+    remaining = max(
+        0,
+        DURATION - elapsed,
+    )
 
     return {
         "status": (
-            "ready" if raw_elapsed >= DURATION else "active"
+            "ready"
+            if raw_elapsed >= DURATION
+            else "active"
         ),
         "started_at": started_str,
         "elapsed_seconds": int(elapsed),
@@ -310,19 +376,22 @@ def mining_state(profile):
         "duration": DURATION,
         "rate": RATE,
         "estimated_reward": f"{elapsed * RATE:.7f}",
-        "server_time": now
+        "server_time": now,
     }
 
 
-# ======================================
+# ==========================================
 # WEBSITE AND IMAGES
-# ======================================
+# ==========================================
 
 def find_image(filename):
     if filename not in IMAGE_ALIASES:
         return None
 
-    for folder in (BASE / "assets", BASE):
+    for folder in (
+        BASE / "assets",
+        BASE,
+    ):
         for candidate in IMAGE_ALIASES[filename]:
             if (folder / candidate).is_file():
                 return folder, candidate
@@ -333,19 +402,23 @@ def find_image(filename):
 @app.get("/")
 def homepage():
     try:
-        html = (BASE / "index.html").read_text(
-            encoding="utf-8"
-        )
+        html = (
+            BASE / "index.html"
+        ).read_text(encoding="utf-8")
+
     except OSError:
         return "Missing index.html", 500
 
     for name in IMAGE_ALIASES:
         html = html.replace(
             RAW_IMAGE_BASE + name,
-            "/assets/" + name
+            "/assets/" + name,
         )
 
-    return Response(html, mimetype="text/html")
+    return Response(
+        html,
+        mimetype="text/html",
+    )
 
 
 @app.get("/assets/<path:filename>")
@@ -356,7 +429,11 @@ def asset(filename):
         abort(404)
 
     folder, name = found
-    return send_from_directory(str(folder), name)
+
+    return send_from_directory(
+        str(folder),
+        name,
+    )
 
 
 @app.get("/health")
@@ -367,13 +444,13 @@ def health():
         "images": {
             name: bool(find_image(name))
             for name in IMAGE_ALIASES
-        }
+        },
     })
 
 
-# ======================================
+# ==========================================
 # ACCOUNT AND WALLET
-# ======================================
+# ==========================================
 
 @app.get("/api/me")
 def me():
@@ -389,20 +466,340 @@ def me():
             "telegram_id": user["id"],
             "first_name": user["first_name"],
             "stellar_public_address": (
-                profile.get("stellar_public_address") or ""
+                profile.get("stellar_public_address")
+                or ""
             ),
-            "available": str(wallet.get("available") or 0),
-            "reserved": str(wallet.get("reserved") or 0)
+            "available": str(
+                wallet.get("available") or 0
+            ),
+            "reserved": str(
+                wallet.get("reserved") or 0
+            ),
         })
 
     except Exception:
         log.exception("Wallet API error")
-        return jsonify(error="تعذر تحميل المحفظة."), 500
+
+        return jsonify(
+            error="تعذر تحميل المحفظة."
+        ), 500
 
 
-# ======================================
+# ==========================================
+# BNB WALLET OWNERSHIP VERIFICATION
+# ==========================================
+
+def bnb_json_payload():
+    if (
+        request.content_length is not None
+        and request.content_length > 4096
+    ):
+        return None, (
+            jsonify(error="حجم الطلب كبير جدًا."),
+            413,
+        )
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return None, (
+            jsonify(error="بيانات الطلب غير صالحة."),
+            400,
+        )
+
+    return data, None
+
+
+@app.post("/api/bnb/wallet/challenge")
+def create_bnb_wallet_challenge():
+    user, profile, failure = current_account()
+
+    if failure:
+        return failure
+
+    data, failure = bnb_json_payload()
+
+    if failure:
+        return failure
+
+    try:
+        address = normalize_bnb_address(
+            data.get("bnb_address")
+        )
+
+    except ValueError:
+        return jsonify(
+            error="عنوان BNB غير صالح."
+        ), 400
+
+    now = datetime.now(timezone.utc)
+
+    expiry = now + timedelta(
+        seconds=BNB_CHALLENGE_SECONDS
+    )
+
+    nonce = secrets.token_hex(32)
+
+    message = build_wallet_message(
+        user["id"],
+        address,
+        nonce,
+        now.isoformat(),
+        expiry.isoformat(),
+    )
+
+    nonce_hash = hashlib.sha256(
+        nonce.encode("ascii")
+    ).hexdigest()
+
+    try:
+        (
+            en96_bot.db
+            .table("en96_bnb_wallet_challenges")
+            .delete()
+            .eq("user_id", profile["id"])
+            .is_("used_at", "null")
+            .execute()
+        )
+
+        rows = (
+            en96_bot.db
+            .table("en96_bnb_wallet_challenges")
+            .insert({
+                "user_id": profile["id"],
+                "bnb_address": address,
+                "nonce_hash": nonce_hash,
+                "message": message,
+                "expires_at": expiry.isoformat(),
+            })
+            .execute()
+            .data or []
+        )
+
+        if (
+            len(rows) != 1
+            or not rows[0].get("id")
+        ):
+            raise RuntimeError(
+                "BNB challenge not persisted"
+            )
+
+        return jsonify(
+            success=True,
+            challenge_id=rows[0]["id"],
+            message=message,
+            expires_at=expiry.isoformat(),
+            chain_id=BNB_CHAIN_ID,
+        )
+
+    except Exception:
+        log.exception(
+            "BNB challenge creation failed"
+        )
+
+        return jsonify(
+            error="تعذر إنشاء تحدي المحفظة."
+        ), 503
+
+
+@app.post("/api/bnb/wallet/verify")
+def verify_bnb_wallet_link():
+    user, profile, failure = current_account()
+
+    if failure:
+        return failure
+
+    data, failure = bnb_json_payload()
+
+    if failure:
+        return failure
+
+    try:
+        challenge_id = str(
+            UUID(
+                data.get("challenge_id", "")
+            )
+        )
+
+        address = normalize_bnb_address(
+            data.get("bnb_address")
+        )
+
+    except (
+        TypeError,
+        ValueError,
+        AttributeError,
+    ):
+        return jsonify(
+            error="بيانات التحدي غير صالحة."
+        ), 400
+
+    signature = data.get("signature")
+
+    if (
+        not isinstance(signature, str)
+        or not re.fullmatch(
+            r"0x[0-9a-fA-F]{130}",
+            signature,
+        )
+    ):
+        return jsonify(
+            error="صيغة التوقيع غير صالحة."
+        ), 400
+
+    try:
+        rows = (
+            en96_bot.db
+            .table("en96_bnb_wallet_challenges")
+            .select(
+                "id,user_id,bnb_address,"
+                "nonce_hash,message,expires_at,used_at"
+            )
+            .eq("id", challenge_id)
+            .eq("user_id", profile["id"])
+            .limit(1)
+            .execute()
+            .data or []
+        )
+
+        if len(rows) != 1:
+            return jsonify(
+                error="تحدي المحفظة غير موجود."
+            ), 400
+
+        challenge = rows[0]
+
+        if (
+            challenge["used_at"] is not None
+            or challenge["bnb_address"] != address
+            or parse_utc(
+                challenge["expires_at"]
+            ) <= datetime.now(timezone.utc)
+        ):
+            return jsonify(
+                error="تحدي المحفظة منتهي أو مستخدم."
+            ), 409
+
+        message = challenge["message"]
+
+        nonce_match = re.search(
+            r"(?m)^Nonce: ([0-9a-f]{64})$",
+            message,
+        )
+
+        issued_match = re.search(
+            r"(?m)^Issued At: (.+)$",
+            message,
+        )
+
+        expires_match = re.search(
+            r"(?m)^Expires At: (.+)$",
+            message,
+        )
+
+        if not (
+            nonce_match
+            and issued_match
+            and expires_match
+        ):
+            return jsonify(
+                error="رسالة التحقق غير صالحة."
+            ), 400
+
+        nonce = nonce_match.group(1)
+
+        calculated_hash = hashlib.sha256(
+            nonce.encode("ascii")
+        ).hexdigest()
+
+        if not hmac.compare_digest(
+            calculated_hash,
+            challenge["nonce_hash"],
+        ):
+            return jsonify(
+                error="رمز التحقق غير مطابق."
+            ), 400
+
+        expected_message = build_wallet_message(
+            user["id"],
+            address,
+            nonce,
+            issued_match.group(1),
+            expires_match.group(1),
+        )
+
+        if not hmac.compare_digest(
+            expected_message,
+            message,
+        ):
+            return jsonify(
+                error="محتوى رسالة التحقق غير مطابق."
+            ), 400
+
+        if (
+            parse_utc(expires_match.group(1))
+            != parse_utc(challenge["expires_at"])
+        ):
+            return jsonify(
+                error="صلاحية رسالة التحقق غير مطابقة."
+            ), 400
+
+        if (
+            parse_utc(issued_match.group(1))
+            > datetime.now(timezone.utc)
+        ):
+            return jsonify(
+                error="وقت رسالة التحقق غير صالح."
+            ), 400
+
+        if not verify_wallet_signature(
+            message,
+            signature,
+            address,
+        ):
+            return jsonify(
+                error="توقيع المحفظة غير صحيح."
+            ), 403
+
+        result = (
+            en96_bot.db
+            .rpc(
+                "en96_complete_bnb_wallet_link",
+                {
+                    "p_challenge_id": challenge_id,
+                    "p_user_id": profile["id"],
+                    "p_bnb_address": address,
+                    "p_nonce_hash": challenge["nonce_hash"],
+                },
+            )
+            .execute()
+            .data
+        )
+
+        if result is not True:
+            return jsonify(
+                error="رفضت قاعدة البيانات ربط المحفظة."
+            ), 409
+
+        return jsonify(
+            success=True,
+            verified=True,
+            bnb_address=address,
+        )
+
+    except Exception:
+        log.exception(
+            "BNB wallet verification failed"
+        )
+
+        return jsonify(
+            error="تعذر التحقق من المحفظة."
+        ), 503
+
+
+# ==========================================
 # MINING API
-# ======================================
+# ==========================================
 
 @app.get("/api/mining/status")
 def mining_status():
@@ -412,9 +809,15 @@ def mining_status():
         return failure
 
     try:
-        return jsonify(mining_state(profile))
+        return jsonify(
+            mining_state(profile)
+        )
+
     except Exception:
-        log.exception("Mining status error")
+        log.exception(
+            "Mining status error"
+        )
+
         return jsonify(
             error="تعذر قراءة حالة التعدين."
         ), 500
@@ -431,35 +834,44 @@ def mining_action():
         result = rpc_value(
             en96_bot.db.rpc(
                 "en96_mining_action",
-                {"p_telegram_id": user["id"]}
+                {
+                    "p_telegram_id": user["id"]
+                },
             ).execute()
         )
 
         status = result.get("status")
 
         if status not in (
-            "started", "active", "rewarded_and_started"
+            "started",
+            "active",
+            "rewarded_and_started",
         ):
             return jsonify(
                 success=False,
                 error="لم تؤكد Supabase عملية التعدين.",
-                result=result
+                result=result,
             ), 409
 
         return jsonify(
             success=True,
             result=result,
-            mining=mining_state(profile)
+            mining=mining_state(profile),
         )
 
     except Exception:
-        log.exception("Mining action error")
-        return jsonify(error="تعذر تنفيذ التعدين."), 500
+        log.exception(
+            "Mining action error"
+        )
+
+        return jsonify(
+            error="تعذر تنفيذ التعدين."
+        ), 500
 
 
-# ======================================
+# ==========================================
 # 5 EN96 GIFT
-# ======================================
+# ==========================================
 
 @app.get("/api/gift5/status")
 def gift5_status():
@@ -470,19 +882,25 @@ def gift5_status():
 
     try:
         rows = (
-            en96_bot.db.table("en96_gift5_claims")
+            en96_bot.db
+            .table("en96_gift5_claims")
             .select("claimed_at")
             .eq("user_id", profile["id"])
-            .limit(1).execute().data or []
+            .limit(1)
+            .execute()
+            .data or []
         )
 
         return jsonify(
             claimed=bool(rows),
-            reward=5
+            reward=5,
         )
 
     except Exception:
-        log.exception("Gift5 status error")
+        log.exception(
+            "Gift5 status error"
+        )
+
         return jsonify(
             error="تعذر معرفة حالة هدية 5 EN96."
         ), 500
@@ -499,7 +917,9 @@ def gift5_claim():
         result = rpc_value(
             en96_bot.db.rpc(
                 "en96_claim_gift5",
-                {"p_telegram_id": user["id"]}
+                {
+                    "p_telegram_id": user["id"]
+                },
             ).execute()
         )
 
@@ -510,32 +930,37 @@ def gift5_claim():
                 success=True,
                 claimed=True,
                 reward=5,
-                available=str(result.get("available", "0"))
+                available=str(
+                    result.get("available", "0")
+                ),
             )
 
         if state == "already_claimed":
             return jsonify(
                 success=False,
                 claimed=True,
-                error="استلمت هذه الهدية سابقًا."
+                error="استلمت هذه الهدية سابقًا.",
             )
 
         return jsonify(
             success=False,
             claimed=False,
-            error="تعذر استلام هدية 5 EN96."
+            error="تعذر استلام هدية 5 EN96.",
         ), 409
 
     except Exception:
-        log.exception("Gift5 claim error")
+        log.exception(
+            "Gift5 claim error"
+        )
+
         return jsonify(
             error="تعذر تسجيل الهدية الآن."
         ), 500
 
 
-# ======================================
+# ==========================================
 # VIDEO GIFTS
-# ======================================
+# ==========================================
 
 @app.get("/api/videos")
 def videos():
@@ -546,17 +971,30 @@ def videos():
 
     try:
         rows = (
-            en96_bot.db.table("video_gift_codes")
-            .select("video_url,description,reward")
+            en96_bot.db
+            .table("video_gift_codes")
+            .select(
+                "video_url,description,reward"
+            )
             .eq("active", True)
-            .order("created_at", desc=True)
-            .limit(10).execute().data or []
+            .order(
+                "created_at",
+                desc=True,
+            )
+            .limit(10)
+            .execute()
+            .data or []
         )
 
-        return jsonify(videos=rows)
+        return jsonify(
+            videos=rows
+        )
 
     except Exception:
-        log.exception("Videos API error")
+        log.exception(
+            "Videos API error"
+        )
+
         return jsonify(
             error="تعذر تحميل الفيديوهات."
         ), 500
@@ -569,46 +1007,63 @@ def redeem_gift():
     if failure:
         return failure
 
-    payload = request.get_json(silent=True)
+    payload = request.get_json(
+        silent=True
+    )
 
     if (
         not isinstance(payload, dict)
-        or not isinstance(payload.get("code"), str)
+        or not isinstance(
+            payload.get("code"),
+            str,
+        )
     ):
-        return jsonify(error="أدخل كود الهدية."), 400
+        return jsonify(
+            error="أدخل كود الهدية."
+        ), 400
 
     code = payload["code"].strip()
 
     if not 1 <= len(code) <= 100:
-        return jsonify(error="كود الهدية غير صالح."), 400
+        return jsonify(
+            error="كود الهدية غير صالح."
+        ), 400
 
     try:
         result = rpc_value(
             en96_bot.db.rpc(
                 "redeem_en96_video_gift",
                 {
-                    "p_telegram_id": int(user["id"]),
-                    "p_code": code
-                }
+                    "p_telegram_id": int(
+                        user["id"]
+                    ),
+                    "p_code": code,
+                },
             ).execute()
         )
 
         if result.get("ok") is True:
             return jsonify(
                 success=True,
-                reward=result.get("reward", 1)
+                reward=result.get(
+                    "reward",
+                    1,
+                ),
             )
 
         reasons = {
-            "invalid_input": "كود غير صالح.",
-            "profile_not_found": "الحساب غير موجود.",
+            "invalid_input":
+                "كود غير صالح.",
+            "profile_not_found":
+                "الحساب غير موجود.",
             "invalid_or_inactive_code":
                 "الكود غير صالح أو غير مفعّل.",
-            "already_claimed": "استُخدم هذا الكود سابقًا.",
+            "already_claimed":
+                "استُخدم هذا الكود سابقًا.",
             "cooldown_2_hours":
                 "يمكنك استلام هدية بعد ساعتين.",
             "balance_not_found":
-                "رصيد الحساب غير موجود."
+                "رصيد الحساب غير موجود.",
         }
 
         reason = str(
@@ -621,20 +1076,23 @@ def redeem_gift():
             success=False,
             error=reasons.get(
                 reason,
-                "لم تُقبل الهدية: " + reason
-            )
+                "لم تُقبل الهدية: " + reason,
+            ),
         ), 400
 
     except Exception:
-        log.exception("Gift claim error")
+        log.exception(
+            "Gift claim error"
+        )
+
         return jsonify(
             error="تعذر استلام الهدية."
         ), 500
 
 
-# ======================================
+# ==========================================
 # STELLAR ADDRESS
-# ======================================
+# ==========================================
 
 @app.post("/api/profile/stellar")
 def save_stellar_address():
@@ -643,19 +1101,31 @@ def save_stellar_address():
     if failure:
         return failure
 
-    payload = request.get_json(silent=True)
+    payload = request.get_json(
+        silent=True
+    )
 
     if (
         not isinstance(payload, dict)
-        or not isinstance(payload.get("address"), str)
+        or not isinstance(
+            payload.get("address"),
+            str,
+        )
     ):
         return jsonify(
             error="أدخل عنوان Stellar العام."
         ), 400
 
-    address = payload["address"].strip().upper()
+    address = (
+        payload["address"]
+        .strip()
+        .upper()
+    )
 
-    if not re.fullmatch(r"G[A-Z2-7]{55}", address):
+    if not re.fullmatch(
+        r"G[A-Z2-7]{55}",
+        address,
+    ):
         return jsonify(
             error=(
                 "عنوان Stellar يجب أن يبدأ بـ G "
@@ -665,23 +1135,32 @@ def save_stellar_address():
 
     try:
         (
-            en96_bot.db.table("profiles")
-            .update({"stellar_public_address": address})
+            en96_bot.db
+            .table("profiles")
+            .update({
+                "stellar_public_address": address
+            })
             .eq("id", profile["id"])
             .execute()
         )
 
         rows = (
-            en96_bot.db.table("profiles")
-            .select("stellar_public_address")
+            en96_bot.db
+            .table("profiles")
+            .select(
+                "stellar_public_address"
+            )
             .eq("id", profile["id"])
-            .limit(1).execute().data or []
+            .limit(1)
+            .execute()
+            .data or []
         )
 
         if (
             not rows
-            or rows[0].get("stellar_public_address")
-            != address
+            or rows[0].get(
+                "stellar_public_address"
+            ) != address
         ):
             return jsonify(
                 error="لم يؤكد الخادم حفظ العنوان."
@@ -689,19 +1168,22 @@ def save_stellar_address():
 
         return jsonify(
             success=True,
-            stellar_public_address=address
+            stellar_public_address=address,
         )
 
     except Exception:
-        log.exception("Stellar save error")
+        log.exception(
+            "Stellar save error"
+        )
+
         return jsonify(
             error="تعذر حفظ عنوان Stellar."
         ), 500
 
 
-# ======================================
+# ==========================================
 # TAP STATUS
-# ======================================
+# ==========================================
 
 @app.get("/api/tap/status")
 def tap_status():
@@ -712,10 +1194,15 @@ def tap_status():
 
     try:
         rows = (
-            en96_bot.db.table("en96_tap_cycles")
-            .select("period_start,taps,earned")
+            en96_bot.db
+            .table("en96_tap_cycles")
+            .select(
+                "period_start,taps,earned"
+            )
             .eq("user_id", profile["id"])
-            .limit(1).execute().data or []
+            .limit(1)
+            .execute()
+            .data or []
         )
 
         taps = 0
@@ -723,15 +1210,27 @@ def tap_status():
         reset_at = None
 
         if rows:
-            started = parse_utc(rows[0]["period_start"])
-            end_time = started.timestamp() + DURATION
+            started = parse_utc(
+                rows[0]["period_start"]
+            )
+
+            end_time = (
+                started.timestamp()
+                + DURATION
+            )
 
             if time.time() < end_time:
-                taps = int(rows[0].get("taps") or 0)
-                earned = str(rows[0].get("earned") or 0)
+                taps = int(
+                    rows[0].get("taps") or 0
+                )
+
+                earned = str(
+                    rows[0].get("earned") or 0
+                )
+
                 reset_at = datetime.fromtimestamp(
                     end_time,
-                    tz=timezone.utc
+                    tz=timezone.utc,
                 ).isoformat()
 
         wallet = wallet_for(profile)
@@ -739,29 +1238,38 @@ def tap_status():
         return jsonify({
             "status": (
                 "limit_reached"
-                if taps >= TAP_LIMIT else "ready"
+                if taps >= TAP_LIMIT
+                else "ready"
             ),
             "taps": taps,
-            "remaining": max(0, TAP_LIMIT - taps),
+            "remaining": max(
+                0,
+                TAP_LIMIT - taps,
+            ),
             "daily_taps": TAP_LIMIT,
             "earned": earned,
-            "daily_reward": str(TAP_DAILY_REWARD),
+            "daily_reward": str(
+                TAP_DAILY_REWARD
+            ),
             "reset_at": reset_at,
             "available": str(
                 wallet.get("available") or 0
-            )
+            ),
         })
 
     except Exception:
-        log.exception("Tap status error")
+        log.exception(
+            "Tap status error"
+        )
+
         return jsonify(
             error="تعذر تحميل عداد النقر."
         ), 500
 
 
-# ======================================
+# ==========================================
 # TAP ACTION
-# ======================================
+# ==========================================
 
 @app.post("/api/tap")
 def tap_action():
@@ -770,7 +1278,9 @@ def tap_action():
     if failure:
         return failure
 
-    payload = request.get_json(silent=True)
+    payload = request.get_json(
+        silent=True
+    )
 
     if not isinstance(payload, dict):
         return jsonify(
@@ -785,8 +1295,14 @@ def tap_action():
         ), 400
 
     try:
-        request_id = str(UUID(raw_id))
-    except (ValueError, AttributeError):
+        request_id = str(
+            UUID(raw_id)
+        )
+
+    except (
+        ValueError,
+        AttributeError,
+    ):
         return jsonify(
             error="معرّف النقرة غير صالح."
         ), 400
@@ -797,19 +1313,24 @@ def tap_action():
                 "en96_tap_action",
                 {
                     "p_telegram_id": user["id"],
-                    "p_request_id": request_id
-                }
+                    "p_request_id": request_id,
+                },
             ).execute()
         )
 
         state = result.get("status")
 
-        if state in ("ok", "duplicate"):
+        if state in (
+            "ok",
+            "duplicate",
+        ):
             try:
                 wallet = wallet_for(profile)
+
                 result["available"] = str(
                     wallet.get("available") or 0
                 )
+
             except Exception:
                 log.warning(
                     "Tap accepted but wallet refresh failed"
@@ -820,87 +1341,157 @@ def tap_action():
         if state == "too_fast":
             return jsonify(
                 **result,
-                error="النقر سريع جدًا."
+                error="النقر سريع جدًا.",
             ), 429
 
         if state == "limit_reached":
             return jsonify(
                 **result,
-                error="اكتملت 3650 نقرة لهذه الدورة."
+                error="اكتملت 3650 نقرة لهذه الدورة.",
             ), 429
 
         return jsonify(
             status=state,
-            error="لم تؤكد قاعدة البيانات النقرة."
+            error="لم تؤكد قاعدة البيانات النقرة.",
         ), 409
 
     except Exception:
-        log.exception("Tap action error")
+        log.exception(
+            "Tap action error"
+        )
+
         return jsonify(
             error="تعذر تسجيل النقرة."
         ), 500
 
 
-# ======================================
-# ADMIN-ONLY STELLAR DEPOSIT VERIFICATION
-# READ ONLY - NO MINTING OR DATABASE WRITES
-# ======================================
+# ==========================================
+# ADMIN-ONLY STELLAR VERIFICATION
+# READ ONLY - NO MINTING
+# ==========================================
 
 @app.post("/api/admin/stellar/verify-deposit")
 def admin_verify_stellar_deposit():
     user, auth_error = telegram_user()
+
     if auth_error:
-        return jsonify(error=auth_error), 401
+        return jsonify(
+            error=auth_error
+        ), 401
 
-    admin_id = os.getenv("ADMIN_TELEGRAM_ID", "8721009110")
-    if not hmac.compare_digest(user["id"], admin_id):
-        return jsonify(error="غير مصرح لك بالوصول."), 403
+    admin_id = os.getenv(
+        "ADMIN_TELEGRAM_ID",
+        "8721009110",
+    )
 
-    if request.content_length is not None and request.content_length > 2048:
-        return jsonify(error="حجم الطلب كبير جدًا."), 413
-
-    payload = request.get_json(silent=True)
-    if not isinstance(payload, dict):
-        return jsonify(error="بيانات الطلب غير صالحة."), 400
-
-    tx_hash = payload.get("stellar_tx_hash")
-    op_index = payload.get("operation_index")
-    if not isinstance(tx_hash, str) or not re.fullmatch(
-        r"[0-9a-fA-F]{64}", tx_hash
+    if not hmac.compare_digest(
+        user["id"],
+        admin_id,
     ):
-        return jsonify(error="معرّف معاملة Stellar غير صالح."), 400
+        return jsonify(
+            error="غير مصرح لك بالوصول."
+        ), 403
 
-    if type(op_index) is not int or not 0 <= op_index <= 10000:
-        return jsonify(error="رقم العملية غير صالح."), 400
+    if (
+        request.content_length is not None
+        and request.content_length > 2048
+    ):
+        return jsonify(
+            error="حجم الطلب كبير جدًا."
+        ), 413
+
+    payload = request.get_json(
+        silent=True
+    )
+
+    if not isinstance(payload, dict):
+        return jsonify(
+            error="بيانات الطلب غير صالحة."
+        ), 400
+
+    tx_hash = payload.get(
+        "stellar_tx_hash"
+    )
+
+    op_index = payload.get(
+        "operation_index"
+    )
+
+    if (
+        not isinstance(tx_hash, str)
+        or not re.fullmatch(
+            r"[0-9a-fA-F]{64}",
+            tx_hash,
+        )
+    ):
+        return jsonify(
+            error="معرّف معاملة Stellar غير صالح."
+        ), 400
+
+    if (
+        type(op_index) is not int
+        or not 0 <= op_index <= 10000
+    ):
+        return jsonify(
+            error="رقم العملية غير صالح."
+        ), 400
 
     try:
-        result = verify_deposit(tx_hash, op_index)
-        return jsonify(success=True, read_only=True, deposit=result)
+        result = verify_deposit(
+            tx_hash,
+            op_index,
+        )
+
+        return jsonify(
+            success=True,
+            read_only=True,
+            deposit=result,
+        )
+
     except StellarVerificationError as exc:
-        return jsonify(success=False, error=str(exc)), 422
+        return jsonify(
+            success=False,
+            error=str(exc),
+        ), 422
+
     except Exception:
-        log.exception("Admin Stellar deposit verification failed")
-        return jsonify(error="تعذر التحقق من المعاملة الآن."), 503
+        log.exception(
+            "Admin Stellar deposit verification failed"
+        )
+
+        return jsonify(
+            error="تعذر التحقق من المعاملة الآن."
+        ), 503
 
 
-# ======================================
+# ==========================================
 # STELLAR TOML
-# ======================================
+# ==========================================
 
 @app.get("/.well-known/stellar.toml")
 def stellar_toml():
-    path = BASE / ".well-known" / "stellar.toml"
+    path = (
+        BASE
+        / ".well-known"
+        / "stellar.toml"
+    )
 
     if not path.is_file():
         return Response(
             "stellar.toml not found",
             status=404,
-            content_type="text/plain; charset=utf-8"
+            content_type=(
+                "text/plain; charset=utf-8"
+            ),
         )
 
     response = Response(
-        path.read_text(encoding="utf-8"),
-        content_type="text/plain; charset=utf-8"
+        path.read_text(
+            encoding="utf-8"
+        ),
+        content_type=(
+            "text/plain; charset=utf-8"
+        ),
     )
 
     response.headers[
@@ -914,9 +1505,9 @@ def stellar_toml():
     return response
 
 
-# ======================================
+# ==========================================
 # TELEGRAM BOT
-# ======================================
+# ==========================================
 
 def run_bot():
     try:
@@ -924,13 +1515,13 @@ def run_bot():
 
         log.info(
             "Telegram bot ready: @%s",
-            me.username
+            me.username,
         )
 
         en96_bot.bot.infinity_polling(
             skip_pending=True,
             timeout=30,
-            long_polling_timeout=30
+            long_polling_timeout=30,
         )
 
     except Exception:
@@ -939,19 +1530,22 @@ def run_bot():
         )
 
 
-# ======================================
+# ==========================================
 # START SERVER
-# ======================================
+# ==========================================
 
 if __name__ == "__main__":
     threading.Thread(
         target=run_bot,
-        daemon=True
+        daemon=True,
     ).start()
 
     app.run(
         host="0.0.0.0",
         port=int(
-            os.environ.get("PORT", "10000")
-        )
-    )
+            os.environ.get(
+                "PORT",
+                "10000",
+            )
+        ),
+    ) 
