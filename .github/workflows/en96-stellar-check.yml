@@ -51,7 +51,7 @@ jobs:
           sudo apt-get install -y postgresql-client ca-certificates
           python -c "import psycopg; print('PASS: psycopg installed')"
 
-      - name: Run EN96 Stellar safety tests v0.9
+      - name: Run EN96 Stellar watcher safety tests v0.9.1
         run: |
           python -m unittest -v test_stellar_bridge_watcher.py
 
@@ -400,7 +400,7 @@ jobs:
               conn.close()
           PY
 
-      - name: Run EN96 Stellar watcher version 0.9
+      - name: Run EN96 Stellar watcher version 0.9.1
         run: |
           python - <<'PY'
           import os
@@ -411,7 +411,7 @@ jobs:
               [sys.executable, "stellar_bridge_watcher.py"],
               capture_output=True,
               text=True,
-              env=os.environ.copy()
+              env=os.environ.copy(),
           )
 
           output = result.stdout + result.stderr
@@ -421,25 +421,40 @@ jobs:
               result.stderr,
               end="",
               file=sys.stderr,
-              flush=True
+              flush=True,
           )
 
           if result.returncode == 0:
-              print("PASS: Watcher completed successfully")
-              sys.exit(0)
+              required_success = (
+                  "Deposit recording: DISABLED",
+                  "PASS: EN96 asset verified",
+                  "PASS: Escrow trustline verified",
+                  "Checkpoint:",
+                  "History end reached:",
+                  "BNB minting: DISABLED",
+                  "Validator signing: DISABLED",
+                  "Stellar payouts: DISABLED",
+              )
+
+              if all(item in output for item in required_success):
+                  print("PASS: Watcher completed safely")
+                  sys.exit(0)
+
+              print("FAIL: Missing expected safety output")
+              sys.exit(1)
 
           expected = (
               "RuntimeError: Recording disabled. "
-              "Manual review required."
+              "Manual deposit review required."
           )
 
           required = (
               "Deposit recording: DISABLED",
               "PASS: EN96 asset verified",
               "PASS: Escrow trustline verified",
-              "NOTICE: Deposits detected:",
+              "Deposits detected on page:",
               "Checkpoint not advanced",
-              expected
+              expected,
           )
 
           if (
