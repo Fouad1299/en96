@@ -1,7 +1,7 @@
 
 """
 EN96 Ice Bear Kingdom
-Stellar Bridge Watcher - Safety Tests v0.9
+Stellar Bridge Watcher - Safety Tests v0.9.1
 
 Synthetic tests only:
 - No real Horizon requests
@@ -10,7 +10,6 @@ Synthetic tests only:
 - No BNB minting
 """
 
-import copy
 import os
 import unittest
 from datetime import datetime, timezone
@@ -31,7 +30,6 @@ ESCROW = watcher.ESCROW_ACCOUNT
 ISSUER = watcher.ASSET_ISSUER
 
 TIMESTAMP = "2026-11-10T12:00:00Z"
-
 OPERATION_ID = "123456789"
 PAGING_TOKEN = "123456789"
 
@@ -92,7 +90,7 @@ def make_deposit():
         "stellar_ledger": 12345,
         "stellar_created_at": datetime(
             2026, 11, 10, 12, 0,
-            tzinfo=timezone.utc
+            tzinfo=timezone.utc,
         ),
         "status": "observed",
     }
@@ -140,7 +138,7 @@ def fake_horizon(path, params=None):
 
 
 class FakeConnection:
-    """Tracks transactions without using a database."""
+    """Tracks transactions without a real database."""
 
     def __init__(self):
         self.saved_tokens = []
@@ -154,7 +152,7 @@ class FakeConnection:
         self.rollbacks += 1
 
 
-class TestEN96Watcher09(unittest.TestCase):
+class TestEN96Watcher091(unittest.TestCase):
 
     def test_correct_en96_payment_detected(self):
         self.assertTrue(
@@ -226,7 +224,7 @@ class TestEN96Watcher09(unittest.TestCase):
         )
         self.assertEqual(
             result["stellar_operation_id"],
-            OPERATION_ID
+            OPERATION_ID,
         )
         self.assertEqual(
             result["amount"], Decimal("5")
@@ -244,7 +242,9 @@ class TestEN96Watcher09(unittest.TestCase):
             ),
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(make_payment())
+                watcher.verify_deposit(
+                    make_payment()
+                )
 
     def test_transaction_hash_mismatch_rejected(self):
         with patch.object(
@@ -255,7 +255,9 @@ class TestEN96Watcher09(unittest.TestCase):
             ),
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(make_payment())
+                watcher.verify_deposit(
+                    make_payment()
+                )
 
     def test_operation_amount_mismatch_rejected(self):
         altered = make_payment()
@@ -267,11 +269,14 @@ class TestEN96Watcher09(unittest.TestCase):
             return make_records([altered])
 
         with patch.object(
-            watcher, "get_json",
-            side_effect=response
+            watcher,
+            "get_json",
+            side_effect=response,
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(make_payment())
+                watcher.verify_deposit(
+                    make_payment()
+                )
 
     def test_operation_id_mismatch_rejected(self):
         altered = make_payment()
@@ -283,14 +288,19 @@ class TestEN96Watcher09(unittest.TestCase):
             return make_records([altered])
 
         with patch.object(
-            watcher, "get_json",
-            side_effect=response
+            watcher,
+            "get_json",
+            side_effect=response,
         ):
             with self.assertRaises(RuntimeError):
-                watcher.verify_deposit(make_payment())
+                watcher.verify_deposit(
+                    make_payment()
+                )
 
     def test_recording_disabled_by_default(self):
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(
+            os.environ, {}, clear=True
+        ):
             self.assertFalse(
                 watcher.check_features()
             )
@@ -344,48 +354,73 @@ class TestEN96Watcher09(unittest.TestCase):
     def test_record_deposit_insert_success(self):
         deposit = make_deposit()
         conn = MagicMock()
-        cursor = conn.cursor.return_value.__enter__.return_value
+
+        cursor = (
+            conn.cursor.return_value
+            .__enter__.return_value
+        )
         cursor.fetchone.return_value = (42,)
 
-        result = watcher.record_deposit(conn, deposit)
+        result = watcher.record_deposit(
+            conn, deposit
+        )
 
         self.assertTrue(result)
-        self.assertEqual(cursor.execute.call_count, 1)
+        self.assertEqual(
+            cursor.execute.call_count, 1
+        )
 
         sql = cursor.execute.call_args.args[0]
 
         self.assertIn(
             "INSERT INTO public.en96_bridge_deposits",
-            sql
+            sql,
         )
-        self.assertIn("'observed', NULL, false", sql)
-        self.assertIn("ON CONFLICT DO NOTHING", sql)
+        self.assertIn(
+            "'observed', NULL, false", sql
+        )
+        self.assertIn(
+            "ON CONFLICT DO NOTHING", sql
+        )
 
         conn.commit.assert_not_called()
 
     def test_duplicate_deposit_is_idempotent(self):
         deposit = make_deposit()
         conn = MagicMock()
-        cursor = conn.cursor.return_value.__enter__.return_value
+
+        cursor = (
+            conn.cursor.return_value
+            .__enter__.return_value
+        )
 
         cursor.fetchone.side_effect = [
             None,
             make_existing_row(deposit),
         ]
 
-        result = watcher.record_deposit(conn, deposit)
+        result = watcher.record_deposit(
+            conn, deposit
+        )
 
         self.assertFalse(result)
-        self.assertEqual(cursor.execute.call_count, 2)
+        self.assertEqual(
+            cursor.execute.call_count, 2
+        )
         conn.commit.assert_not_called()
 
     def test_conflicting_deposit_rejected(self):
         deposit = make_deposit()
-        existing = list(make_existing_row(deposit))
+        existing = list(
+            make_existing_row(deposit)
+        )
         existing[7] = Decimal("999")
 
         conn = MagicMock()
-        cursor = conn.cursor.return_value.__enter__.return_value
+        cursor = (
+            conn.cursor.return_value
+            .__enter__.return_value
+        )
 
         cursor.fetchone.side_effect = [
             None,
@@ -393,13 +428,18 @@ class TestEN96Watcher09(unittest.TestCase):
         ]
 
         with self.assertRaises(RuntimeError):
-            watcher.record_deposit(conn, deposit)
+            watcher.record_deposit(
+                conn, deposit
+            )
 
         conn.commit.assert_not_called()
 
     def test_inaccessible_conflict_rejected(self):
         conn = MagicMock()
-        cursor = conn.cursor.return_value.__enter__.return_value
+        cursor = (
+            conn.cursor.return_value
+            .__enter__.return_value
+        )
 
         cursor.fetchone.side_effect = [
             None,
@@ -608,6 +648,57 @@ class TestEN96Watcher09(unittest.TestCase):
         self.assertTrue(ended)
         self.assertEqual(conn.commits, 1)
         save.assert_called_once()
+
+    # ==========================================
+    # NEW SAFETY TEST v0.9.1
+    # Non-deposit pages must never advance
+    # the checkpoint when recording is disabled.
+    # ==========================================
+
+    def test_non_deposit_page_does_not_advance_checkpoint_when_disabled(self):
+        conn = FakeConnection()
+
+        other_operation = {
+            "id": "123456790",
+            "paging_token": "123456790",
+            "type": "manage_data",
+        }
+
+        with (
+            patch.object(
+                watcher,
+                "read_checkpoint",
+                return_value="123456789",
+            ),
+            patch.object(
+                watcher,
+                "get_json",
+                return_value=make_records(
+                    [other_operation]
+                ),
+            ),
+            patch.object(
+                watcher,
+                "save_checkpoint",
+            ) as save,
+            patch.object(
+                watcher,
+                "record_deposit",
+            ) as record,
+        ):
+            scanned, recorded, ended = (
+                watcher.scan_escrow(conn, False)
+            )
+
+        self.assertEqual(scanned, 1)
+        self.assertEqual(recorded, 0)
+        self.assertTrue(ended)
+
+        save.assert_not_called()
+        record.assert_not_called()
+
+        self.assertEqual(conn.commits, 0)
+        self.assertEqual(conn.rollbacks, 0)
 
 
 if __name__ == "__main__":
