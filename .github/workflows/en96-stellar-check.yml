@@ -586,3 +586,6 @@ jobs:
           echo "Validator signing remains disabled"
           echo "Stellar payouts remain disabled"
           echo "No Stellar transfers performed by this workflow"
+      - name: Verify EN96 Stellar reserve evidence
+        run: |
+          python en96_reserve_proof_provider.py
