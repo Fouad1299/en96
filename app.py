@@ -1535,7 +1535,15 @@ def run_bot():
 # ==========================================
 
 if __name__ == "__main__":
+      from en96_reserve_monitor import run_monitor
+
     threading.Thread(
+        target=run_monitor,
+        daemon=True,
+        name="EN96-Reserve-Monitor",
+    ).start()
+
+  threading.Thread(
         target=run_bot,
         daemon=True,
     ).start()
