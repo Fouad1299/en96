@@ -1534,6 +1534,25 @@ def run_bot():
 # START SERVER
 # ==========================================
 
+@app.get("/api/reserve-proof")
+def en96_reserve_proof():
+    try:
+        from en96_reserve_proof_provider import build_report
+
+        report = build_report()
+        response = jsonify(report)
+        response.headers["Cache-Control"] = "no-store"
+        return response, 200
+
+    except Exception:
+        log.exception("EN96 reserve proof failed")
+        return jsonify({
+            "status": "VERIFICATION_ERROR",
+            "error": "Reserve evidence is temporarily unavailable.",
+            "mint_authorized": False
+        }), 503
+
+
 if __name__ == "__main__":
     from en96_reserve_monitor import run_monitor
 
@@ -1546,14 +1565,10 @@ if __name__ == "__main__":
     threading.Thread(
         target=run_bot,
         daemon=True,
+        name="EN96-Telegram-Bot",
     ).start()
 
     app.run(
         host="0.0.0.0",
-        port=int(
-            os.environ.get(
-                "PORT",
-                "10000",
-            )
-        ),
+        port=int(os.environ.get("PORT", "10000")),
     )
