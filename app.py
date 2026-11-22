@@ -1535,7 +1535,7 @@ def run_bot():
 # ==========================================
 
 if __name__ == "__main__":
-      from en96_reserve_monitor import run_monitor
+    from en96_reserve_monitor import run_monitor
 
     threading.Thread(
         target=run_monitor,
@@ -1556,4 +1556,4 @@ if __name__ == "__main__":
                 "10000",
             )
         ),
-    ) 
+    )
