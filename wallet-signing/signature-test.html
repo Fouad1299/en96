@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EN96 Validator Signature Test</title>
+<style>
+body {
+    background: #090e18;
+    color: #eac568;
+    font-family: Arial, sans-serif;
+    padding: 40px;
+}
+.panel {
+    max-width: 700px;
+    margin: auto;
+    padding: 30px;
+    background: #111827;
+    border: 1px solid #eac568;
+    border-radius: 20px;
+    text-align: center;
+}
+button {
+    background: #eac568;
+    color: #000;
+    border: 0;
+    padding: 16px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+pre {
+    color: white;
+    text-align: left;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+</style>
+</head>
+<body>
+
+<div class="panel">
+<h1>EN96 ICE BEAR KINGDOM</h1>
+<h2>Validator 2 - Signature Test</h2>
+<p>BNB Smart Chain - Mainnet</p>
+<button id="test">Sign Test Message</button>
+<pre id="result">Waiting for validator...</pre>
+</div>
+
+<script>
+const expected =
+    "0xcb48f41a5e3a93f704584e46cbfcadb7776d7332";
+
+const result = document.getElementById("result");
+const button = document.getElementById("test");
+
+button.onclick = async () => {
+    button.disabled = true;
+
+    try {
+        const provider =
+            window.binancew3w?.ethereum ||
+            window.BinanceChain ||
+            window.ethereum;
+
+        if (!provider?.request) {
+            throw new Error("Binance Wallet not detected");
+        }
+
+        const accounts = await provider.request({
+            method: "eth_requestAccounts"
+        });
+
+        const account = accounts[0]?.toLowerCase();
+
+        if (account !== expected) {
+            throw new Error("Select My Wallet 4");
+        }
+
+        const chainId = await provider.request({
+            method: "eth_chainId"
+        });
+
+        if (Number(chainId) !== 56) {
+            throw new Error("Select BNB Smart Chain");
+        }
+
+        const nonce = Array.from(
+            crypto.getRandomValues(new Uint8Array(16)),
+            b => b.toString(16).padStart(2, "0")
+        ).join("");
+
+        const message =
+            "EN96 LOCAL VALIDATOR TEST\n" +
+            "No transfer or mint authorization\n" +
+            "Validator: " + account + "\n" +
+            "Chain ID: 56\n" +
+            "Nonce: " + nonce + "\n" +
+            "Time: " + new Date().toISOString();
+
+        const hex = "0x" + Array.from(
+            new TextEncoder().encode(message),
+            b => b.toString(16).padStart(2, "0")
+        ).join("");
+
+        result.textContent =
+            "Waiting for wallet signature...";
+
+        const signature = await provider.request({
+            method: "personal_sign",
+            params: [hex, account]
+        });
+
+        result.textContent =
+            "SIGNATURE RECEIVED\n\n" +
+            "Validator: 2\n" +
+            "Address: " + account + "\n\n" +
+            "Message:\n" + message + "\n\n" +
+            "Signature:\n" + signature + "\n\n" +
+            "Independent verification: REQUIRED\n" +
+            "Minting: DISABLED\n" +
+            "Transfers: DISABLED";
+
+    } catch (error) {
+        result.textContent =
+            "ERROR: " + error.message;
+    } finally {
+        button.disabled = false;
+    }
+};
+</script>
+
+</body>
+</html>

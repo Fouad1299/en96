@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EN96 Validator Portal</title>
+<style>
+body {
+    background: #080d18;
+    color: #eac66b;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 50px 20px;
+}
+.panel {
+    max-width: 650px;
+    margin: auto;
+    padding: 30px;
+    border: 1px solid #eac66b;
+    border-radius: 18px;
+    background: #111827;
+}
+button {
+    background: #eac66b;
+    color: #080d18;
+    border: 0;
+    padding: 16px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: white;
+    text-align: left;
+}
+</style>
+</head>
+<body>
+<div class="panel">
+<h1>EN96 ICE BEAR KINGDOM</h1>
+<h2>Validator Portal</h2>
+<p>BNB Smart Chain - Mainnet</p>
+<button id="connect">Connect Binance Wallet</button>
+<pre id="result">Waiting for wallet...</pre>
+</div>
+<script>
+const validators = [
+    "0xb80e51b464c8d2df43b353e0dc094c023d5e3c82",
+    "0xcb48f41a5e3a93f704584e46cbfcadb7776d7332",
+    "0xfc8bc13106c3c827427d40f64fc1926a35739d66"
+];
+
+const result = document.getElementById("result");
+
+document.getElementById("connect").onclick = async () => {
+    try {
+        const provider = window.binancew3w?.ethereum
+            || window.ethereum;
+
+        if (!provider || !provider.request) {
+            throw new Error("Wallet provider not detected");
+        }
+
+        const accounts = await provider.request({
+            method: "eth_requestAccounts"
+        });
+
+        const chainId = await provider.request({
+            method: "eth_chainId"
+        });
+
+        if (Number(chainId) !== 56) {
+            throw new Error("Select BNB Smart Chain Mainnet");
+        }
+
+        if (!accounts.length) {
+            throw new Error("No wallet connected");
+        }
+
+        const account = accounts[0].toLowerCase();
+        const index = validators.indexOf(account);
+
+        result.textContent =
+            "Chain ID: 56\n" +
+            "Address: " + account + "\n" +
+            "Validator: " +
+            (index >= 0 ? index + 1 : "NOT AUTHORIZED") +
+            "\nSigning: DISABLED" +
+            "\nTransfers: DISABLED";
+
+    } catch (error) {
+        result.textContent = "ERROR: " + error.message;
+    }
+};
+</script>
+</body>
+</html>
