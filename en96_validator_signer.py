@@ -2,7 +2,8 @@
 """
 EN96 Ice Bear Kingdom
 Classic Stellar -> BNB Smart Chain
-Validator preparation - SAFE MODE
+Validator preparation V3
+NO SOROBAN - SAFE MODE
 """
 
 import json
@@ -11,13 +12,24 @@ import time
 from decimal import Decimal, InvalidOperation
 
 from en96_stellar_verifier import verify_deposit
+from en96_bnb_bridge_reader import read_bridge_status
+
 
 CHAIN_ID = 56
+
 DOMAIN_NAME = "EN96BridgeV3"
 DOMAIN_VERSION = "1"
 
 BRIDGE_ADDRESS = (
     "0x376edf142106274fe7db370475aa761f1ec0bc21"
+)
+
+EXPECTED_ISSUER = (
+    "GCUGIICUGBFC3KBPIFYAMPNA7OVJHGY277TNYTZUSG7EVVUCVACH3OGB"
+)
+
+EXPECTED_RESERVE = (
+    "GCLZAUUMJHXSEGO5KQEIX5IMEVW3766CRG5TFR4PPUKTR5JUYXJDFM4O"
 )
 
 DECIMALS = 7
@@ -40,7 +52,7 @@ STELLAR_TX_HASH = re.compile(
 
 
 # ==========================================
-# ADDRESS VALIDATION
+# VALIDATION
 # ==========================================
 
 def validate_address(value):
@@ -102,10 +114,6 @@ def require_integer(
     return value
 
 
-# ==========================================
-# EN96 AMOUNT VALIDATION
-# ==========================================
-
 def en96_to_units(amount):
 
     try:
@@ -147,7 +155,68 @@ def en96_to_units(amount):
 
 
 # ==========================================
-# EIP-712 DATA CONSTRUCTION
+# READ BNB BRIDGE STATE
+# ==========================================
+
+def verify_bridge_state():
+
+    state = read_bridge_status()
+
+    if state.get("status") != "OK":
+        raise ValueError(
+            "BNB bridge status is not OK"
+        )
+
+    if state.get("chain_id") != CHAIN_ID:
+        raise ValueError(
+            "Wrong BNB network"
+        )
+
+    if state.get("bridge_address") != BRIDGE_ADDRESS:
+        raise ValueError(
+            "Unexpected bridge address"
+        )
+
+    if state.get("contract_exists") is not True:
+        raise ValueError(
+            "Bridge contract not found"
+        )
+
+    if state.get("validators_match") is not True:
+        raise ValueError(
+            "Validator configuration mismatch"
+        )
+
+    epoch = require_integer(
+        state.get("validator_epoch"),
+        "validator_epoch",
+        1,
+        2**256 - 1,
+    )
+
+    outstanding = require_integer(
+        state.get("outstanding_units"),
+        "outstanding_units",
+        0,
+        MAX_SUPPLY_UNITS,
+    )
+
+    if type(state.get("bridge_paused")) is not bool:
+        raise ValueError(
+            "Invalid bridge pause status"
+        )
+
+    return {
+        "validator_epoch": epoch,
+        "outstanding_units": outstanding,
+        "bridge_paused": state["bridge_paused"],
+        "validators": state["validators"],
+        "block_number": state["block_number"],
+    }
+
+
+# ==========================================
+# EIP-712 TYPED DATA
 # ==========================================
 
 def prepare_deposit_typed_data(
@@ -159,14 +228,6 @@ def prepare_deposit_typed_data(
     deadline,
     validator_epoch,
 ):
-
-    """
-    Low-level EIP-712 preparation.
-
-    This function does not authorize signing.
-    Use prepare_verified_deposit for Stellar
-    verification before preparing a request.
-    """
 
     bridge = validate_address(
         bridge_address
@@ -281,23 +342,14 @@ def prepare_deposit_typed_data(
 
 
 # ==========================================
-# VERIFIED STELLAR DEPOSIT PREPARATION
+# VERIFIED DEPOSIT PREPARATION
 # ==========================================
 
 def prepare_verified_deposit(
     stellar_tx_hash,
     operation_index,
-    validator_epoch,
+    validator_epoch=None,
 ):
-
-    """
-    Verify a classic Stellar deposit using Horizon.
-
-    Recipient and amount are obtained exclusively
-    from the verified Stellar transaction.
-
-    No private keys, signing or minting.
-    """
 
     tx_hash = validate_transaction_hash(
         stellar_tx_hash
@@ -310,12 +362,7 @@ def prepare_verified_deposit(
         0,
     )
 
-    validator_epoch = require_integer(
-        validator_epoch,
-        "validator_epoch",
-        1,
-        2**256 - 1,
-    )
+    # Verify the original Stellar payment.
 
     deposit = verify_deposit(
         tx_hash[2:],
@@ -342,6 +389,16 @@ def prepare_verified_deposit(
     if deposit.get("asset_code") != "EN96":
         raise ValueError(
             "Unexpected asset"
+        )
+
+    if deposit.get("asset_issuer") != EXPECTED_ISSUER:
+        raise ValueError(
+            "Unexpected EN96 issuer"
+        )
+
+    if deposit.get("stellar_vault") != EXPECTED_RESERVE:
+        raise ValueError(
+            "Unexpected Stellar reserve"
         )
 
     if deposit.get("bnb_chain_id") != CHAIN_ID:
@@ -390,6 +447,40 @@ def prepare_verified_deposit(
             "Verified amount mismatch"
         )
 
+    # Read validator epoch directly from BNB.
+
+    bridge_state = verify_bridge_state()
+
+    current_epoch = bridge_state[
+        "validator_epoch"
+    ]
+
+    # Preserve compatibility with older callers.
+
+    if validator_epoch is not None:
+
+        require_integer(
+            validator_epoch,
+            "validator_epoch",
+            1,
+            2**256 - 1,
+        )
+
+        if validator_epoch != current_epoch:
+            raise ValueError(
+                "Validator epoch mismatch"
+            )
+
+    projected_outstanding = (
+        bridge_state["outstanding_units"]
+        + amount_units
+    )
+
+    if projected_outstanding > MAX_SUPPLY_UNITS:
+        raise ValueError(
+            "Bridge outstanding limit exceeded"
+        )
+
     deadline = (
         int(time.time())
         + SIGNATURE_VALIDITY_SECONDS
@@ -402,7 +493,7 @@ def prepare_verified_deposit(
         recipient=recipient,
         amount_en96=deposit["amount"],
         deadline=deadline,
-        validator_epoch=validator_epoch,
+        validator_epoch=current_epoch,
     )
 
     return {
@@ -411,22 +502,32 @@ def prepare_verified_deposit(
         "stellar_tx_hash": tx_hash,
         "operation_index": operation_index,
         "stellar_sender": deposit["stellar_sender"],
-        "stellar_reserve": deposit["stellar_vault"],
+        "stellar_reserve": EXPECTED_RESERVE,
+        "asset_issuer": EXPECTED_ISSUER,
         "bnb_recipient": recipient,
         "amount_en96": deposit["amount"],
         "amount_units": amount_units,
         "deposit_key": deposit["deposit_key"],
         "chain_id": CHAIN_ID,
         "bridge_address": BRIDGE_ADDRESS,
-        "validator_epoch": validator_epoch,
-        "validator_epoch_onchain_verified": False,
+        "bridge_paused": bridge_state["bridge_paused"],
+        "bnb_block_number": bridge_state["block_number"],
+        "validators": bridge_state["validators"],
+        "validator_epoch": current_epoch,
+        "validator_epoch_onchain_verified": True,
+        "outstanding_units": bridge_state[
+            "outstanding_units"
+        ],
+        "projected_outstanding_units": (
+            projected_outstanding
+        ),
         "deadline": deadline,
         "typed_data": typed_data,
         "custody_lock_proven": False,
         "replay_check_completed": False,
         "reserve_coverage_verified": False,
-        "signing_enabled": False,
-        "minting_enabled": False,
+        "signing_enabled": SIGNING_ENABLED,
+        "minting_enabled": MINTING_ENABLED,
         "mint_authorized": False,
     }
 
@@ -443,13 +544,17 @@ def security_status():
         "chain_id": CHAIN_ID,
         "contract": DOMAIN_NAME,
         "bridge_address": BRIDGE_ADDRESS,
+        "stellar_issuer": EXPECTED_ISSUER,
+        "stellar_reserve": EXPECTED_RESERVE,
         "decimals": DECIMALS,
         "max_supply_en96": "90000000000",
         "max_deposit_en96": "1000000",
         "validator_threshold_target": "2 of 3",
+        "validator_epoch_source": "BNB_MAINNET",
         "custody_type": "classic_stellar_account",
         "soroban_enabled": False,
         "stellar_verification": "CONNECTED",
+        "bnb_bridge_reader": "CONNECTED",
         "recipient_source": "STELLAR_MEMO_HASH",
         "signature_validity_seconds": (
             SIGNATURE_VALIDITY_SECONDS
@@ -463,9 +568,32 @@ def security_status():
 
 if __name__ == "__main__":
 
-    print(
-        json.dumps(
-            security_status(),
-            indent=2,
+    try:
+
+        result = security_status()
+
+        result["bridge_state"] = (
+            verify_bridge_state()
         )
-    )
+
+        print(
+            json.dumps(
+                result,
+                indent=2,
+            )
+        )
+
+    except Exception as exc:
+
+        print(
+            json.dumps(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                    "mint_authorized": False,
+                },
+                indent=2,
+            )
+        )
+
+        raise SystemExit(1)
